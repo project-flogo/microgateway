@@ -1,0 +1,9 @@
+{
+  "name": "mashling",
+  "type": "flogo:action",
+  "ref": "github.com/project-flogo/microgateway",
+  "version": "0.0.1",
+  "title": "Mashling Gateway Action",
+  "description": "Action implementing the Mashling Microgateway features.",
+  "homepage": "https://github.com/project-flogo/microgateway"
+}
