@@ -8,6 +8,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/data"
+	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/support/logger"
 	mservice "github.com/project-flogo/microgateway/internal/pkg/model/v2/action/service"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/types"
@@ -175,29 +178,99 @@ func evaluateTruthiness(condition string, vm *mservice.VM) (truthy bool, err err
 	return truthy, err
 }
 
+type serviceContext struct {
+	name    string
+	Inputs  map[string]interface{} `json:"inputs"`
+	Outputs map[string]interface{} `json:"outputs"`
+}
+
+func newServiceContext(def types.Service) *serviceContext {
+	inputs := make(map[string]interface{}, len(def.Settings))
+	for k, v := range def.Settings {
+		inputs[k] = v
+	}
+	return &serviceContext{
+		name:    def.Name,
+		Inputs:  inputs,
+		Outputs: make(map[string]interface{}),
+	}
+}
+
+func (s *serviceContext) Merge(inputs map[string]interface{}) {
+	for k, v := range inputs {
+		s.Inputs[k] = v
+	}
+}
+
+func (s *serviceContext) ActivityHost() activity.Host {
+	return s
+}
+
+func (s *serviceContext) Name() string {
+	return s.name
+}
+
+func (s *serviceContext) GetInput(name string) interface{} {
+	return s.Inputs[name]
+}
+
+func (s *serviceContext) SetOutput(name string, value interface{}) error {
+	s.Outputs[name] = value
+	return nil
+}
+
+func (s *serviceContext) GetInputObject(input data.StructValue) error {
+	return input.FromMap(s.Inputs)
+}
+
+func (s *serviceContext) SetOutputObject(output data.StructValue) error {
+	s.Outputs = output.ToMap()
+	return nil
+}
+
+func (s *serviceContext) GetSharedTempData() map[string]interface{} {
+	return nil
+}
+
+func (s *serviceContext) ID() string {
+	return ""
+}
+
+func (s *serviceContext) IOMetadata() *metadata.IOMetadata {
+	return nil
+}
+
+func (s *serviceContext) Reply(replyData map[string]interface{}, err error) {
+
+}
+
+func (s *serviceContext) Return(returnData map[string]interface{}, err error) {
+
+}
+
+func (s *serviceContext) Scope() data.Scope {
+	return nil
+}
+
 func invokeService(serviceDef types.Service, executionContext *map[string]interface{}, input map[string]interface{}, vm *mservice.VM) (err error) {
 	log.Info("invoking service type: ", serviceDef.Type)
 	// TODO: Translate service definition variables.
-	serviceInstance, err := mservice.Initialize(serviceDef)
-	if err != nil {
-		return err
-	}
+	ctxt := newServiceContext(serviceDef)
 	defer func() {
-		vmErr := vm.SetInVM(serviceDef.Name, serviceInstance)
+		vmErr := vm.SetInVM(serviceDef.Name, ctxt)
 		if vmErr != nil {
 			err = vmErr
 		}
 	}()
-	(*executionContext)[serviceDef.Name] = &serviceInstance
+	(*executionContext)[serviceDef.Name] = ctxt
 	values, mErr := translateMappings(executionContext, input)
 	if mErr != nil {
 		return mErr
 	}
-	err = serviceInstance.UpdateRequest(values)
-	if err != nil {
-		return err
-	}
-	err = serviceInstance.Execute()
+
+	ctxt.Merge(values)
+	act := activity.Get(serviceDef.Ref)
+	_, err = act.Eval(ctxt)
 	if err != nil {
 		return err
 	}

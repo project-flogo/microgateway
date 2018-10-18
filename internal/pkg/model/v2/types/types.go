@@ -66,6 +66,7 @@ type Output struct {
 // Service defines a functional target that may be invoked by a step in an execution flow.
 type Service struct {
 	Name        string                 `json:"name" jsonschema:"required"`
+	Ref         string                 `json:"ref" jsonschema:"required"`
 	Type        string                 `json:"type" jsonschema:"required"`
 	Description string                 `json:"description,omitempty"`
 	Settings    map[string]interface{} `json:"settings,omitempty" jsonschema:"additionalProperties"`
