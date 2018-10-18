@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/TIBCOSoftware/flogo-lib/logger"
+	"github.com/project-flogo/core/support/logger"
 	mservice "github.com/project-flogo/microgateway/internal/pkg/model/v2/action/service"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/types"
 	"github.com/project-flogo/microgateway/pkg/strings"

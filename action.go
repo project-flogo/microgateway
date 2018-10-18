@@ -1,13 +1,14 @@
-package mashling
+package microgateway
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 
-	"github.com/TIBCOSoftware/flogo-lib/app/resource"
-	"github.com/TIBCOSoftware/flogo-lib/core/action"
-	"github.com/TIBCOSoftware/flogo-lib/core/data"
+	"github.com/project-flogo/core/action"
+	"github.com/project-flogo/core/app/resource"
+	"github.com/project-flogo/core/data"
+	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/action/core"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/action/pattern"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/types"
@@ -17,14 +18,10 @@ const (
 	MashlingActionRef = "github.com/project-flogo/microgateway"
 )
 
-var (
-	defaultManager *MashlingManager
-)
-
 type MashlingAction struct {
 	mashlingURI   string
 	metadata      *action.Metadata
-	ioMetadata    *data.IOMetadata
+	ioMetadata    *metadata.IOMetadata
 	dispatch      types.Dispatch
 	services      []types.Service
 	pattern       string
@@ -40,44 +37,38 @@ type Data struct {
 }
 
 type MashlingManager struct {
-	resMashlings map[string]*Data
 }
 
 func init() {
-	action.RegisterFactory(MashlingActionRef, &Factory{})
-	defaultManager := &MashlingManager{}
-	defaultManager.resMashlings = make(map[string]*Data)
-	resource.RegisterManager("mashling", defaultManager)
+	action.Register(&MashlingAction{}, &Factory{})
+	resource.RegisterLoader("microgateway", &MashlingManager{})
 }
 
-func (mm *MashlingManager) LoadResource(config *resource.Config) error {
+func (mm *MashlingManager) LoadResource(config *resource.Config) (*resource.Resource, error) {
 
 	mashlingDefBytes := config.Data
 
 	var mashlingDefinition *Data
 	err := json.Unmarshal(mashlingDefBytes, &mashlingDefinition)
 	if err != nil {
-		return fmt.Errorf("error marshalling mashling definition resource with id '%s', %s", config.ID, err.Error())
+		return nil, fmt.Errorf("error marshalling mashling definition resource with id '%s', %s", config.ID, err.Error())
 	}
 
-	mm.resMashlings[config.ID] = mashlingDefinition
-	return nil
-}
-
-func (mm *MashlingManager) GetResource(id string) interface{} {
-	return mm.resMashlings[id]
+	return resource.New("microgateway", mashlingDefinition), nil
 }
 
 type Factory struct {
+	*resource.Manager
 }
 
-func (f *Factory) Init() error {
+func (f *Factory) Initialize(ctx action.InitContext) error {
+	f.Manager = ctx.ResourceManager()
 	return nil
 }
 
 func (f *Factory) New(config *action.Config) (action.Action, error) {
 	mAction := &MashlingAction{}
-	mAction.metadata = &action.Metadata{ID: config.Id}
+	mAction.metadata = &action.Metadata{}
 	var actionData *Data
 	err := json.Unmarshal(config.Data, &actionData)
 	if err != nil {
@@ -85,11 +76,11 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 	}
 	if actionData.MashlingURI != "" {
 		// Load action data from resources
-		resData, err := resource.Get(actionData.MashlingURI)
-		if err != nil {
+		resData := f.Manager.GetResource(actionData.MashlingURI)
+		if resData == nil {
 			return nil, fmt.Errorf("failed to load mashling URI data: '%s' error '%s'", config.Id, err.Error())
 		}
-		actionData = resData.(*Data)
+		actionData = resData.Object().(*Data)
 	}
 	// Extract configuration
 	mAction.configuration = actionData.Configuration
@@ -126,7 +117,7 @@ func (m *MashlingAction) Metadata() *action.Metadata {
 	return m.metadata
 }
 
-func (m *MashlingAction) IOMetadata() *data.IOMetadata {
+func (m *MashlingAction) IOMetadata() *metadata.IOMetadata {
 	return m.ioMetadata
 }
 
@@ -138,12 +129,12 @@ func (m *MashlingAction) Run(context context.Context, inputs map[string]*data.At
 
 	code, mData, err := core.ExecuteMashling(payload, m.configuration, m.dispatch.Routes, m.services)
 	output := make(map[string]*data.Attribute)
-	codeAttr, err := data.NewAttribute("code", data.TypeInteger, code)
+	codeAttr := data.NewAttribute("code", data.TypeInt, code)
 	if err != nil {
 		return nil, err
 	}
 	output["code"] = codeAttr
-	dataAttr, err := data.NewAttribute("data", data.TypeAny, mData)
+	dataAttr := data.NewAttribute("data", data.TypeAny, mData)
 	if err != nil {
 		return nil, err
 	}
