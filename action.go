@@ -7,7 +7,6 @@ import (
 
 	"github.com/project-flogo/core/action"
 	"github.com/project-flogo/core/app/resource"
-	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/action/core"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/action/pattern"
@@ -44,6 +43,8 @@ func init() {
 	resource.RegisterLoader("microgateway", &MashlingManager{})
 }
 
+var actionMetadata = action.ToMetadata(&Settings{}, &Input{}, &Output{})
+
 func (mm *MashlingManager) LoadResource(config *resource.Config) (*resource.Resource, error) {
 
 	mashlingDefBytes := config.Data
@@ -51,7 +52,7 @@ func (mm *MashlingManager) LoadResource(config *resource.Config) (*resource.Reso
 	var mashlingDefinition *Data
 	err := json.Unmarshal(mashlingDefBytes, &mashlingDefinition)
 	if err != nil {
-		return nil, fmt.Errorf("error marshalling mashling definition resource with id '%s', %s", config.ID, err.Error())
+		return nil, fmt.Errorf("error marshalling microgateway definition resource with id '%s', %s", config.ID, err.Error())
 	}
 
 	return resource.New("microgateway", mashlingDefinition), nil
@@ -68,17 +69,25 @@ func (f *Factory) Initialize(ctx action.InitContext) error {
 
 func (f *Factory) New(config *action.Config) (action.Action, error) {
 	mAction := &MashlingAction{}
-	mAction.metadata = &action.Metadata{}
+	mAction.metadata = actionMetadata
+
 	var actionData *Data
-	err := json.Unmarshal(config.Data, &actionData)
+	err := json.Unmarshal(config.Data, &config.Settings)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load mashling data: '%s' error '%s'", config.Id, err.Error())
+		return nil, fmt.Errorf("failed to load microgateway data: '%s' error '%s'", config.Id, err.Error())
 	}
-	if actionData.MashlingURI != "" {
+
+	s := &Settings{}
+	err = metadata.MapToStruct(config.Settings, s, true)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.URI != "" {
 		// Load action data from resources
-		resData := f.Manager.GetResource(actionData.MashlingURI)
+		resData := f.Manager.GetResource(s.URI)
 		if resData == nil {
-			return nil, fmt.Errorf("failed to load mashling URI data: '%s' error '%s'", config.Id, err.Error())
+			return nil, fmt.Errorf("failed to load microgateway URI data: '%s' error '%s'", config.Id, err.Error())
 		}
 		actionData = resData.Object().(*Data)
 	}
@@ -121,23 +130,11 @@ func (m *MashlingAction) IOMetadata() *metadata.IOMetadata {
 	return m.ioMetadata
 }
 
-func (m *MashlingAction) Run(context context.Context, inputs map[string]*data.Attribute) (map[string]*data.Attribute, error) {
-	payload := make(map[string]interface{})
-	for k, v := range inputs {
-		payload[k] = v.Value()
-	}
+func (m *MashlingAction) Run(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
+	code, mData, err := core.ExecuteMashling(input, m.configuration, m.dispatch.Routes, m.services)
+	output := make(map[string]interface{}, 8)
+	output["code"] = code
+	output["data"] = mData
 
-	code, mData, err := core.ExecuteMashling(payload, m.configuration, m.dispatch.Routes, m.services)
-	output := make(map[string]*data.Attribute)
-	codeAttr := data.NewAttribute("code", data.TypeInt, code)
-	if err != nil {
-		return nil, err
-	}
-	output["code"] = codeAttr
-	dataAttr := data.NewAttribute("data", data.TypeAny, mData)
-	if err != nil {
-		return nil, err
-	}
-	output["data"] = dataAttr
 	return output, err
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/project-flogo/microgateway/pkg/strings"
 )
 
-var log = logger.GetLogger("action-mashling")
+var log = logger.GetLogger("microgateway")
 
 func ExecuteMashling(payload interface{}, configuration map[string]interface{}, routes []types.Route, services []types.Service) (code int, output interface{}, err error) {
 	// Create services map
@@ -253,7 +253,7 @@ func (s *serviceContext) Scope() data.Scope {
 }
 
 func invokeService(serviceDef types.Service, executionContext *map[string]interface{}, input map[string]interface{}, vm *mservice.VM) (err error) {
-	log.Info("invoking service type: ", serviceDef.Type)
+	log.Info("invoking service: ", serviceDef.Ref)
 	// TODO: Translate service definition variables.
 	ctxt := newServiceContext(serviceDef)
 	defer func() {
@@ -270,6 +270,9 @@ func invokeService(serviceDef types.Service, executionContext *map[string]interf
 
 	ctxt.Merge(values)
 	act := activity.Get(serviceDef.Ref)
+	if act == nil {
+		return fmt.Errorf("can't find activity %s", serviceDef.Ref)
+	}
 	_, err = act.Eval(ctxt)
 	if err != nil {
 		return err
