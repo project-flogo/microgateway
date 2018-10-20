@@ -9,7 +9,10 @@ func init() {
 	activity.Register(&Activity{}, New)
 }
 
-var HasEvaled = false
+var (
+	Message   = ""
+	HasEvaled = false
+)
 
 var activityMetadata = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
 
@@ -39,9 +42,9 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 
-	HasEvaled = true
+	Message, HasEvaled = input.Message, true
 
-	output := &Output{}
+	output := &Output{Data: "1337"}
 	err = ctx.SetOutputObject(output)
 	if err != nil {
 		return false, err

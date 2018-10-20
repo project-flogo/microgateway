@@ -4,17 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data"
+	"github.com/project-flogo/core/data/expression"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/support/logger"
-	mservice "github.com/project-flogo/microgateway/internal/pkg/model/v2/action/service"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/types"
-	"github.com/project-flogo/microgateway/pkg/strings"
 )
 
 var log = logger.GetLogger("microgateway")
@@ -29,30 +27,24 @@ func ExecuteMashling(payload interface{}, configuration map[string]interface{}, 
 	// Route to be executed once it is identified by the conditional evaluation.
 	var routeToExecute *types.Route
 
-	// Setup conditional VM with defaults.
-	vmDefaults := make(map[string]interface{})
-	if payload != nil {
-		vmDefaults["payload"] = payload
-	}
-	vmDefaults["async"] = false
-	// Add ENV flags to the vmDefaults
+	// Contains all elements of request: right now just payload, environment flags and service instances.
 	envFlags := make(map[string]string)
 	for _, e := range os.Environ() {
 		pair := strings.Split(e, "=")
 		envFlags[pair[0]] = pair[1]
 	}
-	vmDefaults["env"] = envFlags
-	// Add configuration toe the vmDefaults
-	vmDefaults["conf"] = configuration
-	vm, err := mservice.NewVM(vmDefaults)
-	if err != nil {
-		return -1, nil, err
+	executionContext := map[string]interface{}{
+		"payload": payload,
+		"async":   false,
+		"env":     envFlags,
+		"conf":    configuration,
 	}
+	scope := data.NewSimpleScope(executionContext, nil)
 
 	// Evaluate route conditions to select which one to execute.
 	for _, route := range routes {
 		var truthiness bool
-		truthiness, err = evaluateTruthiness(route.Condition, vm)
+		truthiness, err = evaluateTruthiness(route.Condition, route.Expression, scope)
 		if err != nil {
 			continue
 		}
@@ -62,25 +54,15 @@ func ExecuteMashling(payload interface{}, configuration map[string]interface{}, 
 			break
 		}
 	}
-	// Contains all elements of request: right now just payload, environment flags and service instances.
-	executionContext := make(map[string]interface{})
-	executionContext["payload"] = &payload
-	executionContext["env"] = envFlags
-	executionContext["conf"] = &configuration
 
 	// Execute the identified route if it exists and handle the async option.
 	if routeToExecute != nil {
 		if routeToExecute.Async {
 			log.Info("executing route asynchronously")
-			vmDefaults["async"] = true
-			asyncVM, vmerr := mservice.NewVM(vmDefaults)
-			if vmerr != nil {
-				return -1, nil, vmerr
-			}
-			go executeRoute(routeToExecute, serviceMap, &executionContext, asyncVM)
-			vm.SetPrimitiveInVM("async", true)
+			executionContext["async"] = true
+			go executeRoute(routeToExecute, serviceMap, scope)
 		} else {
-			err = executeRoute(routeToExecute, serviceMap, &executionContext, vm)
+			err = executeRoute(routeToExecute, serviceMap, scope)
 		}
 		if err != nil {
 			log.Error("error executing route: ", err)
@@ -92,12 +74,13 @@ func ExecuteMashling(payload interface{}, configuration map[string]interface{}, 
 	if routeToExecute != nil {
 		for _, response := range routeToExecute.Responses {
 			var truthiness bool
-			truthiness, err = evaluateTruthiness(response.Condition, vm)
+			truthiness, err = evaluateTruthiness(response.Condition, response.Expression, scope)
 			if err != nil {
 				continue
 			}
 			if truthiness {
-				output, oErr := translateMappings(&executionContext, map[string]interface{}{"code": response.Output.Code})
+				output, oErr := translateMappings(scope, map[string]interface{}{"code": response.Output.Code},
+					map[string]expression.Expr{"code": response.Output.CodeExpression})
 				if oErr != nil {
 					return -1, nil, oErr
 				}
@@ -124,14 +107,14 @@ func ExecuteMashling(payload interface{}, configuration map[string]interface{}, 
 				}
 				// Translate data mappings
 				var data interface{}
-				nestedData, ok := response.Output.Data.(map[string]interface{})
-				if ok {
-					data, oErr = translateMappings(&executionContext, nestedData)
+				if response.Output.DataExpressions != nil {
+					data, oErr = translateMappings(scope, response.Output.Data.(map[string]interface{}), response.Output.DataExpressions)
 					if oErr != nil {
 						return -1, nil, oErr
 					}
-				} else {
-					interimData, dErr := translateMappings(&executionContext, map[string]interface{}{"data": response.Output.Data})
+				} else if response.Output.DataExpression != nil {
+					interimData, dErr := translateMappings(scope, map[string]interface{}{"data": response.Output.Data},
+						map[string]expression.Expr{"data": response.Output.DataExpression})
 					if dErr != nil {
 						return -1, nil, dErr
 					}
@@ -147,15 +130,15 @@ func ExecuteMashling(payload interface{}, configuration map[string]interface{}, 
 	return 404, nil, err
 }
 
-func executeRoute(route *types.Route, services map[string]types.Service, executionContext *map[string]interface{}, vm *mservice.VM) (err error) {
+func executeRoute(route *types.Route, services map[string]types.Service, scope data.Scope) (err error) {
 	for _, step := range route.Steps {
 		var truthiness bool
-		truthiness, err = evaluateTruthiness(step.Condition, vm)
+		truthiness, err = evaluateTruthiness(step.Condition, step.Expression, scope)
 		if err != nil {
 			return err
 		}
 		if truthiness {
-			err = invokeService(services[step.Service], executionContext, step.Input, vm)
+			err = invokeService(services[step.Service], scope, step.Input, step.InputExpression)
 			if err != nil {
 				return err
 			}
@@ -164,24 +147,34 @@ func executeRoute(route *types.Route, services map[string]types.Service, executi
 	return nil
 }
 
-func evaluateTruthiness(condition string, vm *mservice.VM) (truthy bool, err error) {
-	if condition == "" {
+func evaluateTruthiness(condition string, expr expression.Expr, scope data.Scope) (truthy bool, err error) {
+	if expr == nil {
 		log.Info("condition was empty and thus evaluates to true")
 		return true, nil
 	}
-	truthy, err = vm.EvaluateToBool(condition)
+	val, err := expr.Eval(scope)
 	if err != nil {
 		log.Infof("condition evaluation causes error so is false: %s", condition)
 		return false, err
 	}
+	if val == nil {
+		log.Infof("condition evaluation results in nil value so is false: %s", condition)
+		return false, errors.New("expression has nil value")
+	}
+	truthy, ok := val.(bool)
+	if !ok {
+		log.Infof("condition evaluation results in non-bool value so is false: %s", condition)
+		return false, errors.New("expression has a non-bool value")
+	}
+
 	log.Infof("condition evaluated to %t: %s", truthy, condition)
 	return truthy, err
 }
 
 type serviceContext struct {
 	name    string
-	Inputs  map[string]interface{} `json:"inputs"`
-	Outputs map[string]interface{} `json:"outputs"`
+	Inputs  map[string]interface{}
+	Outputs map[string]interface{}
 }
 
 func newServiceContext(def types.Service) *serviceContext {
@@ -199,6 +192,13 @@ func newServiceContext(def types.Service) *serviceContext {
 func (s *serviceContext) Merge(inputs map[string]interface{}) {
 	for k, v := range inputs {
 		s.Inputs[k] = v
+	}
+}
+
+func (s *serviceContext) Context() map[string]interface{} {
+	return map[string]interface{}{
+		"inputs":  s.Inputs,
+		"outputs": s.Outputs,
 	}
 }
 
@@ -252,18 +252,15 @@ func (s *serviceContext) Scope() data.Scope {
 	return nil
 }
 
-func invokeService(serviceDef types.Service, executionContext *map[string]interface{}, input map[string]interface{}, vm *mservice.VM) (err error) {
+func invokeService(serviceDef types.Service, scope data.Scope, input map[string]interface{}, inputExpression map[string]expression.Expr) (err error) {
 	log.Info("invoking service: ", serviceDef.Ref)
 	// TODO: Translate service definition variables.
 	ctxt := newServiceContext(serviceDef)
 	defer func() {
-		vmErr := vm.SetInVM(serviceDef.Name, ctxt)
-		if vmErr != nil {
-			err = vmErr
-		}
+		scope.SetValue(serviceDef.Name, ctxt.Context())
 	}()
-	(*executionContext)[serviceDef.Name] = ctxt
-	values, mErr := translateMappings(executionContext, input)
+	scope.SetValue(serviceDef.Name, ctxt.Context())
+	values, mErr := translateMappings(scope, input, inputExpression)
 	if mErr != nil {
 		return mErr
 	}
@@ -280,83 +277,20 @@ func invokeService(serviceDef types.Service, executionContext *map[string]interf
 	return nil
 }
 
-func translateMappings(executionContext *map[string]interface{}, mappings map[string]interface{}) (values map[string]interface{}, err error) {
+func translateMappings(scope data.Scope, input map[string]interface{}, mappings map[string]expression.Expr) (values map[string]interface{}, err error) {
 	values = make(map[string]interface{})
 	if len(mappings) == 0 {
 		return values, err
 	}
-	for fullKey, v := range mappings {
-		var convertedValue interface{}
-		switch value := v.(type) {
-		case string:
-			if strings.HasPrefix(value, "${") && strings.HasSuffix(value, "}") {
-				// this is a variable so we need to evaluate it.
-				value = strings.Replace(value, "${", "", 1)
-				convertedValue, err = getValueFromDotNotation(*executionContext, util.TrimSuffix(value, "}"))
-				if err != nil {
-					return values, err
-				}
-			} else {
-				convertedValue = value
-			}
-		default:
-			convertedValue = value
+	for fullKey, expr := range mappings {
+		value, err := expr.Eval(scope)
+		if err != nil {
+			log.Infof("mapping evaluation causes error: %s", input[fullKey])
+			return values, err
 		}
-		values[fullKey] = convertedValue
+		values[fullKey] = value
 	}
 	return expandMap(values), err
-}
-
-func getValueFromDotNotation(rootObject interface{}, fullPropertyName string) (interface{}, error) {
-	dotNames := strings.Split(fullPropertyName, ".")
-	var err error
-	for _, subPropertyName := range dotNames {
-		rootObject, err = getProperty(rootObject, subPropertyName)
-		if err != nil {
-			return nil, err
-		}
-		if rootObject == nil {
-			return nil, nil
-		}
-	}
-	return rootObject, nil
-}
-
-func getProperty(obj interface{}, property string) (interface{}, error) {
-	objKind := reflect.TypeOf(obj).Kind()
-	// Check for pointer
-	if objKind == reflect.Ptr {
-		obj = reflect.ValueOf(obj).Elem().Interface()
-		objKind = reflect.TypeOf(obj).Kind()
-	}
-	// Check if plain map
-	if objKind == reflect.Map {
-		val := reflect.ValueOf(obj)
-		valueOf := val.MapIndex(reflect.ValueOf(property))
-		if valueOf == reflect.Zero(reflect.ValueOf(property).Type()) {
-			return nil, nil
-		}
-		index := val.MapIndex(reflect.ValueOf(property))
-		if !index.IsValid() {
-			return nil, nil
-		}
-		return index.Interface(), nil
-	}
-	if !(objKind == reflect.Struct || objKind == reflect.Ptr) {
-		return nil, errors.New("can only get property fields from struct interfaces")
-	}
-	property = strings.Title(property)
-	var objValue reflect.Value
-	if objKind == reflect.Ptr {
-		objValue = reflect.ValueOf(obj).Elem()
-	} else {
-		objValue = reflect.ValueOf(obj)
-	}
-	propertyField := objValue.FieldByName(property)
-	if !propertyField.IsValid() {
-		return nil, fmt.Errorf("%s type has no property named %s", objKind, property)
-	}
-	return propertyField.Interface(), nil
 }
 
 // Turn dot notation map into nested map structure.

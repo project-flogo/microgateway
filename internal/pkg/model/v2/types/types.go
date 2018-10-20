@@ -1,5 +1,7 @@
 package types
 
+import "github.com/project-flogo/core/data/expression"
+
 // Schema contains schema version and configuration information for a gateway instance.
 type Schema struct {
 	Version string  `json:"mashling_schema" jsonschema:"required"`
@@ -37,30 +39,37 @@ type Dispatch struct {
 
 // Route conditionally defines an execution flow.
 type Route struct {
-	Condition string     `json:"if,omitempty"`
-	Async     bool       `json:"async,omitempty"`
-	Steps     []Step     `json:"steps" jsonschema:"required,minItems=1"`
-	Responses []Response `json:"responses,omitempty"`
+	Condition  string          `json:"if,omitempty"`
+	Async      bool            `json:"async,omitempty"`
+	Steps      []Step          `json:"steps" jsonschema:"required,minItems=1"`
+	Responses  []Response      `json:"responses,omitempty"`
+	Expression expression.Expr `json:"-"`
 }
 
 // Step conditionally defines a step in a route's execution flow.
 type Step struct {
-	Condition string                 `json:"if,omitempty"`
-	Service   string                 `json:"service" jsonschema:"required"`
-	Input     map[string]interface{} `json:"input,omitempty" jsonschema:"additionalProperties"`
+	Condition       string                     `json:"if,omitempty"`
+	Service         string                     `json:"service" jsonschema:"required"`
+	Input           map[string]interface{}     `json:"input,omitempty" jsonschema:"additionalProperties"`
+	Expression      expression.Expr            `json:"-"`
+	InputExpression map[string]expression.Expr `json:"-"`
 }
 
 // Response defines response handling rules.
 type Response struct {
-	Condition string `json:"if,omitempty"`
-	Error     bool   `json:"error" jsonschema:"required"`
-	Output    Output `json:"output,omitempty" jsonschema:"required"`
+	Condition  string          `json:"if,omitempty"`
+	Error      bool            `json:"error" jsonschema:"required"`
+	Output     Output          `json:"output,omitempty" jsonschema:"required"`
+	Expression expression.Expr `json:"-"`
 }
 
 // Output defines response output values back to a trigger event.
 type Output struct {
-	Code int         `json:"code,omitempty"`
-	Data interface{} `json:"data" jsonschema:"additionalProperties"`
+	Code            interface{}                `json:"code,omitempty"`
+	Data            interface{}                `json:"data" jsonschema:"additionalProperties"`
+	CodeExpression  expression.Expr            `json:"-"`
+	DataExpression  expression.Expr            `json:"-"`
+	DataExpressions map[string]expression.Expr `json:"-"`
 }
 
 // Service defines a functional target that may be invoked by a step in an execution flow.

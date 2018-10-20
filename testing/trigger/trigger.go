@@ -73,11 +73,10 @@ func (t *Trigger) Stop() error {
 	return nil
 }
 
-func Fire(h int, content interface{}) error {
+func Fire(h int, content interface{}) (map[string]interface{}, error) {
 	if h >= len(handlers) {
-		return fmt.Errorf("invalid handler %v", h)
+		return nil, fmt.Errorf("invalid handler %v", h)
 	}
 	output := &Output{Content: content}
-	_, err := handlers[h].handler.Handle(context.Background(), output.ToMap())
-	return err
+	return handlers[h].handler.Handle(context.Background(), output.ToMap())
 }

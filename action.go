@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/labstack/gommon/log"
 	"github.com/project-flogo/core/action"
 	"github.com/project-flogo/core/app/resource"
+	"github.com/project-flogo/core/data/expression"
 	"github.com/project-flogo/core/data/metadata"
+	"github.com/project-flogo/core/data/resolve"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/action/core"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/action/pattern"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/types"
@@ -117,6 +120,80 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		}
 		mAction.dispatch = pDef.Dispatch
 		mAction.services = pDef.Services
+	}
+
+	expressionFactory := expression.NewFactory(resolve.GetBasicResolver())
+	getExpression := func(value interface{}) (expression.Expr, error) {
+		if stringValue, ok := value.(string); ok && len(stringValue) > 0 && stringValue[0] == '=' {
+			expr, err := expressionFactory.NewExpr(stringValue[1:])
+			if err != nil {
+				return nil, err
+			}
+			return expr, nil
+		}
+		return expression.NewLiteralExpr(value), nil
+	}
+	routes := mAction.dispatch.Routes
+	for i := range routes {
+		if condition := routes[i].Condition; condition != "" {
+			expr, err := expressionFactory.NewExpr(condition)
+			if err != nil {
+				log.Infof("condition parsing error: %s", condition)
+				return nil, err
+			}
+			routes[i].Expression = expr
+		}
+		steps := routes[i].Steps
+		for j := range steps {
+			if condition := steps[j].Condition; condition != "" {
+				expr, err := expressionFactory.NewExpr(condition)
+				if err != nil {
+					log.Infof("condition parsing error: %s", condition)
+					return nil, err
+				}
+				steps[j].Expression = expr
+			}
+			input := steps[j].Input
+			inputExpression := make(map[string]expression.Expr, len(input))
+			for key, value := range input {
+				inputExpression[key], err = getExpression(value)
+				if err != nil {
+					return nil, err
+				}
+			}
+			steps[j].InputExpression = inputExpression
+		}
+		responses := routes[i].Responses
+		for j := range responses {
+			if condition := responses[j].Condition; condition != "" {
+				expr, err := expressionFactory.NewExpr(condition)
+				if err != nil {
+					log.Infof("condition parsing error: %s", condition)
+					return nil, err
+				}
+				responses[j].Expression = expr
+			}
+			responses[j].Output.CodeExpression, err = getExpression(responses[j].Output.Code)
+			if err != nil {
+				return nil, err
+			}
+			data := responses[j].Output.Data
+			if hashMap, ok := data.(map[string]interface{}); ok {
+				dataExpressions := make(map[string]expression.Expr, len(hashMap))
+				for key, value := range hashMap {
+					dataExpressions[key], err = getExpression(value)
+					if err != nil {
+						return nil, err
+					}
+				}
+				responses[j].Output.DataExpressions = dataExpressions
+			} else {
+				responses[j].Output.DataExpression, err = getExpression(data)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
 	}
 
 	return mAction, nil

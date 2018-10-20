@@ -25,12 +25,21 @@ func (r *Input) ToMap() map[string]interface{} {
 }
 
 type Output struct {
+	Data string `md:data,required"`
 }
 
 func (o *Output) FromMap(values map[string]interface{}) error {
+	value, err := coerce.ToString(values["data"])
+	if err != nil {
+		return err
+	}
+	o.Data = value
+	return nil
 	return nil
 }
 
 func (o *Output) ToMap() map[string]interface{} {
-	return map[string]interface{}{}
+	return map[string]interface{}{
+		"data": o.Data,
+	}
 }
