@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/project-flogo/core/api"
-	_ "github.com/project-flogo/core/data/expression/script"
 	"github.com/project-flogo/microgateway/testing/activity"
 	"github.com/project-flogo/microgateway/testing/trigger"
 	"github.com/stretchr/testify/assert"
@@ -64,7 +63,7 @@ func TestMicrogateway(t *testing.T) {
 	settings := map[string]interface{}{
 		"uri": "microgateway:Test",
 	}
-	action, err := handler.NewAction(&MashlingAction{}, settings)
+	action, err := handler.NewAction(&Action{}, settings)
 	assert.Nil(t, err)
 	action.SetCondition(`$.content.a == "b"`)
 

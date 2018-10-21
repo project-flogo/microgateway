@@ -7,8 +7,11 @@ import (
 
 	"github.com/labstack/gommon/log"
 	"github.com/project-flogo/core/action"
+	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/app/resource"
 	"github.com/project-flogo/core/data/expression"
+	_ "github.com/project-flogo/core/data/expression/script"
+	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/data/resolve"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/action/core"
@@ -16,16 +19,13 @@ import (
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/types"
 )
 
-const (
-	MashlingActionRef = "github.com/project-flogo/microgateway"
-)
-
-type MashlingAction struct {
+type Action struct {
 	mashlingURI   string
 	metadata      *action.Metadata
 	ioMetadata    *metadata.IOMetadata
 	dispatch      types.Dispatch
 	services      []types.Service
+	serviceCache  map[string]*types.Service
 	pattern       string
 	configuration map[string]interface{}
 }
@@ -38,31 +38,42 @@ type Data struct {
 	Configuration map[string]interface{} `json:"configuration"`
 }
 
-type MashlingManager struct {
+type Manager struct {
 }
 
 func init() {
-	action.Register(&MashlingAction{}, &Factory{})
-	resource.RegisterLoader("microgateway", &MashlingManager{})
+	action.Register(&Action{}, &Factory{})
+	resource.RegisterLoader("microgateway", &Manager{})
 }
 
 var actionMetadata = action.ToMetadata(&Settings{}, &Input{}, &Output{})
 
-func (mm *MashlingManager) LoadResource(config *resource.Config) (*resource.Resource, error) {
+func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, error) {
+	data := config.Data
 
-	mashlingDefBytes := config.Data
-
-	var mashlingDefinition *Data
-	err := json.Unmarshal(mashlingDefBytes, &mashlingDefinition)
+	var definition *Data
+	err := json.Unmarshal(data, &definition)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling microgateway definition resource with id '%s', %s", config.ID, err.Error())
 	}
 
-	return resource.New("microgateway", mashlingDefinition), nil
+	return resource.New("microgateway", definition), nil
 }
 
 type Factory struct {
 	*resource.Manager
+}
+
+type initContext struct {
+	settings map[string]interface{}
+}
+
+func (i *initContext) Settings() map[string]interface{} {
+	return i.settings
+}
+
+func (i *initContext) MapperFactory() mapper.Factory {
+	return nil
 }
 
 func (f *Factory) Initialize(ctx action.InitContext) error {
@@ -71,8 +82,8 @@ func (f *Factory) Initialize(ctx action.InitContext) error {
 }
 
 func (f *Factory) New(config *action.Config) (action.Action, error) {
-	mAction := &MashlingAction{}
-	mAction.metadata = actionMetadata
+	act := &Action{}
+	act.metadata = actionMetadata
 
 	var actionData *Data
 	err := json.Unmarshal(config.Data, &config.Settings)
@@ -95,10 +106,10 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		actionData = resData.Object().(*Data)
 	}
 	// Extract configuration
-	mAction.configuration = actionData.Configuration
+	act.configuration = actionData.Configuration
 	// Extract pattern
-	mAction.pattern = actionData.Pattern
-	if mAction.pattern == "" {
+	act.pattern = actionData.Pattern
+	if act.pattern == "" {
 		// Parse routes
 		var dispatch types.Dispatch
 		err = json.Unmarshal(actionData.Dispatch, &dispatch)
@@ -111,15 +122,15 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		if err != nil {
 			return nil, err
 		}
-		mAction.dispatch = dispatch
-		mAction.services = services
+		act.dispatch = dispatch
+		act.services = services
 	} else {
-		pDef, err := pattern.Load(mAction.pattern)
+		pDef, err := pattern.Load(act.pattern)
 		if err != nil {
 			return nil, err
 		}
-		mAction.dispatch = pDef.Dispatch
-		mAction.services = pDef.Services
+		act.dispatch = pDef.Dispatch
+		act.services = pDef.Services
 	}
 
 	expressionFactory := expression.NewFactory(resolve.GetBasicResolver())
@@ -133,7 +144,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		}
 		return expression.NewLiteralExpr(value), nil
 	}
-	routes := mAction.dispatch.Routes
+	routes := act.dispatch.Routes
 	for i := range routes {
 		if condition := routes[i].Condition; condition != "" {
 			expr, err := expressionFactory.NewExpr(condition)
@@ -196,19 +207,44 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		}
 	}
 
-	return mAction, nil
+	serviceCache := make(map[string]*types.Service, len(act.services))
+	for i := range act.services {
+		name := act.services[i].Name
+		if _, ok := serviceCache[name]; ok {
+			return nil, fmt.Errorf("duplicate service name: %s", name)
+		}
+		ref := act.services[i].Ref
+		if factory := activity.GetFactory(ref); factory != nil {
+			actvt, err := factory(&initContext{settings: act.services[i].Settings})
+			if err != nil {
+				return nil, err
+			}
+			act.services[i].Activity = actvt
+			serviceCache[name] = &act.services[i]
+			continue
+		}
+		actvt := activity.Get(ref)
+		if actvt == nil {
+			return nil, fmt.Errorf("can't find activity %s", ref)
+		}
+		act.services[i].Activity = actvt
+		serviceCache[name] = &act.services[i]
+	}
+	act.serviceCache = serviceCache
+
+	return act, nil
 }
 
-func (m *MashlingAction) Metadata() *action.Metadata {
+func (m *Action) Metadata() *action.Metadata {
 	return m.metadata
 }
 
-func (m *MashlingAction) IOMetadata() *metadata.IOMetadata {
+func (m *Action) IOMetadata() *metadata.IOMetadata {
 	return m.ioMetadata
 }
 
-func (m *MashlingAction) Run(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
-	code, mData, err := core.ExecuteMashling(input, m.configuration, m.dispatch.Routes, m.services)
+func (m *Action) Run(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
+	code, mData, err := core.Execute(input, m.configuration, m.dispatch.Routes, m.serviceCache)
 	output := make(map[string]interface{}, 8)
 	output["code"] = code
 	output["data"] = mData

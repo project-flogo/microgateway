@@ -2,7 +2,6 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -17,13 +16,8 @@ import (
 
 var log = logger.GetLogger("microgateway")
 
-func ExecuteMashling(payload interface{}, configuration map[string]interface{}, routes []types.Route, services []types.Service) (code int, output interface{}, err error) {
-	// Create services map
-	serviceMap := make(map[string]types.Service)
-	for _, service := range services {
-		serviceMap[service.Name] = service
-	}
-
+func Execute(payload interface{}, configuration map[string]interface{}, routes []types.Route,
+	serviceCache map[string]*types.Service) (code int, output interface{}, err error) {
 	// Route to be executed once it is identified by the conditional evaluation.
 	var routeToExecute *types.Route
 
@@ -60,9 +54,9 @@ func ExecuteMashling(payload interface{}, configuration map[string]interface{}, 
 		if routeToExecute.Async {
 			log.Info("executing route asynchronously")
 			executionContext["async"] = true
-			go executeRoute(routeToExecute, serviceMap, scope)
+			go executeRoute(routeToExecute, serviceCache, scope)
 		} else {
-			err = executeRoute(routeToExecute, serviceMap, scope)
+			err = executeRoute(routeToExecute, serviceCache, scope)
 		}
 		if err != nil {
 			log.Error("error executing route: ", err)
@@ -130,7 +124,7 @@ func ExecuteMashling(payload interface{}, configuration map[string]interface{}, 
 	return 404, nil, err
 }
 
-func executeRoute(route *types.Route, services map[string]types.Service, scope data.Scope) (err error) {
+func executeRoute(route *types.Route, serviceCache map[string]*types.Service, scope data.Scope) (err error) {
 	for _, step := range route.Steps {
 		var truthiness bool
 		truthiness, err = evaluateTruthiness(step.Condition, step.Expression, scope)
@@ -138,7 +132,7 @@ func executeRoute(route *types.Route, services map[string]types.Service, scope d
 			return err
 		}
 		if truthiness {
-			err = invokeService(services[step.Service], scope, step.Input, step.InputExpression)
+			err = invokeService(serviceCache[step.Service], scope, step.Input, step.InputExpression)
 			if err != nil {
 				return err
 			}
@@ -177,7 +171,7 @@ type serviceContext struct {
 	Outputs map[string]interface{}
 }
 
-func newServiceContext(def types.Service) *serviceContext {
+func newServiceContext(def *types.Service) *serviceContext {
 	inputs := make(map[string]interface{}, len(def.Settings))
 	for k, v := range def.Settings {
 		inputs[k] = v
@@ -252,7 +246,7 @@ func (s *serviceContext) Scope() data.Scope {
 	return nil
 }
 
-func invokeService(serviceDef types.Service, scope data.Scope, input map[string]interface{}, inputExpression map[string]expression.Expr) (err error) {
+func invokeService(serviceDef *types.Service, scope data.Scope, input map[string]interface{}, inputExpression map[string]expression.Expr) (err error) {
 	log.Info("invoking service: ", serviceDef.Ref)
 	// TODO: Translate service definition variables.
 	ctxt := newServiceContext(serviceDef)
@@ -266,11 +260,7 @@ func invokeService(serviceDef types.Service, scope data.Scope, input map[string]
 	}
 
 	ctxt.Merge(values)
-	act := activity.Get(serviceDef.Ref)
-	if act == nil {
-		return fmt.Errorf("can't find activity %s", serviceDef.Ref)
-	}
-	_, err = act.Eval(ctxt)
+	_, err = serviceDef.Activity.Eval(ctxt)
 	if err != nil {
 		return err
 	}

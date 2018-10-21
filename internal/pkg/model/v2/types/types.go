@@ -1,6 +1,9 @@
 package types
 
-import "github.com/project-flogo/core/data/expression"
+import (
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/data/expression"
+)
 
 // Schema contains schema version and configuration information for a gateway instance.
 type Schema struct {
@@ -79,6 +82,7 @@ type Service struct {
 	Type        string                 `json:"type" jsonschema:"required"`
 	Description string                 `json:"description,omitempty"`
 	Settings    map[string]interface{} `json:"settings,omitempty" jsonschema:"additionalProperties"`
+	Activity    activity.Activity      `json:"-"`
 }
 
 // Handler maps a trigger and settings to a specific dispatch
