@@ -10,7 +10,7 @@ import (
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/support/logger"
-	"github.com/project-flogo/microgateway/internal/pkg/model/v2/types"
+	"github.com/project-flogo/microgateway/internal/types"
 )
 
 var log = logger.GetLogger("microgateway")

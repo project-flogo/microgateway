@@ -14,9 +14,9 @@ import (
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/data/resolve"
-	"github.com/project-flogo/microgateway/internal/pkg/model/v2/action/core"
-	"github.com/project-flogo/microgateway/internal/pkg/model/v2/action/pattern"
-	"github.com/project-flogo/microgateway/internal/pkg/model/v2/types"
+	"github.com/project-flogo/microgateway/internal/core"
+	"github.com/project-flogo/microgateway/internal/pattern"
+	"github.com/project-flogo/microgateway/internal/types"
 )
 
 type Action struct {

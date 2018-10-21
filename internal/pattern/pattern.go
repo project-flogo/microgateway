@@ -5,7 +5,7 @@ package pattern
 import (
 	"encoding/json"
 
-	"github.com/project-flogo/microgateway/internal/pkg/model/v2/types"
+	"github.com/project-flogo/microgateway/internal/types"
 )
 
 type PatternDefinition struct {
