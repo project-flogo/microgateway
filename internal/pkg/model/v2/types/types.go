@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/project-flogo/core/activity"
-	"github.com/project-flogo/core/data/expression"
 )
 
 // Schema contains schema version and configuration information for a gateway instance.
@@ -42,44 +41,43 @@ type Dispatch struct {
 
 // Route conditionally defines an execution flow.
 type Route struct {
-	Condition  string          `json:"if,omitempty"`
-	Async      bool            `json:"async,omitempty"`
-	Steps      []Step          `json:"steps" jsonschema:"required,minItems=1"`
-	Responses  []Response      `json:"responses,omitempty"`
-	Expression expression.Expr `json:"-"`
+	Condition  string     `json:"if,omitempty"`
+	Async      bool       `json:"async,omitempty"`
+	Steps      []Step     `json:"steps" jsonschema:"required,minItems=1"`
+	Responses  []Response `json:"responses,omitempty"`
+	Expression *Expr      `json:"-"`
 }
 
 // Step conditionally defines a step in a route's execution flow.
 type Step struct {
-	Condition       string                     `json:"if,omitempty"`
-	Service         string                     `json:"service" jsonschema:"required"`
-	Input           map[string]interface{}     `json:"input,omitempty" jsonschema:"additionalProperties"`
-	Expression      expression.Expr            `json:"-"`
-	InputExpression map[string]expression.Expr `json:"-"`
+	Condition       string                 `json:"if,omitempty"`
+	Service         string                 `json:"service" jsonschema:"required"`
+	Input           map[string]interface{} `json:"input,omitempty" jsonschema:"additionalProperties"`
+	Expression      *Expr                  `json:"-"`
+	InputExpression map[string]*Expr       `json:"-"`
 }
 
 // Response defines response handling rules.
 type Response struct {
-	Condition  string          `json:"if,omitempty"`
-	Error      bool            `json:"error" jsonschema:"required"`
-	Output     Output          `json:"output,omitempty" jsonschema:"required"`
-	Expression expression.Expr `json:"-"`
+	Condition  string `json:"if,omitempty"`
+	Error      bool   `json:"error" jsonschema:"required"`
+	Output     Output `json:"output,omitempty" jsonschema:"required"`
+	Expression *Expr  `json:"-"`
 }
 
 // Output defines response output values back to a trigger event.
 type Output struct {
-	Code            interface{}                `json:"code,omitempty"`
-	Data            interface{}                `json:"data" jsonschema:"additionalProperties"`
-	CodeExpression  expression.Expr            `json:"-"`
-	DataExpression  expression.Expr            `json:"-"`
-	DataExpressions map[string]expression.Expr `json:"-"`
+	Code            interface{}      `json:"code,omitempty"`
+	Data            interface{}      `json:"data" jsonschema:"additionalProperties"`
+	CodeExpression  *Expr            `json:"-"`
+	DataExpression  *Expr            `json:"-"`
+	DataExpressions map[string]*Expr `json:"-"`
 }
 
 // Service defines a functional target that may be invoked by a step in an execution flow.
 type Service struct {
 	Name        string                 `json:"name" jsonschema:"required"`
 	Ref         string                 `json:"ref" jsonschema:"required"`
-	Type        string                 `json:"type" jsonschema:"required"`
 	Description string                 `json:"description,omitempty"`
 	Settings    map[string]interface{} `json:"settings,omitempty" jsonschema:"additionalProperties"`
 	Activity    activity.Activity      `json:"-"`

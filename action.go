@@ -134,15 +134,15 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 	}
 
 	expressionFactory := expression.NewFactory(resolve.GetBasicResolver())
-	getExpression := func(value interface{}) (expression.Expr, error) {
+	getExpression := func(value interface{}) (*types.Expr, error) {
 		if stringValue, ok := value.(string); ok && len(stringValue) > 0 && stringValue[0] == '=' {
 			expr, err := expressionFactory.NewExpr(stringValue[1:])
 			if err != nil {
 				return nil, err
 			}
-			return expr, nil
+			return types.NewExpr(stringValue, expr), nil
 		}
-		return expression.NewLiteralExpr(value), nil
+		return types.NewExpr(fmt.Sprintf("%v", value), expression.NewLiteralExpr(value)), nil
 	}
 	routes := act.dispatch.Routes
 	for i := range routes {
@@ -152,7 +152,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 				log.Infof("condition parsing error: %s", condition)
 				return nil, err
 			}
-			routes[i].Expression = expr
+			routes[i].Expression = types.NewExpr(condition, expr)
 		}
 		steps := routes[i].Steps
 		for j := range steps {
@@ -162,10 +162,10 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 					log.Infof("condition parsing error: %s", condition)
 					return nil, err
 				}
-				steps[j].Expression = expr
+				steps[j].Expression = types.NewExpr(condition, expr)
 			}
 			input := steps[j].Input
-			inputExpression := make(map[string]expression.Expr, len(input))
+			inputExpression := make(map[string]*types.Expr, len(input))
 			for key, value := range input {
 				inputExpression[key], err = getExpression(value)
 				if err != nil {
@@ -182,7 +182,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 					log.Infof("condition parsing error: %s", condition)
 					return nil, err
 				}
-				responses[j].Expression = expr
+				responses[j].Expression = types.NewExpr(condition, expr)
 			}
 			responses[j].Output.CodeExpression, err = getExpression(responses[j].Output.Code)
 			if err != nil {
@@ -190,7 +190,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			}
 			data := responses[j].Output.Data
 			if hashMap, ok := data.(map[string]interface{}); ok {
-				dataExpressions := make(map[string]expression.Expr, len(hashMap))
+				dataExpressions := make(map[string]*types.Expr, len(hashMap))
 				for key, value := range hashMap {
 					dataExpressions[key], err = getExpression(value)
 					if err != nil {

@@ -8,7 +8,6 @@ import (
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data"
-	"github.com/project-flogo/core/data/expression"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/support/logger"
 	"github.com/project-flogo/microgateway/internal/pkg/model/v2/types"
@@ -38,7 +37,7 @@ func Execute(payload interface{}, configuration map[string]interface{}, routes [
 	// Evaluate route conditions to select which one to execute.
 	for _, route := range routes {
 		var truthiness bool
-		truthiness, err = evaluateTruthiness(route.Condition, route.Expression, scope)
+		truthiness, err = evaluateTruthiness(route.Expression, scope)
 		if err != nil {
 			continue
 		}
@@ -68,13 +67,12 @@ func Execute(payload interface{}, configuration map[string]interface{}, routes [
 	if routeToExecute != nil {
 		for _, response := range routeToExecute.Responses {
 			var truthiness bool
-			truthiness, err = evaluateTruthiness(response.Condition, response.Expression, scope)
+			truthiness, err = evaluateTruthiness(response.Expression, scope)
 			if err != nil {
 				continue
 			}
 			if truthiness {
-				output, oErr := translateMappings(scope, map[string]interface{}{"code": response.Output.Code},
-					map[string]expression.Expr{"code": response.Output.CodeExpression})
+				output, oErr := translateMappings(scope, map[string]*types.Expr{"code": response.Output.CodeExpression})
 				if oErr != nil {
 					return -1, nil, oErr
 				}
@@ -102,13 +100,12 @@ func Execute(payload interface{}, configuration map[string]interface{}, routes [
 				// Translate data mappings
 				var data interface{}
 				if response.Output.DataExpressions != nil {
-					data, oErr = translateMappings(scope, response.Output.Data.(map[string]interface{}), response.Output.DataExpressions)
+					data, oErr = translateMappings(scope, response.Output.DataExpressions)
 					if oErr != nil {
 						return -1, nil, oErr
 					}
-				} else if response.Output.DataExpression != nil {
-					interimData, dErr := translateMappings(scope, map[string]interface{}{"data": response.Output.Data},
-						map[string]expression.Expr{"data": response.Output.DataExpression})
+				} else {
+					interimData, dErr := translateMappings(scope, map[string]*types.Expr{"data": response.Output.DataExpression})
 					if dErr != nil {
 						return -1, nil, dErr
 					}
@@ -127,12 +124,12 @@ func Execute(payload interface{}, configuration map[string]interface{}, routes [
 func executeRoute(route *types.Route, serviceCache map[string]*types.Service, scope data.Scope) (err error) {
 	for _, step := range route.Steps {
 		var truthiness bool
-		truthiness, err = evaluateTruthiness(step.Condition, step.Expression, scope)
+		truthiness, err = evaluateTruthiness(step.Expression, scope)
 		if err != nil {
 			return err
 		}
 		if truthiness {
-			err = invokeService(serviceCache[step.Service], scope, step.Input, step.InputExpression)
+			err = invokeService(serviceCache[step.Service], scope, step.InputExpression)
 			if err != nil {
 				return err
 			}
@@ -141,27 +138,27 @@ func executeRoute(route *types.Route, serviceCache map[string]*types.Service, sc
 	return nil
 }
 
-func evaluateTruthiness(condition string, expr expression.Expr, scope data.Scope) (truthy bool, err error) {
+func evaluateTruthiness(expr *types.Expr, scope data.Scope) (truthy bool, err error) {
 	if expr == nil {
 		log.Info("condition was empty and thus evaluates to true")
 		return true, nil
 	}
 	val, err := expr.Eval(scope)
 	if err != nil {
-		log.Infof("condition evaluation causes error so is false: %s", condition)
+		log.Infof("condition evaluation causes error so is false: %s", expr)
 		return false, err
 	}
 	if val == nil {
-		log.Infof("condition evaluation results in nil value so is false: %s", condition)
+		log.Infof("condition evaluation results in nil value so is false: %s", expr)
 		return false, errors.New("expression has nil value")
 	}
 	truthy, ok := val.(bool)
 	if !ok {
-		log.Infof("condition evaluation results in non-bool value so is false: %s", condition)
+		log.Infof("condition evaluation results in non-bool value so is false: %s", expr)
 		return false, errors.New("expression has a non-bool value")
 	}
 
-	log.Infof("condition evaluated to %t: %s", truthy, condition)
+	log.Infof("condition evaluated to %t: %s", truthy, expr)
 	return truthy, err
 }
 
@@ -246,7 +243,7 @@ func (s *serviceContext) Scope() data.Scope {
 	return nil
 }
 
-func invokeService(serviceDef *types.Service, scope data.Scope, input map[string]interface{}, inputExpression map[string]expression.Expr) (err error) {
+func invokeService(serviceDef *types.Service, scope data.Scope, input map[string]*types.Expr) (err error) {
 	log.Info("invoking service: ", serviceDef.Ref)
 	// TODO: Translate service definition variables.
 	ctxt := newServiceContext(serviceDef)
@@ -254,7 +251,7 @@ func invokeService(serviceDef *types.Service, scope data.Scope, input map[string
 		scope.SetValue(serviceDef.Name, ctxt.Context())
 	}()
 	scope.SetValue(serviceDef.Name, ctxt.Context())
-	values, mErr := translateMappings(scope, input, inputExpression)
+	values, mErr := translateMappings(scope, input)
 	if mErr != nil {
 		return mErr
 	}
@@ -267,7 +264,7 @@ func invokeService(serviceDef *types.Service, scope data.Scope, input map[string
 	return nil
 }
 
-func translateMappings(scope data.Scope, input map[string]interface{}, mappings map[string]expression.Expr) (values map[string]interface{}, err error) {
+func translateMappings(scope data.Scope, mappings map[string]*types.Expr) (values map[string]interface{}, err error) {
 	values = make(map[string]interface{})
 	if len(mappings) == 0 {
 		return values, err
@@ -275,7 +272,7 @@ func translateMappings(scope data.Scope, input map[string]interface{}, mappings 
 	for fullKey, expr := range mappings {
 		value, err := expr.Eval(scope)
 		if err != nil {
-			log.Infof("mapping evaluation causes error: %s", input[fullKey])
+			log.Infof("mapping evaluation causes error: %s", expr)
 			return values, err
 		}
 		values[fullKey] = value
