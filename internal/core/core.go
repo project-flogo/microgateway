@@ -52,7 +52,7 @@ func Execute(payload interface{}, configuration map[string]interface{}, routes [
 	if routeToExecute != nil {
 		if routeToExecute.Async {
 			log.Info("executing route asynchronously")
-			executionContext["async"] = true
+			scope.SetValue("async", true)
 			go executeRoute(routeToExecute, serviceCache, scope)
 		} else {
 			err = executeRoute(routeToExecute, serviceCache, scope)

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/labstack/gommon/log"
 	"github.com/project-flogo/core/action"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/app/resource"
@@ -14,10 +13,13 @@ import (
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/data/resolve"
+	"github.com/project-flogo/core/support/logger"
 	"github.com/project-flogo/microgateway/internal/core"
 	"github.com/project-flogo/microgateway/internal/pattern"
 	"github.com/project-flogo/microgateway/internal/types"
 )
+
+var log = logger.GetLogger("microgateway")
 
 type Action struct {
 	mashlingURI   string
