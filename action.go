@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	_ "github.com/project-flogo/contrib/function"
 	"github.com/project-flogo/core/action"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/app/resource"
