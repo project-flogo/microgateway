@@ -15,10 +15,7 @@ import (
 
 var log = logger.GetLogger("microgateway")
 
-func Execute(payload interface{}, configuration map[string]interface{}, routes []types.Route,
-	serviceCache map[string]*types.Service) (code int, output interface{}, err error) {
-	// Route to be executed once it is identified by the conditional evaluation.
-	var routeToExecute *types.Route
+func Execute(payload interface{}, definition *Microgateway) (code int, output interface{}, err error) {
 
 	// Contains all elements of request: right now just payload, environment flags and service instances.
 	envFlags := make(map[string]string)
@@ -30,32 +27,18 @@ func Execute(payload interface{}, configuration map[string]interface{}, routes [
 		"payload": payload,
 		"async":   false,
 		"env":     envFlags,
-		"conf":    configuration,
+		"conf":    definition.Configuration,
 	}
 	scope := data.NewSimpleScope(executionContext, nil)
 
-	// Evaluate route conditions to select which one to execute.
-	for _, route := range routes {
-		var truthiness bool
-		truthiness, err = evaluateTruthiness(route.Expression, scope)
-		if err != nil {
-			continue
-		}
-		if truthiness {
-			log.Info("route identified via conditional evaluation to true: ", route.Condition)
-			routeToExecute = &route
-			break
-		}
-	}
-
 	// Execute the identified route if it exists and handle the async option.
-	if routeToExecute != nil {
-		if routeToExecute.Async {
+	if definition != nil {
+		if definition.Async {
 			log.Info("executing route asynchronously")
 			scope.SetValue("async", true)
-			go executeRoute(routeToExecute, serviceCache, scope)
+			go executeRoute(definition, scope)
 		} else {
-			err = executeRoute(routeToExecute, serviceCache, scope)
+			err = executeRoute(definition, scope)
 		}
 		if err != nil {
 			log.Error("error executing route: ", err)
@@ -64,15 +47,15 @@ func Execute(payload interface{}, configuration map[string]interface{}, routes [
 		log.Info("no route to execute, continuing to reply handler")
 	}
 
-	if routeToExecute != nil {
-		for _, response := range routeToExecute.Responses {
+	if definition != nil {
+		for _, response := range definition.Responses {
 			var truthiness bool
-			truthiness, err = evaluateTruthiness(response.Expression, scope)
+			truthiness, err = evaluateTruthiness(response.Condition, scope)
 			if err != nil {
 				continue
 			}
 			if truthiness {
-				output, oErr := translateMappings(scope, map[string]*types.Expr{"code": response.Output.CodeExpression})
+				output, oErr := translateMappings(scope, map[string]*types.Expr{"code": response.Output.Code})
 				if oErr != nil {
 					return -1, nil, oErr
 				}
@@ -99,13 +82,13 @@ func Execute(payload interface{}, configuration map[string]interface{}, routes [
 				}
 				// Translate data mappings
 				var data interface{}
-				if response.Output.DataExpressions != nil {
-					data, oErr = translateMappings(scope, response.Output.DataExpressions)
+				if response.Output.Datum != nil {
+					data, oErr = translateMappings(scope, response.Output.Datum)
 					if oErr != nil {
 						return -1, nil, oErr
 					}
 				} else {
-					interimData, dErr := translateMappings(scope, map[string]*types.Expr{"data": response.Output.DataExpression})
+					interimData, dErr := translateMappings(scope, map[string]*types.Expr{"data": response.Output.Data})
 					if dErr != nil {
 						return -1, nil, dErr
 					}
@@ -121,15 +104,15 @@ func Execute(payload interface{}, configuration map[string]interface{}, routes [
 	return 404, nil, err
 }
 
-func executeRoute(route *types.Route, serviceCache map[string]*types.Service, scope data.Scope) (err error) {
-	for _, step := range route.Steps {
+func executeRoute(definition *Microgateway, scope data.Scope) (err error) {
+	for _, step := range definition.Steps {
 		var truthiness bool
-		truthiness, err = evaluateTruthiness(step.Expression, scope)
+		truthiness, err = evaluateTruthiness(step.Condition, scope)
 		if err != nil {
 			return err
 		}
 		if truthiness {
-			err = invokeService(serviceCache[step.Service], scope, step.InputExpression)
+			err = invokeService(step.Service, scope, step.Input)
 			if err != nil {
 				return err
 			}
@@ -168,7 +151,7 @@ type serviceContext struct {
 	Outputs map[string]interface{}
 }
 
-func newServiceContext(def *types.Service) *serviceContext {
+func newServiceContext(def *Service) *serviceContext {
 	inputs := make(map[string]interface{}, len(def.Settings))
 	for k, v := range def.Settings {
 		inputs[k] = v
@@ -243,8 +226,8 @@ func (s *serviceContext) Scope() data.Scope {
 	return nil
 }
 
-func invokeService(serviceDef *types.Service, scope data.Scope, input map[string]*types.Expr) (err error) {
-	log.Info("invoking service: ", serviceDef.Ref)
+func invokeService(serviceDef *Service, scope data.Scope, input map[string]*types.Expr) (err error) {
+	log.Info("invoking service: ", serviceDef.Name)
 	// TODO: Translate service definition variables.
 	ctxt := newServiceContext(serviceDef)
 	defer func() {

@@ -12,35 +12,29 @@ import (
 )
 
 var microgatewayDefinition = `{
-  "dispatch": {
-    "name": "Test",
-    "routes": [
-      {
-        "steps": [
-					{
-						"if": "1 == 1",
-						"service": "test-activity",
-						"input": {
-							"message": "=1337"
-						}
-					}
-				],
-        "responses": [
-					{
-						"error": false,
-						"output": {
-							"code": "=200",
-							"data": {
-								"test": "=$.test-activity.outputs.data",
-								"foo": "bar",
-								"bar": 1
-							}
-						}
-					}
-				]
-      }
-    ]
-  },
+	"name": "Test",
+  "steps": [
+		{
+			"if": "1 == 1",
+			"service": "test-activity",
+			"input": {
+				"message": "=1337"
+			}
+		}
+	],
+  "responses": [
+		{
+			"error": false,
+			"output": {
+				"code": "=200",
+				"data": {
+					"test": "=$.test-activity.outputs.data",
+					"foo": "bar",
+					"bar": 1
+				}
+			}
+		}
+	],
   "services": [
 		{
 			"name": "test-activity",
