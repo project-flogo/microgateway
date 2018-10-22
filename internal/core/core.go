@@ -15,7 +15,37 @@ import (
 
 var log = logger.GetLogger("microgateway")
 
-func Execute(payload interface{}, definition *Microgateway) (code int, output interface{}, err error) {
+type microgatewayHost struct {
+	id    string
+	name  string
+	scope data.Scope
+}
+
+func (m *microgatewayHost) ID() string {
+	return m.id
+}
+
+func (m *microgatewayHost) Name() string {
+	return m.name
+}
+
+func (m *microgatewayHost) IOMetadata() *metadata.IOMetadata {
+	return nil
+}
+
+func (m *microgatewayHost) Reply(replyData map[string]interface{}, err error) {
+
+}
+
+func (m *microgatewayHost) Return(returnData map[string]interface{}, err error) {
+
+}
+
+func (m *microgatewayHost) Scope() data.Scope {
+	return m.scope
+}
+
+func Execute(id string, payload interface{}, definition *Microgateway) (code int, output interface{}, err error) {
 
 	// Contains all elements of request: right now just payload, environment flags and service instances.
 	envFlags := make(map[string]string)
@@ -30,15 +60,20 @@ func Execute(payload interface{}, definition *Microgateway) (code int, output in
 		"conf":    definition.Configuration,
 	}
 	scope := data.NewSimpleScope(executionContext, nil)
+	host := microgatewayHost{
+		id:    id,
+		name:  definition.Name,
+		scope: scope,
+	}
 
 	// Execute the identified route if it exists and handle the async option.
 	if definition != nil {
 		if definition.Async {
 			log.Info("executing route asynchronously")
 			scope.SetValue("async", true)
-			go executeRoute(definition, scope)
+			go executeSteps(definition, &host)
 		} else {
-			err = executeRoute(definition, scope)
+			err = executeSteps(definition, &host)
 		}
 		if err != nil {
 			log.Error("error executing route: ", err)
@@ -104,15 +139,15 @@ func Execute(payload interface{}, definition *Microgateway) (code int, output in
 	return 404, nil, err
 }
 
-func executeRoute(definition *Microgateway, scope data.Scope) (err error) {
+func executeSteps(definition *Microgateway, host activity.Host) (err error) {
 	for _, step := range definition.Steps {
 		var truthiness bool
-		truthiness, err = evaluateTruthiness(step.Condition, scope)
+		truthiness, err = evaluateTruthiness(step.Condition, host.Scope())
 		if err != nil {
 			return err
 		}
 		if truthiness {
-			err = invokeService(step.Service, scope, step.Input)
+			err = invokeService(step.Service, host, step.Input)
 			if err != nil {
 				return err
 			}
@@ -147,17 +182,19 @@ func evaluateTruthiness(expr *types.Expr, scope data.Scope) (truthy bool, err er
 
 type serviceContext struct {
 	name    string
+	host    activity.Host
 	Inputs  map[string]interface{}
 	Outputs map[string]interface{}
 }
 
-func newServiceContext(def *Service) *serviceContext {
+func newServiceContext(def *Service, host activity.Host) *serviceContext {
 	inputs := make(map[string]interface{}, len(def.Settings))
 	for k, v := range def.Settings {
 		inputs[k] = v
 	}
 	return &serviceContext{
 		name:    def.Name,
+		host:    host,
 		Inputs:  inputs,
 		Outputs: make(map[string]interface{}),
 	}
@@ -177,7 +214,7 @@ func (s *serviceContext) Context() map[string]interface{} {
 }
 
 func (s *serviceContext) ActivityHost() activity.Host {
-	return s
+	return s.host
 }
 
 func (s *serviceContext) Name() string {
@@ -206,30 +243,10 @@ func (s *serviceContext) GetSharedTempData() map[string]interface{} {
 	return nil
 }
 
-func (s *serviceContext) ID() string {
-	return ""
-}
-
-func (s *serviceContext) IOMetadata() *metadata.IOMetadata {
-	return nil
-}
-
-func (s *serviceContext) Reply(replyData map[string]interface{}, err error) {
-
-}
-
-func (s *serviceContext) Return(returnData map[string]interface{}, err error) {
-
-}
-
-func (s *serviceContext) Scope() data.Scope {
-	return nil
-}
-
-func invokeService(serviceDef *Service, scope data.Scope, input map[string]*types.Expr) (err error) {
+func invokeService(serviceDef *Service, host activity.Host, input map[string]*types.Expr) (err error) {
 	log.Info("invoking service: ", serviceDef.Name)
 	// TODO: Translate service definition variables.
-	ctxt := newServiceContext(serviceDef)
+	ctxt, scope := newServiceContext(serviceDef, host), host.Scope()
 	defer func() {
 		scope.SetValue(serviceDef.Name, ctxt.Context())
 	}()

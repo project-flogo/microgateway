@@ -22,6 +22,7 @@ import (
 var log = logger.GetLogger("microgateway")
 
 type Action struct {
+	id           string
 	ioMetadata   *metadata.IOMetadata
 	settings     Settings
 	microgateway *core.Microgateway
@@ -71,7 +72,12 @@ func (f *Factory) Initialize(ctx action.InitContext) error {
 }
 
 func (f *Factory) New(config *action.Config) (action.Action, error) {
-	act := Action{}
+	act := Action{
+		id: config.Id,
+	}
+	if act.id == "" {
+		act.id = config.Ref
+	}
 
 	err := json.Unmarshal(config.Data, &config.Settings)
 	if err != nil {
@@ -228,7 +234,7 @@ func (a *Action) IOMetadata() *metadata.IOMetadata {
 }
 
 func (a *Action) Run(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
-	code, mData, err := core.Execute(input, a.microgateway)
+	code, mData, err := core.Execute(a.id, input, a.microgateway)
 	output := make(map[string]interface{}, 8)
 	output["code"] = code
 	output["data"] = mData
