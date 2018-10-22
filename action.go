@@ -15,6 +15,7 @@ import (
 	"github.com/project-flogo/core/data/resolve"
 	"github.com/project-flogo/core/support/logger"
 	"github.com/project-flogo/microgateway/internal/core"
+	"github.com/project-flogo/microgateway/internal/pattern"
 	"github.com/project-flogo/microgateway/internal/types"
 )
 
@@ -89,16 +90,17 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 	}
 	actionData := resData.Object().(*types.Microgateway)
 
-	/*if act.data.Pattern == "" {
-		act.data = *actionData
-	} else {
-		pDef, err := pattern.Load(act.pattern)
+	if actionData.Pattern != "" {
+		definition, err := pattern.Load(actionData.Pattern)
 		if err != nil {
 			return nil, err
 		}
-		act.dispatch = pDef.Dispatch
-		act.services = pDef.Services
-	}*/
+		definition.Name = actionData.Name
+		definition.Pattern = actionData.Pattern
+		definition.Async = actionData.Async
+		definition.Configuration = actionData.Configuration
+		actionData = definition
+	}
 
 	services := make(map[string]*core.Service, len(actionData.Services))
 	for i := range actionData.Services {

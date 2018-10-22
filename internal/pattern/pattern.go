@@ -8,17 +8,12 @@ import (
 	"github.com/project-flogo/microgateway/internal/types"
 )
 
-type PatternDefinition struct {
-	Dispatch types.Dispatch  `json:"dispatch"`
-	Services []types.Service `json:"services"`
-}
-
-func Load(pattern string) (*PatternDefinition, error) {
+func Load(pattern string) (*types.Microgateway, error) {
 	patternJSON, err := Asset(pattern + ".json")
 	if err != nil {
 		return nil, err
 	}
-	pDef := &PatternDefinition{}
+	pDef := &types.Microgateway{}
 	err = json.Unmarshal(patternJSON, pDef)
 	if err != nil {
 		return nil, err
