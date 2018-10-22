@@ -21,8 +21,8 @@ import (
 var log = logger.GetLogger("microgateway")
 
 type Action struct {
-	metadata     *action.Metadata
 	ioMetadata   *metadata.IOMetadata
+	settings     Settings
 	microgateway *core.Microgateway
 }
 
@@ -70,29 +70,25 @@ func (f *Factory) Initialize(ctx action.InitContext) error {
 }
 
 func (f *Factory) New(config *action.Config) (action.Action, error) {
-	act := &Action{}
-	act.metadata = actionMetadata
+	act := Action{}
 
 	err := json.Unmarshal(config.Data, &config.Settings)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load microgateway data: '%s' error '%s'", config.Id, err.Error())
-	}
-
-	s := &Settings{}
-	err = metadata.MapToStruct(config.Settings, s, true)
 	if err != nil {
 		return nil, err
 	}
 
-	var actionData *types.Microgateway
-	if s.URI != "" {
-		// Load action data from resources
-		resData := f.Manager.GetResource(s.URI)
-		if resData == nil {
-			return nil, fmt.Errorf("failed to load microgateway URI data: '%s' error '%s'", config.Id, err.Error())
-		}
-		actionData = resData.Object().(*types.Microgateway)
+	err = metadata.MapToStruct(config.Settings, &act.settings, true)
+	if err != nil {
+		return nil, err
 	}
+
+	// Load action data from resources
+	resData := f.Manager.GetResource(act.settings.URI)
+	if resData == nil {
+		return nil, fmt.Errorf("failed to load microgateway URI data: '%s'", config.Id)
+	}
+	actionData := resData.Object().(*types.Microgateway)
+
 	/*if act.data.Pattern == "" {
 		act.data = *actionData
 	} else {
@@ -218,11 +214,11 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 
 	act.microgateway = &microgateway
 
-	return act, nil
+	return &act, nil
 }
 
 func (a *Action) Metadata() *action.Metadata {
-	return a.metadata
+	return actionMetadata
 }
 
 func (a *Action) IOMetadata() *metadata.IOMetadata {
