@@ -80,12 +80,14 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		act.id = config.Ref
 	}
 
-	err := json.Unmarshal(config.Data, &config.Settings)
-	if err != nil {
-		return nil, err
+	if len(config.Data) > 0 {
+		err := json.Unmarshal(config.Data, &config.Settings)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	err = metadata.MapToStruct(config.Settings, &act.settings, true)
+	err := metadata.MapToStruct(config.Settings, &act.settings, true)
 	if err != nil {
 		return nil, err
 	}

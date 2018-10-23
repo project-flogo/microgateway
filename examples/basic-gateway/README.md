@@ -5,9 +5,7 @@
 To install run the following commands:
 ```
 flogo create -f flogo.json
-cd MyProxy
-flogo install github.com/mashling/flogoactivity
-flogo install github.com/TIBCOSoftware/flogo-contrib/activity/rest
+cd flogo
 flogo build
 ```
 
@@ -15,7 +13,7 @@ flogo build
 
 Run:
 ```
-MyProxy
+bin/main
 ```
 
 Then open another terminal and run:
