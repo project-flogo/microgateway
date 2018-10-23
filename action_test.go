@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/project-flogo/core/api"
-	"github.com/project-flogo/microgateway/testing/activity"
-	"github.com/project-flogo/microgateway/testing/trigger"
+	"github.com/project-flogo/microgateway/internal/testing/activity"
+	"github.com/project-flogo/microgateway/internal/testing/trigger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,7 +39,7 @@ var microgatewayDefinition = `{
 		{
 			"name": "test-activity",
 			"description": "A test activity",
-			"ref": "github.com/project-flogo/microgateway/testing/activity",
+			"ref": "github.com/project-flogo/microgateway/internal/testing/activity",
 			"settings": {
 				"message": "hello world"
 			}

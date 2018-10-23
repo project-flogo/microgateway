@@ -10,7 +10,6 @@ import (
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/support/logger"
-	"github.com/project-flogo/microgateway/internal/types"
 )
 
 var log = logger.GetLogger("microgateway")
@@ -90,7 +89,7 @@ func Execute(id string, payload interface{}, definition *Microgateway) (code int
 				continue
 			}
 			if truthiness {
-				output, oErr := translateMappings(scope, map[string]*types.Expr{"code": response.Output.Code})
+				output, oErr := translateMappings(scope, map[string]*Expr{"code": response.Output.Code})
 				if oErr != nil {
 					return -1, nil, oErr
 				}
@@ -123,7 +122,7 @@ func Execute(id string, payload interface{}, definition *Microgateway) (code int
 						return -1, nil, oErr
 					}
 				} else {
-					interimData, dErr := translateMappings(scope, map[string]*types.Expr{"data": response.Output.Data})
+					interimData, dErr := translateMappings(scope, map[string]*Expr{"data": response.Output.Data})
 					if dErr != nil {
 						return -1, nil, dErr
 					}
@@ -156,7 +155,7 @@ func executeSteps(definition *Microgateway, host activity.Host) (err error) {
 	return nil
 }
 
-func evaluateTruthiness(expr *types.Expr, scope data.Scope) (truthy bool, err error) {
+func evaluateTruthiness(expr *Expr, scope data.Scope) (truthy bool, err error) {
 	if expr == nil {
 		log.Info("condition was empty and thus evaluates to true")
 		return true, nil
@@ -243,7 +242,7 @@ func (s *serviceContext) GetSharedTempData() map[string]interface{} {
 	return nil
 }
 
-func invokeService(serviceDef *Service, host activity.Host, input map[string]*types.Expr) (err error) {
+func invokeService(serviceDef *Service, host activity.Host, input map[string]*Expr) (err error) {
 	log.Info("invoking service: ", serviceDef.Name)
 	// TODO: Translate service definition variables.
 	ctxt, scope := newServiceContext(serviceDef, host), host.Scope()
@@ -264,7 +263,7 @@ func invokeService(serviceDef *Service, host activity.Host, input map[string]*ty
 	return nil
 }
 
-func translateMappings(scope data.Scope, mappings map[string]*types.Expr) (values map[string]interface{}, err error) {
+func translateMappings(scope data.Scope, mappings map[string]*Expr) (values map[string]interface{}, err error) {
 	values = make(map[string]interface{})
 	if len(mappings) == 0 {
 		return values, err

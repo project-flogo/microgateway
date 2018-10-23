@@ -2,7 +2,6 @@ package core
 
 import (
 	"github.com/project-flogo/core/activity"
-	"github.com/project-flogo/microgateway/internal/types"
 )
 
 // Microgateway defines a microgateway
@@ -16,9 +15,9 @@ type Microgateway struct {
 
 // Step conditionally defines a step in a route's execution flow.
 type Step struct {
-	Condition *types.Expr
+	Condition *Expr
 	Service   *Service
-	Input     map[string]*types.Expr
+	Input     map[string]*Expr
 }
 
 // Service defines a functional target that may be invoked by a step in an execution flow.
@@ -30,14 +29,14 @@ type Service struct {
 
 // Response defines response handling rules.
 type Response struct {
-	Condition *types.Expr
+	Condition *Expr
 	Error     bool
 	Output    Output
 }
 
 // Output defines response output values back to a trigger event.
 type Output struct {
-	Code  *types.Expr
-	Data  *types.Expr
-	Datum map[string]*types.Expr
+	Code  *Expr
+	Data  *Expr
+	Datum map[string]*Expr
 }

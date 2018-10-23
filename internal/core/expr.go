@@ -1,4 +1,4 @@
-package types
+package core
 
 import (
 	"github.com/project-flogo/core/data/expression"

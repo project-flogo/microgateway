@@ -142,15 +142,15 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 	}
 
 	expressionFactory := expression.NewFactory(resolve.GetBasicResolver())
-	getExpression := func(value interface{}) (*types.Expr, error) {
+	getExpression := func(value interface{}) (*core.Expr, error) {
 		if stringValue, ok := value.(string); ok && len(stringValue) > 0 && stringValue[0] == '=' {
 			expr, err := expressionFactory.NewExpr(stringValue[1:])
 			if err != nil {
 				return nil, err
 			}
-			return types.NewExpr(stringValue, expr), nil
+			return core.NewExpr(stringValue, expr), nil
 		}
-		return types.NewExpr(fmt.Sprintf("%v", value), expression.NewLiteralExpr(value)), nil
+		return core.NewExpr(fmt.Sprintf("%v", value), expression.NewLiteralExpr(value)), nil
 	}
 
 	steps, responses := actionData.Steps, actionData.Responses
@@ -168,7 +168,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 				log.Infof("condition parsing error: %s", condition)
 				return nil, err
 			}
-			microgateway.Steps[j].Condition = types.NewExpr(condition, expr)
+			microgateway.Steps[j].Condition = core.NewExpr(condition, expr)
 		}
 
 		service := services[steps[j].Service]
@@ -178,7 +178,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		microgateway.Steps[j].Service = service
 
 		input := steps[j].Input
-		inputExpression := make(map[string]*types.Expr, len(input))
+		inputExpression := make(map[string]*core.Expr, len(input))
 		for key, value := range input {
 			inputExpression[key], err = getExpression(value)
 			if err != nil {
@@ -195,7 +195,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 				log.Infof("condition parsing error: %s", condition)
 				return nil, err
 			}
-			microgateway.Responses[j].Condition = types.NewExpr(condition, expr)
+			microgateway.Responses[j].Condition = core.NewExpr(condition, expr)
 		}
 
 		microgateway.Responses[j].Error = responses[j].Error
@@ -207,7 +207,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 
 		data := responses[j].Output.Data
 		if hashMap, ok := data.(map[string]interface{}); ok {
-			dataExpressions := make(map[string]*types.Expr, len(hashMap))
+			dataExpressions := make(map[string]*core.Expr, len(hashMap))
 			for key, value := range hashMap {
 				dataExpressions[key], err = getExpression(value)
 				if err != nil {
