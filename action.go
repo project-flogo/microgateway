@@ -17,6 +17,7 @@ import (
 	"github.com/project-flogo/core/support/logger"
 	"github.com/project-flogo/microgateway/internal/core"
 	"github.com/project-flogo/microgateway/internal/pattern"
+	"github.com/project-flogo/microgateway/internal/schema"
 	"github.com/project-flogo/microgateway/internal/types"
 )
 
@@ -45,8 +46,13 @@ var actionMetadata = action.ToMetadata(&Settings{}, &Input{}, &Output{})
 func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, error) {
 	data := config.Data
 
+	err := schema.Validate(data)
+	if err != nil {
+		return nil, fmt.Errorf("error validating schema: %s", err.Error())
+	}
+
 	var definition *types.Microgateway
-	err := json.Unmarshal(data, &definition)
+	err = json.Unmarshal(data, &definition)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling microgateway definition resource with id '%s', %s", config.ID, err.Error())
 	}
