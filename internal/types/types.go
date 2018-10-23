@@ -2,7 +2,7 @@ package types
 
 // Schema contains schema version and configuration information for a gateway instance.
 type Schema struct {
-	Version string  `json:"mashling_schema" jsonschema:"required"`
+	Version string  `json:"microgateway_schema" jsonschema:"required"`
 	Gateway Gateway `json:"gateway" jsonschema:"required"`
 }
 
