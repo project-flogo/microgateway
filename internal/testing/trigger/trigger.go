@@ -14,11 +14,13 @@ func init() {
 	trigger.Register(&Trigger{}, &TriggerFactory{})
 }
 
+// Handler is a trigger handler
 type Handler struct {
 	handler  trigger.Handler
 	settings string
 }
 
+// Trigger is a dummy trigger for testing
 type Trigger struct {
 	settings *Settings
 	id       string
@@ -26,9 +28,11 @@ type Trigger struct {
 
 var handlers []Handler
 
+// TriggerFactory creates dummy triggers for testing
 type TriggerFactory struct {
 }
 
+// New creates a new dummy trigger
 func (*TriggerFactory) New(config *trigger.Config) (trigger.Trigger, error) {
 	s := &Settings{}
 	err := metadata.MapToStruct(config.Settings, s, true)
@@ -65,14 +69,17 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 	return nil
 }
 
+// Start starts the dummy trigger
 func (t *Trigger) Start() error {
 	return nil
 }
 
+// Stop stops the dummy trigger
 func (t *Trigger) Stop() error {
 	return nil
 }
 
+// Fire is a test function for firing one of the trigger handlers with given content
 func Fire(h int, content interface{}) (map[string]interface{}, error) {
 	if h >= len(handlers) {
 		return nil, fmt.Errorf("invalid handler %v", h)

@@ -22,6 +22,7 @@ import (
 
 var log = logger.GetLogger("microgateway")
 
+// Action is the microgateway action
 type Action struct {
 	id           string
 	ioMetadata   *metadata.IOMetadata
@@ -29,6 +30,7 @@ type Action struct {
 	microgateway *core.Microgateway
 }
 
+// Manager loads the microgateway definition resource
 type Manager struct {
 }
 
@@ -39,6 +41,7 @@ func init() {
 
 var actionMetadata = action.ToMetadata(&Settings{}, &Input{}, &Output{})
 
+// LoadResource loads the microgateway definition
 func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, error) {
 	data := config.Data
 
@@ -51,6 +54,7 @@ func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, err
 	return resource.New("microgateway", definition), nil
 }
 
+// Factory is a microgateway factory
 type Factory struct {
 	*resource.Manager
 }
@@ -72,6 +76,7 @@ func (f *Factory) Initialize(ctx action.InitContext) error {
 	return nil
 }
 
+// New creates a new microgateway
 func (f *Factory) New(config *action.Config) (action.Action, error) {
 	act := Action{
 		id: config.Id,
@@ -228,14 +233,17 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 	return &act, nil
 }
 
+// Metadata returns the metadata for the microgateway
 func (a *Action) Metadata() *action.Metadata {
 	return actionMetadata
 }
 
+// IOMetadata returns the iometadata for the microgateway
 func (a *Action) IOMetadata() *metadata.IOMetadata {
 	return a.ioMetadata
 }
 
+// Run executes the microgateway
 func (a *Action) Run(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
 	code, mData, err := core.Execute(a.id, input, a.microgateway)
 	output := make(map[string]interface{}, 8)

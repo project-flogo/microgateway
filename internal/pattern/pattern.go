@@ -8,6 +8,7 @@ import (
 	"github.com/project-flogo/microgateway/internal/types"
 )
 
+// Load loads a pattern
 func Load(pattern string) (*types.Microgateway, error) {
 	patternJSON, err := Asset(pattern + ".json")
 	if err != nil {

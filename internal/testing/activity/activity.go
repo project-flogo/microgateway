@@ -10,12 +10,15 @@ func init() {
 }
 
 var (
-	Message   = ""
+	// Messages is the message the dummy activity got in its input
+	Message = ""
+	// HasEvaled is true when the dummy activity has been evaluated
 	HasEvaled = false
 )
 
 var activityMetadata = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
 
+// New creates a new dummy activity
 func New(ctx activity.InitContext) (activity.Activity, error) {
 	s := &Settings{}
 	err := metadata.MapToStruct(ctx.Settings(), s, true)
@@ -28,13 +31,16 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 	return act, nil
 }
 
+// Activity is a dummy activity for testing
 type Activity struct {
 }
 
+// Metadata returns the metadata for the dummy activity
 func (a *Activity) Metadata() *activity.Metadata {
 	return activityMetadata
 }
 
+// Eval evaluates the dummy activity
 func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	input := &Input{}
 	err = ctx.GetInputObject(input)

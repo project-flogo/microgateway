@@ -44,6 +44,7 @@ func (m *microgatewayHost) Scope() data.Scope {
 	return m.scope
 }
 
+// Execute executes the microgateway
 func Execute(id string, payload interface{}, definition *Microgateway) (code int, output interface{}, err error) {
 
 	// Contains all elements of request: right now just payload, environment flags and service instances.
