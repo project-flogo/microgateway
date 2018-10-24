@@ -11,23 +11,6 @@
                 "async": {
                     "type": "boolean"
                 },
-                "configuration": {
-                    "patternProperties": {
-                        ".*": {
-                            "additionalProperties": true,
-                            "type": [
-                                "array",
-                                "boolean",
-                                "integer",
-                                "number",
-                                "null",
-                                "object",
-                                "string"
-                            ]
-                        }
-                    },
-                    "type": "object"
-                },
                 "name": {
                     "type": "string"
                 },

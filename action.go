@@ -119,7 +119,6 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		definition.Name = actionData.Name
 		definition.Pattern = actionData.Pattern
 		definition.Async = actionData.Async
-		definition.Configuration = actionData.Configuration
 		actionData = definition
 	}
 
@@ -171,7 +170,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		Async:         actionData.Async,
 		Steps:         make([]core.Step, len(steps)),
 		Responses:     make([]core.Response, len(responses)),
-		Configuration: actionData.Configuration,
+		Configuration: config.Settings,
 	}
 	for j := range steps {
 		if condition := steps[j].Condition; condition != "" {

@@ -2,13 +2,12 @@ package types
 
 // Microgateway defines a microgateway
 type Microgateway struct {
-	Name          string                 `json:"name" jsonschema:"required"`
-	Pattern       string                 `json:"pattern,omitempty"`
-	Async         bool                   `json:"async,omitempty"`
-	Steps         []Step                 `json:"steps" jsonschema:"required,minItems=1"`
-	Responses     []Response             `json:"responses,omitempty"`
-	Services      []Service              `json:"services,omitempty" jsonschema:"uniqueItems=true"`
-	Configuration map[string]interface{} `json:"configuration,omitempty" jsonschema:"additionalProperties"`
+	Name      string     `json:"name" jsonschema:"required"`
+	Pattern   string     `json:"pattern,omitempty"`
+	Async     bool       `json:"async,omitempty"`
+	Steps     []Step     `json:"steps" jsonschema:"required,minItems=1"`
+	Responses []Response `json:"responses,omitempty"`
+	Services  []Service  `json:"services,omitempty" jsonschema:"uniqueItems=true"`
 }
 
 // Step conditionally defines a step in a route's execution flow.
