@@ -8,13 +8,7 @@
                 "steps"
             ],
             "properties": {
-                "async": {
-                    "type": "boolean"
-                },
                 "name": {
-                    "type": "string"
-                },
-                "pattern": {
                     "type": "string"
                 },
                 "responses": {

@@ -62,7 +62,7 @@ func Execute(id string, payload interface{}, definition *Microgateway) (code int
 	}
 	executionContext := map[string]interface{}{
 		"payload": payload,
-		"async":   false,
+		"async":   definition.Async,
 		"env":     envFlags,
 		"conf":    definition.Configuration,
 	}
@@ -77,7 +77,6 @@ func Execute(id string, payload interface{}, definition *Microgateway) (code int
 	if definition != nil {
 		if definition.Async {
 			log.Info("executing route asynchronously")
-			scope.SetValue("async", true)
 			go executeSteps(definition, &host)
 		} else {
 			err = executeSteps(definition, &host)

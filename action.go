@@ -111,14 +111,12 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 	}
 	actionData := resData.Object().(*types.Microgateway)
 
-	if actionData.Pattern != "" {
-		definition, err := pattern.Load(actionData.Pattern)
+	if p := act.settings.Pattern; p != "" {
+		definition, err := pattern.Load(p)
 		if err != nil {
 			return nil, err
 		}
 		definition.Name = actionData.Name
-		definition.Pattern = actionData.Pattern
-		definition.Async = actionData.Async
 		actionData = definition
 	}
 
@@ -167,7 +165,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 	steps, responses := actionData.Steps, actionData.Responses
 	microgateway := core.Microgateway{
 		Name:          actionData.Name,
-		Async:         actionData.Async,
+		Async:         act.settings.Async,
 		Steps:         make([]core.Step, len(steps)),
 		Responses:     make([]core.Response, len(responses)),
 		Configuration: config.Settings,
