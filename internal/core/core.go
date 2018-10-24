@@ -19,6 +19,8 @@ type microgatewayHost struct {
 	id    string
 	name  string
 	scope data.Scope
+	err   error
+	halt  bool
 }
 
 func (m *microgatewayHost) ID() string {
@@ -34,11 +36,15 @@ func (m *microgatewayHost) IOMetadata() *metadata.IOMetadata {
 }
 
 func (m *microgatewayHost) Reply(replyData map[string]interface{}, err error) {
-
+	for key, value := range replyData {
+		m.scope.SetValue(key, value)
+	}
+	m.err = err
 }
 
 func (m *microgatewayHost) Return(returnData map[string]interface{}, err error) {
-
+	m.Reply(returnData, err)
+	m.halt = true
 }
 
 func (m *microgatewayHost) Scope() data.Scope {
@@ -140,7 +146,7 @@ func Execute(id string, payload interface{}, definition *Microgateway) (code int
 	return 404, nil, err
 }
 
-func executeSteps(definition *Microgateway, host activity.Host) (err error) {
+func executeSteps(definition *Microgateway, host *microgatewayHost) (err error) {
 	for _, step := range definition.Steps {
 		var truthiness bool
 		truthiness, err = evaluateTruthiness(step.Condition, host.Scope())
@@ -151,6 +157,9 @@ func executeSteps(definition *Microgateway, host activity.Host) (err error) {
 			err = invokeService(step.Service, step.HaltCondition, host, step.Input)
 			if err != nil {
 				return err
+			}
+			if host.halt {
+				return nil
 			}
 		}
 	}
@@ -246,7 +255,7 @@ func (s *serviceContext) GetSharedTempData() map[string]interface{} {
 	return nil
 }
 
-func invokeService(serviceDef *Service, haltCondition *Expr, host activity.Host, input map[string]*Expr) (err error) {
+func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, input map[string]*Expr) (err error) {
 	log.Info("invoking service: ", serviceDef.Name)
 	// TODO: Translate service definition variables.
 	ctxt, scope := newServiceContext(serviceDef, host), host.Scope()
@@ -261,7 +270,11 @@ func invokeService(serviceDef *Service, haltCondition *Expr, host activity.Host,
 	ctxt.UpdateScope(nil)
 	_, err = serviceDef.Activity.Eval(ctxt)
 
-	ctxt.UpdateScope(err)
+	if err == nil {
+		ctxt.UpdateScope(host.err)
+	} else {
+		ctxt.UpdateScope(err)
+	}
 	if haltCondition != nil {
 		truthiness, err := evaluateTruthiness(haltCondition, scope)
 		if err != nil {
