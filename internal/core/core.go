@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -147,7 +148,7 @@ func executeSteps(definition *Microgateway, host activity.Host) (err error) {
 			return err
 		}
 		if truthiness {
-			err = invokeService(step.Service, host, step.Input)
+			err = invokeService(step.Service, step.HaltCondition, host, step.Input)
 			if err != nil {
 				return err
 			}
@@ -206,11 +207,13 @@ func (s *serviceContext) Merge(inputs map[string]interface{}) {
 	}
 }
 
-func (s *serviceContext) Context() map[string]interface{} {
-	return map[string]interface{}{
+func (s *serviceContext) UpdateScope(err error) {
+	activityData := map[string]interface{}{
 		"inputs":  s.Inputs,
 		"outputs": s.Outputs,
+		"error":   err,
 	}
+	s.host.Scope().SetValue(s.name, activityData)
 }
 
 func (s *serviceContext) ActivityHost() activity.Host {
@@ -243,25 +246,34 @@ func (s *serviceContext) GetSharedTempData() map[string]interface{} {
 	return nil
 }
 
-func invokeService(serviceDef *Service, host activity.Host, input map[string]*Expr) (err error) {
+func invokeService(serviceDef *Service, haltCondition *Expr, host activity.Host, input map[string]*Expr) (err error) {
 	log.Info("invoking service: ", serviceDef.Name)
 	// TODO: Translate service definition variables.
 	ctxt, scope := newServiceContext(serviceDef, host), host.Scope()
-	defer func() {
-		scope.SetValue(serviceDef.Name, ctxt.Context())
-	}()
-	scope.SetValue(serviceDef.Name, ctxt.Context())
-	values, mErr := translateMappings(scope, input)
-	if mErr != nil {
-		return mErr
-	}
 
-	ctxt.Merge(values)
-	_, err = serviceDef.Activity.Eval(ctxt)
+	ctxt.UpdateScope(nil)
+	values, err := translateMappings(scope, input)
 	if err != nil {
 		return err
 	}
-	return nil
+	ctxt.Merge(values)
+
+	ctxt.UpdateScope(nil)
+	_, err = serviceDef.Activity.Eval(ctxt)
+
+	ctxt.UpdateScope(err)
+	if haltCondition != nil {
+		truthiness, err := evaluateTruthiness(haltCondition, scope)
+		if err != nil {
+			return err
+		}
+		if truthiness {
+			return fmt.Errorf("execution halted with expression: %s", haltCondition)
+		}
+		return nil
+	}
+
+	return err
 }
 
 func translateMappings(scope data.Scope, mappings map[string]*Expr) (values map[string]interface{}, err error) {

@@ -87,3 +87,8 @@ func Fire(h int, content interface{}) (map[string]interface{}, error) {
 	output := &Output{Content: content}
 	return handlers[h].handler.Handle(context.Background(), output.ToMap())
 }
+
+// Reset resets the trigger for another test
+func Reset() {
+	handlers = nil
+}

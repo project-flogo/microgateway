@@ -154,6 +154,9 @@
                 "service"
             ],
             "properties": {
+                "halt": {
+                    "type": "string"
+                },
                 "if": {
                     "type": "string"
                 },

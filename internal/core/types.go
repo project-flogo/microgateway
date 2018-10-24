@@ -15,9 +15,10 @@ type Microgateway struct {
 
 // Step conditionally defines a step in a route's execution flow.
 type Step struct {
-	Condition *Expr
-	Service   *Service
-	Input     map[string]*Expr
+	Condition     *Expr
+	Service       *Service
+	Input         map[string]*Expr
+	HaltCondition *Expr
 }
 
 // Service defines a functional target that may be invoked by a step in an execution flow.

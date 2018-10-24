@@ -16,6 +16,7 @@ import (
 	"github.com/project-flogo/core/data/resolve"
 	"github.com/project-flogo/core/support/logger"
 	"github.com/project-flogo/microgateway/internal/core"
+	_ "github.com/project-flogo/microgateway/internal/function"
 	"github.com/project-flogo/microgateway/internal/pattern"
 	"github.com/project-flogo/microgateway/internal/schema"
 	"github.com/project-flogo/microgateway/internal/types"
@@ -197,6 +198,15 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			}
 		}
 		microgateway.Steps[j].Input = inputExpression
+
+		if condition := steps[j].HaltCondition; condition != "" {
+			expr, err := expressionFactory.NewExpr(condition)
+			if err != nil {
+				log.Infof("halt condition parsing error: %s", condition)
+				return nil, err
+			}
+			microgateway.Steps[j].HaltCondition = core.NewExpr(condition, expr)
+		}
 	}
 
 	for j := range responses {

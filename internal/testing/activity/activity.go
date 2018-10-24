@@ -58,3 +58,9 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 
 	return true, nil
 }
+
+// Reset resets the activity for another test
+func Reset() {
+	Message = ""
+	HasEvaled = false
+}

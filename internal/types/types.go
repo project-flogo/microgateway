@@ -13,9 +13,10 @@ type Microgateway struct {
 
 // Step conditionally defines a step in a route's execution flow.
 type Step struct {
-	Condition string                 `json:"if,omitempty"`
-	Service   string                 `json:"service" jsonschema:"required"`
-	Input     map[string]interface{} `json:"input,omitempty" jsonschema:"additionalProperties"`
+	Condition     string                 `json:"if,omitempty"`
+	Service       string                 `json:"service" jsonschema:"required"`
+	Input         map[string]interface{} `json:"input,omitempty" jsonschema:"additionalProperties"`
+	HaltCondition string                 `json:"halt,omitempty"`
 }
 
 // Response defines response handling rules.
