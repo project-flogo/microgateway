@@ -16,11 +16,12 @@ import (
 var log = logger.GetLogger("microgateway")
 
 type microgatewayHost struct {
-	id    string
-	name  string
-	scope data.Scope
-	err   error
-	halt  bool
+	id         string
+	name       string
+	scope      data.Scope
+	iometadata *metadata.IOMetadata
+	err        error
+	halt       bool
 }
 
 func (m *microgatewayHost) ID() string {
@@ -32,7 +33,7 @@ func (m *microgatewayHost) Name() string {
 }
 
 func (m *microgatewayHost) IOMetadata() *metadata.IOMetadata {
-	return nil
+	return m.iometadata
 }
 
 func (m *microgatewayHost) Reply(replyData map[string]interface{}, err error) {
@@ -52,7 +53,7 @@ func (m *microgatewayHost) Scope() data.Scope {
 }
 
 // Execute executes the microgateway
-func Execute(id string, payload interface{}, definition *Microgateway) (code int, output interface{}, err error) {
+func Execute(id string, payload interface{}, definition *Microgateway, iometadata *metadata.IOMetadata) (code int, output interface{}, err error) {
 
 	// Contains all elements of request: right now just payload, environment flags and service instances.
 	envFlags := make(map[string]string)
@@ -68,9 +69,10 @@ func Execute(id string, payload interface{}, definition *Microgateway) (code int
 	}
 	scope := data.NewSimpleScope(executionContext, nil)
 	host := microgatewayHost{
-		id:    id,
-		name:  definition.Name,
-		scope: scope,
+		id:         id,
+		name:       definition.Name,
+		scope:      scope,
+		iometadata: iometadata,
 	}
 
 	// Execute the identified route if it exists and handle the async option.

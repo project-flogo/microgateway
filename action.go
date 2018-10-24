@@ -27,7 +27,6 @@ var log = logger.GetLogger("microgateway")
 // Action is the microgateway action
 type Action struct {
 	id           string
-	ioMetadata   *metadata.IOMetadata
 	settings     Settings
 	microgateway *core.Microgateway
 }
@@ -253,12 +252,12 @@ func (a *Action) Metadata() *action.Metadata {
 
 // IOMetadata returns the iometadata for the microgateway
 func (a *Action) IOMetadata() *metadata.IOMetadata {
-	return a.ioMetadata
+	return actionMetadata.IOMetadata
 }
 
 // Run executes the microgateway
 func (a *Action) Run(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
-	code, mData, err := core.Execute(a.id, input, a.microgateway)
+	code, mData, err := core.Execute(a.id, input, a.microgateway, a.IOMetadata())
 	output := make(map[string]interface{}, 8)
 	output["code"] = code
 	output["data"] = mData
