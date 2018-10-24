@@ -271,10 +271,9 @@ func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayH
 	_, err = serviceDef.Activity.Eval(ctxt)
 
 	if err == nil {
-		ctxt.UpdateScope(host.err)
-	} else {
-		ctxt.UpdateScope(err)
+		err = host.err
 	}
+	ctxt.UpdateScope(err)
 	if haltCondition != nil {
 		truthiness, err := evaluateTruthiness(haltCondition, scope)
 		if err != nil {
