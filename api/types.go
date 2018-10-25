@@ -1,4 +1,4 @@
-package types
+package api
 
 import "github.com/project-flogo/core/activity"
 

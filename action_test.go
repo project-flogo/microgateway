@@ -6,9 +6,9 @@ import (
 
 	"github.com/project-flogo/contrib/activity/rest"
 	"github.com/project-flogo/core/api"
+	microapi "github.com/project-flogo/microgateway/api"
 	"github.com/project-flogo/microgateway/internal/testing/activity"
 	"github.com/project-flogo/microgateway/internal/testing/trigger"
-	"github.com/project-flogo/microgateway/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +19,7 @@ func TestMicrogateway(t *testing.T) {
 	}()
 	app := api.NewApp()
 
-	microgateway := types.New("test")
+	microgateway := microapi.New("test")
 	service := microgateway.NewService("test", &activity.Activity{})
 	service.SetDescription("A test activity")
 	service.AddSetting("message", "hello world")
@@ -82,7 +82,7 @@ func TestMicrogatewayHalt(t *testing.T) {
 	}()
 	app := api.NewApp()
 
-	microgateway := types.New("halt")
+	microgateway := microapi.New("halt")
 	serviceHalt := microgateway.NewService("halt", &rest.Activity{})
 	serviceHalt.SetDescription("An activity that will halt")
 	serviceHalt.AddSetting("uri", "http://localhost:1234/abc123")

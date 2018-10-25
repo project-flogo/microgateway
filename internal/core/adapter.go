@@ -2,12 +2,12 @@ package core
 
 import (
 	"github.com/project-flogo/core/activity"
-	"github.com/project-flogo/microgateway/types"
+	"github.com/project-flogo/microgateway/api"
 )
 
 // Adapter is an adapter activity for ServiceFunc
 type Adapter struct {
-	Handler types.ServiceFunc
+	Handler api.ServiceFunc
 }
 
 // Metadata returns the metadata for the adapter activity

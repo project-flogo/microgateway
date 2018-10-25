@@ -9,11 +9,11 @@ import (
 	"os"
 
 	"github.com/mashling-support/jsonschema"
-	"github.com/project-flogo/microgateway/types"
+	"github.com/project-flogo/microgateway/api"
 )
 
 func main() {
-	schema := jsonschema.Reflect(&types.Microgateway{})
+	schema := jsonschema.Reflect(&api.Microgateway{})
 	schemaJSON, err := json.MarshalIndent(schema, "", "    ")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)

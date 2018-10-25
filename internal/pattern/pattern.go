@@ -5,16 +5,16 @@ package pattern
 import (
 	"encoding/json"
 
-	"github.com/project-flogo/microgateway/types"
+	"github.com/project-flogo/microgateway/api"
 )
 
 // Load loads a pattern
-func Load(pattern string) (*types.Microgateway, error) {
+func Load(pattern string) (*api.Microgateway, error) {
 	patternJSON, err := Asset(pattern + ".json")
 	if err != nil {
 		return nil, err
 	}
-	pDef := &types.Microgateway{}
+	pDef := &api.Microgateway{}
 	err = json.Unmarshal(patternJSON, pDef)
 	if err != nil {
 		return nil, err

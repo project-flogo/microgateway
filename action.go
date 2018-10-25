@@ -3,6 +3,7 @@ package microgateway
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	_ "github.com/project-flogo/contrib/function"
@@ -15,11 +16,11 @@ import (
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/data/resolve"
 	"github.com/project-flogo/core/support/logger"
+	"github.com/project-flogo/microgateway/api"
 	"github.com/project-flogo/microgateway/internal/core"
 	_ "github.com/project-flogo/microgateway/internal/function"
 	"github.com/project-flogo/microgateway/internal/pattern"
 	"github.com/project-flogo/microgateway/internal/schema"
-	"github.com/project-flogo/microgateway/types"
 )
 
 var log = logger.GetLogger("microgateway")
@@ -51,7 +52,7 @@ func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, err
 		return nil, fmt.Errorf("error validating schema: %s", err.Error())
 	}
 
-	var definition *types.Microgateway
+	var definition *api.Microgateway
 	err = json.Unmarshal(data, &definition)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling microgateway definition resource with id '%s', %s", config.ID, err.Error())
@@ -103,20 +104,22 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		return nil, err
 	}
 
-	// Load action data from resources
-	resData := f.Manager.GetResource(act.settings.URI)
-	if resData == nil {
-		return nil, fmt.Errorf("failed to load microgateway URI data: '%s'", config.Id)
-	}
-	actionData := resData.Object().(*types.Microgateway)
-
-	if p := act.settings.Pattern; p != "" {
+	var actionData *api.Microgateway
+	if uri := act.settings.URI; uri != "" {
+		// Load action data from resources
+		resData := f.Manager.GetResource(uri)
+		if resData == nil {
+			return nil, fmt.Errorf("failed to load microgateway URI data: '%s'", config.Id)
+		}
+		actionData = resData.Object().(*api.Microgateway)
+	} else if p := act.settings.Pattern; p != "" {
 		definition, err := pattern.Load(p)
 		if err != nil {
 			return nil, err
 		}
-		definition.Name = actionData.Name
 		actionData = definition
+	} else {
+		return nil, errors.New("no definition found for microgateway")
 	}
 
 	services := make(map[string]*core.Service, len(actionData.Services))
