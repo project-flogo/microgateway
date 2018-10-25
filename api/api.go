@@ -9,6 +9,13 @@ import (
 	"github.com/project-flogo/core/support"
 )
 
+var resources = make(map[string]*Microgateway)
+
+// GetResource gets the resource
+func GetResource(name string) *Microgateway {
+	return resources[name]
+}
+
 // New creates a new microgateway action
 func New(name string) *Microgateway {
 	return &Microgateway{
@@ -105,11 +112,13 @@ func (r *Response) SetData(data interface{}) {
 
 // AddResource adds the microgateway resource to the app and returns the action settings
 func (m *Microgateway) AddResource(app *api.App) (map[string]interface{}, error) {
+	name := "microgateway:" + m.Name
+	resources[name] = m
+
 	data, err := json.Marshal(m)
 	if err != nil {
 		return nil, err
 	}
-	name := "microgateway:" + m.Name
 	app.AddResource(name, data)
 	settings := map[string]interface{}{
 		"uri": name,

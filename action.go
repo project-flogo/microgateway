@@ -106,12 +106,16 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 
 	var actionData *api.Microgateway
 	if uri := act.settings.URI; uri != "" {
-		// Load action data from resources
-		resData := f.Manager.GetResource(uri)
-		if resData == nil {
-			return nil, fmt.Errorf("failed to load microgateway URI data: '%s'", config.Id)
+		if resData := api.GetResource(uri); resData != nil {
+			actionData = resData
+		} else {
+			// Load action data from resources
+			resData := f.Manager.GetResource(uri)
+			if resData == nil {
+				return nil, fmt.Errorf("failed to load microgateway URI data: '%s'", config.Id)
+			}
+			actionData = resData.Object().(*api.Microgateway)
 		}
-		actionData = resData.Object().(*api.Microgateway)
 	} else if p := act.settings.Pattern; p != "" {
 		definition, err := pattern.Load(p)
 		if err != nil {

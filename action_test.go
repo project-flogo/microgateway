@@ -2,9 +2,11 @@ package microgateway
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/project-flogo/contrib/activity/rest"
+	coreactivity "github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/api"
 	microapi "github.com/project-flogo/microgateway/api"
 	"github.com/project-flogo/microgateway/internal/testing/activity"
@@ -31,7 +33,7 @@ func TestMicrogateway(t *testing.T) {
 	response.SetData(map[string]interface{}{
 		"test": "=$.test.outputs.data",
 		"foo":  "bar",
-		"bar":  1,
+		"bar":  1.0,
 	})
 	settings, err := microgateway.AddResource(app)
 	assert.Nil(t, err)
@@ -127,6 +129,76 @@ func TestMicrogatewayHalt(t *testing.T) {
 	assert.Equal(t, 2, len(result))
 	assert.Equal(t, true, result["data"].(map[string]interface{})["isneterror"])
 	assert.True(t, activity.HasEvaled)
+}
+
+func TestMicrogatewayHandler(t *testing.T) {
+	defer func() {
+		trigger.Reset()
+		activity.Reset()
+	}()
+	app := api.NewApp()
+
+	microgateway := microapi.New("test")
+	fired, message := false, ""
+	service := microgateway.NewService("test", func(ctx coreactivity.Context) (done bool, err error) {
+		fired = true
+		message = fmt.Sprintf("%v", ctx.GetInput("message"))
+		ctx.SetOutput("data", message)
+		return true, nil
+	})
+	service.SetDescription("A test activity")
+	service.AddSetting("message", "hello world")
+	step := microgateway.NewStep(service)
+	step.SetIf("1 == 1")
+	step.AddInput("message", "=1337")
+	response := microgateway.NewResponse(false)
+	response.SetCode("=200")
+	response.SetData(map[string]interface{}{
+		"test": "=$.test.outputs.data",
+		"foo":  "bar",
+		"bar":  1.0,
+	})
+	settings, err := microgateway.AddResource(app)
+	assert.Nil(t, err)
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{ASetting: 1337})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{})
+	assert.Nil(t, err)
+
+	action, err := handler.NewAction(&Action{}, settings)
+	assert.Nil(t, err)
+	action.SetCondition(`$.content.a == "b"`)
+
+	defaultActionHit := false
+	action, err = handler.NewAction(func(ctx context.Context, inputs map[string]interface{}) (map[string]interface{}, error) {
+		defaultActionHit = true
+		return nil, nil
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, action)
+
+	e, err := api.NewEngine(app)
+	assert.Nil(t, err)
+	e.Start()
+	defer e.Stop()
+
+	result, err := trigger.Fire(0, map[string]interface{}{"a": "c"})
+	assert.Nil(t, err)
+	assert.Equal(t, 0, len(result))
+	assert.Equal(t, "", message)
+	assert.False(t, fired)
+	assert.True(t, defaultActionHit)
+	defaultActionHit = false
+
+	result, err = trigger.Fire(0, map[string]interface{}{"a": "b"})
+	assert.Nil(t, err)
+	assert.Equal(t, 200, result["code"])
+	assert.Equal(t, "1337", result["data"].(map[string]interface{})["test"])
+	assert.Equal(t, "bar", result["data"].(map[string]interface{})["foo"])
+	assert.Equal(t, 1.0, result["data"].(map[string]interface{})["bar"])
+	assert.Equal(t, "1337", message)
+	assert.True(t, fired)
+	assert.False(t, defaultActionHit)
 }
 
 func BenchmarkMicrogateway(b *testing.B) {
