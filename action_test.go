@@ -55,6 +55,7 @@ func TestMicrogateway(t *testing.T) {
 	e, err := api.NewEngine(app)
 	assert.Nil(t, err)
 	e.Start()
+	defer e.Stop()
 
 	result, err := trigger.Fire(0, map[string]interface{}{"a": "c"})
 	assert.Nil(t, err)
@@ -119,10 +120,68 @@ func TestMicrogatewayHalt(t *testing.T) {
 	e, err := api.NewEngine(app)
 	assert.Nil(t, err)
 	e.Start()
+	defer e.Stop()
 
 	result, err := trigger.Fire(0, map[string]interface{}{})
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(result))
 	assert.Equal(t, true, result["data"].(map[string]interface{})["isneterror"])
 	assert.True(t, activity.HasEvaled)
+}
+
+func BenchmarkMicrogateway(b *testing.B) {
+	defer func() {
+		trigger.Reset()
+		activity.Reset()
+	}()
+	app := api.NewApp()
+
+	microgateway := microapi.New("benchmark")
+	service := microgateway.NewService("test", &activity.Activity{})
+	service.SetDescription("A benchmark activity")
+	service.AddSetting("message", "hello world")
+	for i := 0; i < 256; i++ {
+		step := microgateway.NewStep(service)
+		if step == nil {
+			b.Fatal("failed to create step")
+		}
+	}
+	response := microgateway.NewResponse(false)
+	response.SetCode("=200")
+	response.SetData(map[string]interface{}{
+		"foo": "bar",
+	})
+	settings, err := microgateway.AddResource(app)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{ASetting: 1337})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{})
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	action, err := handler.NewAction(&Action{}, settings)
+	if err != nil {
+		b.Fatal(err)
+	}
+	if action == nil {
+		b.Fatal("failed to create action")
+	}
+
+	e, err := api.NewEngine(app)
+	if err != nil {
+		b.Fatal(err)
+	}
+	if e == nil {
+		b.Fatal("failed to create app engine")
+	}
+	e.Start()
+	defer e.Stop()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		trigger.Fire(0, map[string]interface{}{})
+	}
 }
