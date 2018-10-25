@@ -2,51 +2,15 @@ package microgateway
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
-	_ "github.com/project-flogo/contrib/activity/rest"
+	"github.com/project-flogo/contrib/activity/rest"
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/microgateway/internal/testing/activity"
 	"github.com/project-flogo/microgateway/internal/testing/trigger"
+	"github.com/project-flogo/microgateway/types"
 	"github.com/stretchr/testify/assert"
 )
-
-var microgatewayDefinition = `{
-	"name": "Test",
-  "steps": [
-		{
-			"if": "1 == 1",
-			"service": "test",
-			"input": {
-				"message": "=1337"
-			}
-		}
-	],
-  "responses": [
-		{
-			"error": false,
-			"output": {
-				"code": "=200",
-				"data": {
-					"test": "=$.test.outputs.data",
-					"foo": "bar",
-					"bar": 1
-				}
-			}
-		}
-	],
-  "services": [
-		{
-			"name": "test",
-			"description": "A test activity",
-			"ref": "github.com/project-flogo/microgateway/internal/testing/activity",
-			"settings": {
-				"message": "hello world"
-			}
-		}
-	]
-}`
 
 func TestMicrogateway(t *testing.T) {
 	defer func() {
@@ -54,14 +18,28 @@ func TestMicrogateway(t *testing.T) {
 		activity.Reset()
 	}()
 	app := api.NewApp()
-	app.AddResource("microgateway:Test", json.RawMessage(microgatewayDefinition))
+
+	microgateway := types.New("test")
+	service := microgateway.NewService("test", &activity.Activity{})
+	service.SetDescription("A test activity")
+	service.AddSetting("message", "hello world")
+	step := microgateway.NewStep(service)
+	step.SetIf("1 == 1")
+	step.AddInput("message", "=1337")
+	response := microgateway.NewResponse(false)
+	response.SetCode("=200")
+	response.SetData(map[string]interface{}{
+		"test": "=$.test.outputs.data",
+		"foo":  "bar",
+		"bar":  1,
+	})
+	settings, err := microgateway.AddResource(app)
+	assert.Nil(t, err)
+
 	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{ASetting: 1337})
 	handler, err := trg.NewHandler(&trigger.HandlerSettings{})
 	assert.Nil(t, err)
 
-	settings := map[string]interface{}{
-		"uri": "microgateway:Test",
-	}
 	action, err := handler.NewAction(&Action{}, settings)
 	assert.Nil(t, err)
 	action.SetCondition(`$.content.a == "b"`)
@@ -97,73 +75,43 @@ func TestMicrogateway(t *testing.T) {
 	assert.False(t, defaultActionHit)
 }
 
-var microgatewayHaltDefinition = `{
-	"name": "HaltTest",
-  "steps": [
-		{
-			"service": "halt",
-			"halt": "($.halt.error != nil) && !error.isneterror($.halt.error)"
-		},
-		{
-			"service": "test"
-		}
-	],
-  "responses": [
-		{
-			"error": true,
-			"output": {
-				"code": "=403",
-				"data": {
-					"isneterror": "=error.isneterror($.halt.error)",
-					"error": "=error.string($.halt.error)"
-				}
-			}
-		},
-		{
-			"error": false,
-			"output": {
-				"code": "=200",
-				"data": {
-					"message": "hello world"
-				}
-			}
-		}
-	],
-  "services": [
-		{
-			"name": "halt",
-			"description": "An activity that will halt",
-			"ref": "github.com/project-flogo/contrib/activity/rest",
-			"settings": {
-				"uri": "http://localhost:1234/abc123",
-				"method": "GET"
-			}
-		},
-		{
-			"name": "test",
-			"description": "A test activity",
-			"ref": "github.com/project-flogo/microgateway/internal/testing/activity",
-			"settings": {
-				"message": "hello world"
-			}
-		}
-	]
-}`
-
 func TestMicrogatewayHalt(t *testing.T) {
 	defer func() {
 		trigger.Reset()
 		activity.Reset()
 	}()
 	app := api.NewApp()
-	app.AddResource("microgateway:Halt", json.RawMessage(microgatewayHaltDefinition))
+
+	microgateway := types.New("halt")
+	serviceHalt := microgateway.NewService("halt", &rest.Activity{})
+	serviceHalt.SetDescription("An activity that will halt")
+	serviceHalt.AddSetting("uri", "http://localhost:1234/abc123")
+	serviceHalt.AddSetting("method", "GET")
+	serviceTest := microgateway.NewService("test", &activity.Activity{})
+	serviceTest.SetDescription("A test activity")
+	serviceTest.AddSetting("message", "hello world")
+	step := microgateway.NewStep(serviceHalt)
+	step.SetHalt("($.halt.error != nil) && !error.isneterror($.halt.error)")
+	step = microgateway.NewStep(serviceTest)
+	assert.NotNil(t, step)
+	response := microgateway.NewResponse(true)
+	response.SetCode("=403")
+	response.SetData(map[string]interface{}{
+		"isneterror": "=error.isneterror($.halt.error)",
+		"error":      "=error.string($.halt.error)",
+	})
+	response = microgateway.NewResponse(false)
+	response.SetCode("=200")
+	response.SetData(map[string]interface{}{
+		"message": "hello world",
+	})
+	settings, err := microgateway.AddResource(app)
+	assert.Nil(t, err)
+
 	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{ASetting: 1337})
 	handler, err := trg.NewHandler(&trigger.HandlerSettings{})
 	assert.Nil(t, err)
 
-	settings := map[string]interface{}{
-		"uri": "microgateway:Halt",
-	}
 	action, err := handler.NewAction(&Action{}, settings)
 	assert.Nil(t, err)
 	assert.NotNil(t, action)

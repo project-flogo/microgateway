@@ -19,7 +19,7 @@ import (
 	_ "github.com/project-flogo/microgateway/internal/function"
 	"github.com/project-flogo/microgateway/internal/pattern"
 	"github.com/project-flogo/microgateway/internal/schema"
-	"github.com/project-flogo/microgateway/internal/types"
+	"github.com/project-flogo/microgateway/types"
 )
 
 var log = logger.GetLogger("microgateway")
@@ -125,27 +125,37 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		if _, ok := services[name]; ok {
 			return nil, fmt.Errorf("duplicate service name: %s", name)
 		}
-		ref := actionData.Services[i].Ref
-		if factory := activity.GetFactory(ref); factory != nil {
-			actvt, err := factory(&initContext{settings: actionData.Services[i].Settings})
-			if err != nil {
-				return nil, err
+
+		if ref := actionData.Services[i].Ref; ref != "" {
+			if factory := activity.GetFactory(ref); factory != nil {
+				actvt, err := factory(&initContext{settings: actionData.Services[i].Settings})
+				if err != nil {
+					return nil, err
+				}
+				services[name] = &core.Service{
+					Name:     name,
+					Settings: actionData.Services[i].Settings,
+					Activity: actvt,
+				}
+				continue
+			}
+			actvt := activity.Get(ref)
+			if actvt == nil {
+				return nil, fmt.Errorf("can't find activity %s", ref)
 			}
 			services[name] = &core.Service{
 				Name:     name,
 				Settings: actionData.Services[i].Settings,
 				Activity: actvt,
 			}
-			continue
-		}
-		actvt := activity.Get(ref)
-		if actvt == nil {
-			return nil, fmt.Errorf("can't find activity %s", ref)
-		}
-		services[name] = &core.Service{
-			Name:     name,
-			Settings: actionData.Services[i].Settings,
-			Activity: actvt,
+		} else if handler := actionData.Services[i].Handler; handler != nil {
+			services[name] = &core.Service{
+				Name:     name,
+				Settings: actionData.Services[i].Settings,
+				Activity: &core.Adapter{Handler: handler},
+			}
+		} else {
+			return nil, fmt.Errorf("no ref or handler for service: %s", name)
 		}
 	}
 

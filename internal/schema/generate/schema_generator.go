@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/mashling-support/jsonschema"
-	"github.com/project-flogo/microgateway/internal/types"
+	"github.com/project-flogo/microgateway/types"
 )
 
 func main() {

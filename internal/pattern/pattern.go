@@ -5,7 +5,7 @@ package pattern
 import (
 	"encoding/json"
 
-	"github.com/project-flogo/microgateway/internal/types"
+	"github.com/project-flogo/microgateway/types"
 )
 
 // Load loads a pattern
