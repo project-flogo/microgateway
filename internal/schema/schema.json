@@ -1,0 +1,165 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$ref": "#/definitions/Microgateway",
+    "definitions": {
+        "Microgateway": {
+            "required": [
+                "name",
+                "steps"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "responses": {
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+                        "$ref": "#/definitions/Response"
+                    },
+                    "type": "array"
+                },
+                "services": {
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+                        "$ref": "#/definitions/Service"
+                    },
+                    "uniqueItems": true,
+                    "type": "array"
+                },
+                "steps": {
+                    "items": {
+                        "$schema": "http://json-schema.org/draft-04/schema#",
+                        "$ref": "#/definitions/Step"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Output": {
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "code": {
+                    "additionalProperties": true,
+                    "type": [
+                        "array",
+                        "boolean",
+                        "integer",
+                        "number",
+                        "null",
+                        "object",
+                        "string"
+                    ]
+                },
+                "data": {
+                    "additionalProperties": true,
+                    "type": [
+                        "array",
+                        "boolean",
+                        "integer",
+                        "number",
+                        "null",
+                        "object",
+                        "string"
+                    ]
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Response": {
+            "required": [
+                "error"
+            ],
+            "properties": {
+                "error": {
+                    "type": "boolean"
+                },
+                "if": {
+                    "type": "string"
+                },
+                "output": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "$ref": "#/definitions/Output"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Service": {
+            "required": [
+                "name",
+                "ref"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "ref": {
+                    "type": "string"
+                },
+                "settings": {
+                    "patternProperties": {
+                        ".*": {
+                            "additionalProperties": true,
+                            "type": [
+                                "array",
+                                "boolean",
+                                "integer",
+                                "number",
+                                "null",
+                                "object",
+                                "string"
+                            ]
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        },
+        "Step": {
+            "required": [
+                "service"
+            ],
+            "properties": {
+                "halt": {
+                    "type": "string"
+                },
+                "if": {
+                    "type": "string"
+                },
+                "input": {
+                    "patternProperties": {
+                        ".*": {
+                            "additionalProperties": true,
+                            "type": [
+                                "array",
+                                "boolean",
+                                "integer",
+                                "number",
+                                "null",
+                                "object",
+                                "string"
+                            ]
+                        }
+                    },
+                    "type": "object"
+                },
+                "service": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "type": "object"
+        }
+    }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "microgateway",
+  "type": "flogo:action",
+  "ref": "github.com/project-flogo/microgateway",
+  "version": "0.0.1",
+  "title": "Microgateway Action",
+  "description": "Action implementing the microgateway features.",
+  "homepage": "https://github.com/project-flogo/microgateway"
+}
