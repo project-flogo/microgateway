@@ -17,7 +17,6 @@ Create the gateway:
 ```
 flogo create -f flogo.json
 cd MyProxy
-flogo install github.com/project-flogo/microgateway/activity/circuitbreaker
 flogo build
 ```
 
