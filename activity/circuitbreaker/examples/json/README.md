@@ -16,13 +16,14 @@ Place the Downloaded Mashling-Gateway binary in circuit-breaker-gateway folder.
 Create the gateway:
 ```
 flogo create -f flogo.json
-cd flogo
+cd MyProxy
+flogo install github.com/project-flogo/microgateway/activity/circuitbreaker
 flogo build
 ```
 
 Start the gateway:
 ```
-bin/flogo
+bin/MyProxy
 ```
 and test below scenario.
 
