@@ -1,0 +1,102 @@
+{
+  "name": "MyProxy",
+  "type": "flogo:app",
+  "version": "1.0.0",
+  "description": "This is a simple proxy with sql injection attack protection.",
+  "properties": null,
+  "channels": null,
+  "triggers": [
+    {
+      "name": "flogo-rest",
+      "id": "MyProxy",
+      "ref": "github.com/project-flogo/contrib/trigger/rest",
+      "settings": {
+        "port": "9096"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "method": "PUT",
+            "path": "/pets"
+          },
+          "actions": [
+            {
+              "id": "microgateway:Update"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "microgateway:Update",
+      "compressed": false,
+      "data": {
+        "name": "Update",
+        "steps": [
+          {
+            "service": "SQLSecurity",
+            "input": {
+              "payload": "=$.payload"
+            }
+          },
+          {
+            "if": "$.SQLSecurity.outputs.attack < 80",
+            "service": "PetStorePetsUpdate",
+            "input": {
+              "body": "=$.payload.content"
+            }
+          }
+        ],
+        "responses": [
+          {
+            "if": "$.SQLSecurity.outputs.attack < 80",
+            "error": false,
+            "output": {
+              "code": 200,
+              "data": "=$.PetStorePetsUpdate.outputs.result"
+            }
+          },
+          {
+            "if": "$.SQLSecurity.outputs.attack > 80",
+            "error": true,
+            "output": {
+              "code": 403,
+              "data": {
+                "error": "hack attack!",
+                "attackValues": "=$.SQLSecurity.outputs.attackValues"
+              }
+            }
+          }
+        ],
+        "services": [
+          {
+            "name": "SQLSecurity",
+            "description": "Look for sql injection attacks",
+            "ref": "github.com/project-flogo/microgateway/activity/sqld"
+          },
+          {
+            "name": "PetStorePetsUpdate",
+            "description": "Update pets",
+            "ref": "github.com/project-flogo/contrib/activity/rest",
+            "settings": {
+              "url": "http://petstore.swagger.io/v2/pet",
+              "method": "PUT"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "actions": [
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "microgateway:Update"
+      },
+      "id": "microgateway:Update",
+      "metadata": null
+    }
+  ]
+}
