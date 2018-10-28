@@ -10,6 +10,7 @@ import (
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
+	"github.com/stretchr/testify/assert"
 )
 
 type initContext struct {
@@ -111,14 +112,10 @@ func TestCircuitBreakerModeA(t *testing.T) {
 	}()
 
 	activity, err := New(newInitContext(nil))
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	execute := func(serviceName string, values map[string]interface{}, should error) {
 		_, err := activity.Eval(newActivityContext(values))
-		if err != should {
-			t.Fatalf("error should be %v but is %v", should, err)
-		}
+		assert.Equal(t, should, err)
 	}
 
 	for i := 0; i < 4; i++ {
@@ -163,14 +160,10 @@ func TestCircuitBreakerModeB(t *testing.T) {
 	activity, err := New(newInitContext(map[string]interface{}{
 		"mode": CircuitBreakerModeB,
 	}))
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	execute := func(serviceName string, values map[string]interface{}, should error) {
 		_, err := activity.Eval(newActivityContext(values))
-		if err != should {
-			t.Fatalf("error should be %v but is %v", should, err)
-		}
+		assert.Equal(t, should, err)
 	}
 
 	for i := 0; i < 4; i++ {
@@ -214,14 +207,10 @@ func TestCircuitBreakerModeC(t *testing.T) {
 	activity, err := New(newInitContext(map[string]interface{}{
 		"mode": CircuitBreakerModeC,
 	}))
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	execute := func(serviceName string, values map[string]interface{}, should error) {
 		_, err := activity.Eval(newActivityContext(values))
-		if err != should {
-			t.Fatalf("error should be %v but is %v", should, err)
-		}
+		assert.Equal(t, should, err)
 	}
 
 	for i := 0; i < 4; i++ {
@@ -273,14 +262,10 @@ func TestCircuitBreakerModeD(t *testing.T) {
 	activity, err := New(newInitContext(map[string]interface{}{
 		"mode": CircuitBreakerModeD,
 	}))
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 	execute := func(serviceName string, values map[string]interface{}, should error) error {
 		_, err := activity.Eval(newActivityContext(values))
-		if err != should {
-			t.Fatalf("error should be %v but is %v", should, err)
-		}
+		assert.Equal(t, should, err)
 		return err
 	}
 
@@ -289,9 +274,7 @@ func TestCircuitBreakerModeD(t *testing.T) {
 		execute("reset", map[string]interface{}{"operation": "reset"}, nil)
 	}
 	p := activity.(*Activity).context.Probability(now())
-	if math.Floor(p*100) != 0.0 {
-		t.Fatalf("probability should be zero but is %v", math.Floor(p*100))
-	}
+	assert.Equal(t, 0.0, math.Floor(p*100))
 
 	type Test struct {
 		a, b error
@@ -329,7 +312,5 @@ func TestCircuitBreakerModeD(t *testing.T) {
 		execute("reset", map[string]interface{}{"operation": "reset"}, test.b)
 	}
 	p = activity.(*Activity).context.Probability(now())
-	if math.Floor(p*100) != 0.0 {
-		t.Fatalf("probability should be zero but is %v", math.Floor(p*100))
-	}
+	assert.Equal(t, 0.0, math.Floor(p*100))
 }

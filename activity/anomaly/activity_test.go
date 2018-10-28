@@ -167,9 +167,7 @@ func (a *activityContext) Scope() data.Scope {
 
 func TestActivity(t *testing.T) {
 	activity, err := New(newInitContext(nil))
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 
 	eval := func(data []byte) float32 {
 		var payload interface{}
