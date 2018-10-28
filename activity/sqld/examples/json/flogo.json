@@ -81,7 +81,7 @@
             "description": "Update pets",
             "ref": "github.com/project-flogo/contrib/activity/rest",
             "settings": {
-              "url": "http://petstore.swagger.io/v2/pet",
+              "uri": "http://petstore.swagger.io/v2/pet",
               "method": "PUT"
             }
           }
