@@ -10,7 +10,6 @@ This recipe is a gateway which applies rate limit on specified dispatches.
 git clone https://github.com/project-flogo/microgateway
 cd microgateway/activity/ratelimiter/examples/json
 ```
-Place the downloaded mashling-gateway binary in proxy-websocket folder.
 
 ## Testing
 Create the gateway:

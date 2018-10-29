@@ -4,7 +4,10 @@ require (
 	github.com/awalterschulze/gographviz v0.0.0-20170410065617-c84395e536e1 // indirect
 	github.com/chewxy/hm v1.0.0 // indirect
 	github.com/chewxy/math32 v1.0.0 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/dlclark/regexp2 v1.1.6 // indirect
+	github.com/dop251/goja v0.0.0-20180719220425-ef8c030e3c96
+	github.com/go-sourcemap/sourcemap v2.1.2+incompatible // indirect
 	github.com/gogo/protobuf v1.1.1 // indirect
 	github.com/golang/protobuf v1.2.0 // indirect
 	github.com/gonum/blas v0.0.0-20180125090452-e7c5890b24cf // indirect
@@ -25,7 +28,9 @@ require (
 	golang.org/x/exp v0.0.0-20181022080537-42ba7d4b6eb2 // indirect
 	golang.org/x/net v0.0.0-20181023162649-9b4f9f5ad519
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f // indirect
+	golang.org/x/text v0.3.0 // indirect
 	gonum.org/v1/gonum v0.0.0-20180622153253-e9e56344e335 // indirect
+	gopkg.in/yaml.v2 v2.2.1 // indirect
 	gorgonia.org/cu v0.8.0 // indirect
 	gorgonia.org/dawson v1.0.0 // indirect
 	gorgonia.org/gorgonia v0.9.0-beta
