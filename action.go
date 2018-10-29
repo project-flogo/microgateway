@@ -15,7 +15,7 @@ import (
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/data/resolve"
-	"github.com/project-flogo/core/support/logger"
+	logger "github.com/project-flogo/core/support/log"
 	"github.com/project-flogo/microgateway/api"
 	"github.com/project-flogo/microgateway/internal/core"
 	_ "github.com/project-flogo/microgateway/internal/function"
@@ -23,7 +23,7 @@ import (
 	"github.com/project-flogo/microgateway/internal/schema"
 )
 
-var log = logger.GetLogger("microgateway")
+var log = logger.ChildLogger(logger.RootLogger(), "microgateway")
 
 // Action is the microgateway action
 type Action struct {
@@ -68,6 +68,7 @@ type Factory struct {
 
 type initContext struct {
 	settings map[string]interface{}
+	name     string
 }
 
 func (i *initContext) Settings() map[string]interface{} {
@@ -76,6 +77,10 @@ func (i *initContext) Settings() map[string]interface{} {
 
 func (i *initContext) MapperFactory() mapper.Factory {
 	return nil
+}
+
+func (i *initContext) Logger() logger.Logger {
+	return logger.ChildLogger(log, i.name)
 }
 
 func (f *Factory) Initialize(ctx action.InitContext) error {
@@ -135,7 +140,10 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 
 		if ref := actionData.Services[i].Ref; ref != "" {
 			if factory := activity.GetFactory(ref); factory != nil {
-				actvt, err := factory(&initContext{settings: actionData.Services[i].Settings})
+				actvt, err := factory(&initContext{
+					settings: actionData.Services[i].Settings,
+					name:     name,
+				})
 				if err != nil {
 					return nil, err
 				}

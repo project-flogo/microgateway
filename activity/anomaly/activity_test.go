@@ -10,6 +10,7 @@ import (
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
+	logger "github.com/project-flogo/core/support/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -100,6 +101,10 @@ func (i *initContext) MapperFactory() mapper.Factory {
 	return nil
 }
 
+func (i *initContext) Logger() logger.Logger {
+	return logger.RootLogger()
+}
+
 type activityContext struct {
 	input  map[string]interface{}
 	output map[string]interface{}
@@ -163,6 +168,10 @@ func (a *activityContext) Return(returnData map[string]interface{}, err error) {
 
 func (a *activityContext) Scope() data.Scope {
 	return nil
+}
+
+func (a *activityContext) Logger() logger.Logger {
+	return logger.RootLogger()
 }
 
 func TestActivity(t *testing.T) {

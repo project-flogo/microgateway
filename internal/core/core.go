@@ -10,10 +10,10 @@ import (
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/metadata"
-	"github.com/project-flogo/core/support/logger"
+	logger "github.com/project-flogo/core/support/log"
 )
 
-var log = logger.GetLogger("microgateway")
+var log = logger.ChildLogger(logger.RootLogger(), "microgateway")
 
 type microgatewayHost struct {
 	id         string
@@ -254,6 +254,10 @@ func (s *serviceContext) SetOutputObject(output data.StructValue) error {
 
 func (s *serviceContext) GetSharedTempData() map[string]interface{} {
 	return nil
+}
+
+func (s *serviceContext) Logger() logger.Logger {
+	return logger.ChildLogger(log, s.name)
 }
 
 func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, input map[string]*Expr) (err error) {

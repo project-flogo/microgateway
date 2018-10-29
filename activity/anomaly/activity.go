@@ -8,7 +8,6 @@ import (
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
-	"github.com/project-flogo/core/support/logger"
 )
 
 const (
@@ -29,7 +28,6 @@ func init() {
 }
 
 var (
-	log              = logger.GetLogger("activity-circuitbreaker")
 	activityMetadata = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
 )
 
@@ -238,7 +236,8 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		return nil, err
 	}
 
-	log.Debugf("Setting: %b", settings)
+	logger := ctx.Logger()
+	logger.Debugf("Setting: %b", settings)
 
 	act := &Activity{
 		complexity: NewComplexity(settings.Depth),

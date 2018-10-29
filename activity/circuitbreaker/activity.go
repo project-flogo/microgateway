@@ -9,7 +9,6 @@ import (
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
-	"github.com/project-flogo/core/support/logger"
 )
 
 const (
@@ -36,7 +35,6 @@ func init() {
 var (
 	// ErrorCircuitBreakerTripped happens when the circuit breaker has tripped
 	ErrorCircuitBreakerTripped = errors.New("circuit breaker tripped")
-	log                        = logger.GetLogger("activity-circuitbreaker")
 	activityMetadata           = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
 	now                        = time.Now
 )
@@ -53,7 +51,8 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		return nil, err
 	}
 
-	log.Debugf("Setting: %b", settings)
+	logger := ctx.Logger()
+	logger.Debugf("Setting: %b", settings)
 
 	buffer := make([]Record, settings.Threshold)
 	for i := range buffer {

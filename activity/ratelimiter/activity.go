@@ -5,13 +5,11 @@ import (
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
-	"github.com/project-flogo/core/support/logger"
 	"github.com/ulule/limiter"
 	"github.com/ulule/limiter/drivers/store/memory"
 )
 
 var (
-	log              = logger.GetLogger("activity-ratelimiter")
 	activityMetadata = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
 )
 
@@ -42,7 +40,8 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		return nil, err
 	}
 
-	log.Debugf("Setting: %b", settings)
+	logger := ctx.Logger()
+	logger.Debugf("Setting: %b", settings)
 
 	rate, err := limiter.NewRateFromFormatted(settings.Limit)
 	if err != nil {

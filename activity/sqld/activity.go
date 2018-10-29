@@ -5,14 +5,12 @@ import (
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
-	"github.com/project-flogo/core/support/logger"
 	"github.com/project-flogo/microgateway/activity/sqld/injectsec"
 	"github.com/project-flogo/microgateway/activity/sqld/injectsec/gru"
 )
 
 var (
 	maker            *injectsec.DetectorMaker
-	log              = logger.GetLogger("activity-circuitbreaker")
 	activityMetadata = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
 )
 
@@ -38,7 +36,8 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		return nil, err
 	}
 
-	log.Debugf("Setting: %b", settings)
+	logger := ctx.Logger()
+	logger.Debugf("Setting: %b", settings)
 
 	act := Activity{}
 
