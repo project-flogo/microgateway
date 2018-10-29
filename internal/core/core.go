@@ -152,7 +152,7 @@ func executeSteps(definition *Microgateway, host *microgatewayHost) (err error) 
 		var truthiness bool
 		truthiness, err = evaluateTruthiness(step.Condition, host.Scope())
 		if err != nil {
-			return err
+			continue
 		}
 		if truthiness {
 			err = invokeService(step.Service, step.HaltCondition, host, step.Input)
@@ -278,7 +278,7 @@ func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayH
 	if haltCondition != nil {
 		truthiness, err := evaluateTruthiness(haltCondition, scope)
 		if err != nil {
-			return err
+			return nil
 		}
 		if truthiness {
 			return fmt.Errorf("execution halted with expression: %s", haltCondition)
