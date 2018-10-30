@@ -1,34 +1,15 @@
 package jwt
 
 import (
-	//"errors"
 	"fmt"
 	"strings"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
-	//"github.com/project-flogo/core/support/logger"
-)
-
-const (
-	ivServiceName = "serviceName"
-	ivToken 	= "token"
-	ivKey        	= "key"
-	ivSigningMethod = "signingMethod"
-	ivIssuer      	= "iss"
-	ivSubject       = "sub"
-	ivAudience      = "aud"
-
-	ovValid   	= "valid"
-	ovToken 	= "token"
-	ovValidationMsg = "validationMessage"
-	ovError    	= "error"
-	ovErrorMsg 	= "errorMessage"
 )
 
 var (
 	activityMetadata = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
-	//log = logger.GetLogger("activity-jwt")
 )
 
 func init() {
@@ -42,7 +23,8 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		return nil, err
 	}
 
-	//log.Debugf("Setting: %b", settings)
+	logger := ctx.Logger()
+	logger.Debugf("Setting: %b", settings)
 
 	act := &Activity{}
 	return act, nil
@@ -111,7 +93,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 			return nil, jwt.NewValidationError("unable to parse claims", jwt.ValidationErrorClaimsInvalid)
 		}
 
-		return []byte(ctx.GetInput(ivKey).(string)), nil
+		return []byte(input.Key), nil
 	})
 	output := Output{}
 	if token != nil && token.Valid {

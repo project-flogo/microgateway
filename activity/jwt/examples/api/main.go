@@ -30,22 +30,22 @@ func main() {
 
 
 	step := gateway.NewStep(jwtService)
-	step.AddInput("token", "$.payload.headers.Authorization")
+	step.AddInput("token", "=$.payload.headers.Authorization")
 	step = gateway.NewStep(serviceStore)
 	step.AddInput("pathParams.petId", "=$.jwtService.outputs.token")
 
-	response := gateway.NewResponse(true)
-	response.SetIf("$.jwtService.outputs.valid == false")
-	response.SetCode(401)
-	response.SetData(map[string]interface{}{
-		"error": "=$.PetStorePets.outputs",
-	})
-	response = gateway.NewResponse(false)
+	response := gateway.NewResponse(false)
 	response.SetIf("$.jwtService.outputs.valid == true")
 	response.SetCode(200)
 	response.SetData(map[string]interface{}{
 		"error": "JWT token is valid",
 		"pet": "=$.PetStorePets.outputs.result",
+	})
+	response = gateway.NewResponse(true)
+	response.SetIf("$.jwtService.outputs.valid == false")
+	response.SetCode(401)
+	response.SetData(map[string]interface{}{
+		"error": "=$.PetStorePets.outputs.result",
 	})
 
 	settings, err := gateway.AddResource(app)

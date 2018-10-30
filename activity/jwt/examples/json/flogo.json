@@ -17,7 +17,7 @@
         {
           "settings": {
             "method": "GET",
-            "path": "/pets/:petId"
+            "path": "/pets"
           },
           "actions": [
             {
@@ -44,7 +44,7 @@
           {
             "service": "PetStorePets",
             "input": {
-              "pathParams.petId": "=$.jwtService.outputs.token.claims.id"
+              "pathParams.petId": "=$.jwtService.outputs.token"
             }
           }
         ],
@@ -89,7 +89,7 @@
             "description": "Get pets by ID from the petstore",
             "ref": "github.com/project-flogo/contrib/activity/rest",
             "settings": {
-              "uri": "http://localhost:1234/pets",
+              "uri": "https://petstore.swagger.io/v2/pet/:petId",
               "method": "GET"
             }
           }

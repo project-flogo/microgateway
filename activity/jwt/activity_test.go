@@ -1,13 +1,13 @@
 package jwt
 
 import (
-	"errors"
 	"testing"
 	"fmt"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
+	logger "github.com/project-flogo/core/support/log"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,6 +30,10 @@ func (i *initContext) Settings() map[string]interface{} {
 
 func (i *initContext) MapperFactory() mapper.Factory {
 	return nil
+}
+
+func (i *initContext) Logger() logger.Logger {
+	return logger.RootLogger()
 }
 
 type activityContext struct {
@@ -65,7 +69,6 @@ func (a *activityContext) SetOutput(name string, value interface{}) error {
 }
 
 func (a *activityContext) GetInputObject(input data.StructValue) error {
-	fmt.Println("Getinput : ",a.input)
 	return input.FromMap(a.input)
 }
 
@@ -96,6 +99,10 @@ func (a *activityContext) Return(returnData map[string]interface{}, err error) {
 
 func (a *activityContext) Scope() data.Scope {
 	return nil
+}
+
+func (a *activityContext) Logger() logger.Logger {
+	return logger.RootLogger()
 }
 
 func TestJWT(t *testing.T) {
