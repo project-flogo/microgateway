@@ -38,7 +38,7 @@
           {
             "service": "jwtService",
             "input": {
-              "operation": "=$.payload.header.Authorization"
+              "token": "=$.payload.header.Authorization"
             }
           },
           {

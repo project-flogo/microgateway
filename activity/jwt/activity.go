@@ -7,7 +7,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
-	"github.com/project-flogo/core/support/logger"
+	//"github.com/project-flogo/core/support/logger"
 )
 
 const (
@@ -28,7 +28,7 @@ const (
 
 var (
 	activityMetadata = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
-	log = logger.GetLogger("activity-jwt")
+	//log = logger.GetLogger("activity-jwt")
 )
 
 func init() {
@@ -42,7 +42,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		return nil, err
 	}
 
-	log.Debugf("Setting: %b", settings)
+	//log.Debugf("Setting: %b", settings)
 
 	act := &Activity{}
 	return act, nil
@@ -60,7 +60,6 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	fmt.Println("Inside eval")
 	fmt.Println("context is :",ctx)
 	input := Input{}
-	fmt.Println("input is :",input)
 	err = ctx.GetInputObject(&input)
 	if err != nil {
 		fmt.Println("inside error")
@@ -69,6 +68,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	fmt.Println("here")
 	token, err := jwt.Parse(input.Token, func(token *jwt.Token) (interface{}, error) {
 		// Make sure signing alg matches what we expect
+		fmt.Println("input is :",input.Token)
 		switch strings.ToLower(input.SigningMethod) {
 		case "hmac":
 			fmt.Println("in hmac")
@@ -120,8 +120,10 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		output.Token = ParsedToken{Signature: token.Signature, SigningMethod: token.Method.Alg(), Header: token.Header}
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			output.Token.Claims = claims
+			fmt.Println("claims aree:", output.Token.Claims)
 		}
-		return true,err
+		fmt.Println("valid aree:", output.Valid)
+		return true,nil
 	} else if ve, ok := err.(*jwt.ValidationError); ok {
 		fmt.Println("invalid token")
 		output.Valid = false
