@@ -32,7 +32,7 @@ func main() {
 	step := gateway.NewStep(jwtService)
 	step.AddInput("token", "=$.payload.headers.Authorization")
 	step = gateway.NewStep(serviceStore)
-	step.AddInput("pathParams.petId", "=$.jwtService.outputs.token")
+	step.AddInput("pathParams.petId", "=$.jwtService.outputs.token.claims.id")
 
 	response := gateway.NewResponse(false)
 	response.SetIf("$.jwtService.outputs.valid == true")

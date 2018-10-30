@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"github.com/project-flogo/core/data/coerce"
-	"github.com/dgrijalva/jwt-go"
 )
 
 type Settings struct {}
@@ -47,7 +46,7 @@ type Output struct {
 
 // ParsedToken is a parsed JWT token.
 type ParsedToken struct {
-	Claims        jwt.MapClaims          `json:"claims"`
+	Claims        map[string]interface{} `json:"claims"`
 	Signature     string                 `json:"signature"`
 	SigningMethod string                 `json:"signingMethod"`
 	Header        map[string]interface{} `json:"header"`

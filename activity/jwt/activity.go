@@ -101,11 +101,19 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		output.Valid = true
 		output.Token = ParsedToken{Signature: token.Signature, SigningMethod: token.Method.Alg(), Header: token.Header}
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			output.Token.Claims = claims
+			result := make(map[string]interface{})
+			for key, value := range claims {
+				switch key {
+				case "id":
+					result[key] = value.(string)
+				default:
+				//none
+				}
+			}
+			output.Token.Claims = result
 			fmt.Println("claims aree:", output.Token.Claims)
 		}
 		fmt.Println("valid aree:", output.Valid)
-		return true,nil
 	} else if ve, ok := err.(*jwt.ValidationError); ok {
 		fmt.Println("invalid token")
 		output.Valid = false
