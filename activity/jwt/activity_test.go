@@ -2,7 +2,7 @@ package jwt
 
 import (
 	"testing"
-	"fmt"
+
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/mapper"
@@ -115,11 +115,11 @@ func TestJWT(t *testing.T) {
 
 	inputValues := map[string]interface{}{
 		"signingMethod": "HMAC",
-		"key": "qwertyuiopasdfghjklzxcvbnm789101",
-		"aud": "www.mashling.io",
-		"iss": "Mashling",
-		"sub": "tempuser@mail.com",
-		"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJNYXNobGluZyIsImlhdCI6MTU0MDQ4NzgzNywiZXhwIjoxNTcyMDIzODM4LCJhdWQiOiJ3d3cubWFzaGxpbmcuaW8iLCJzdWIiOiJ0ZW1wdXNlckBtYWlsLmNvbSIsImlkIjoiMSJ9.-Tzfn5ZS0kM-u07qkpFrDxdyptBJIvLesuUzVXdqn48",
+		"key":           "qwertyuiopasdfghjklzxcvbnm789101",
+		"aud":           "www.mashling.io",
+		"iss":           "Mashling",
+		"sub":           "tempuser@mail.com",
+		"token":         "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJNYXNobGluZyIsImlhdCI6MTU0MDQ4NzgzNywiZXhwIjoxNTcyMDIzODM4LCJhdWQiOiJ3d3cubWFzaGxpbmcuaW8iLCJzdWIiOiJ0ZW1wdXNlckBtYWlsLmNvbSIsImlkIjoiMSJ9.-Tzfn5ZS0kM-u07qkpFrDxdyptBJIvLesuUzVXdqn48",
 	}
 	execute("reset", inputValues, nil)
 
