@@ -109,7 +109,6 @@ func TestJWT(t *testing.T) {
 	activity, err := New(newInitContext(nil))
 	assert.Nil(t, err)
 	execute := func(serviceName string, values map[string]interface{}, should error) {
-		fmt.Println("values:",values)
 		_, err := activity.Eval(newActivityContext(values))
 		assert.Equal(t, should, err)
 	}

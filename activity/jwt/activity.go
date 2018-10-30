@@ -39,23 +39,16 @@ func (a *Activity) Metadata() *activity.Metadata {
 
 // Eval executes the activity
 func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
-	fmt.Println("Inside eval")
-	fmt.Println("context is :",ctx)
 	input := Input{}
 	err = ctx.GetInputObject(&input)
 	if err != nil {
-		fmt.Println("inside error")
 		return false, err
 	}
-	fmt.Println("here")
 	input.Token = input.Token[7:]
-	fmt.Println("input is :",input.Token)
 	token, err := jwt.Parse(input.Token, func(token *jwt.Token) (interface{}, error) {
 		// Make sure signing alg matches what we expect
-		fmt.Println("input is :",input.Token)
 		switch strings.ToLower(input.SigningMethod) {
 		case "hmac":
-			fmt.Println("in hmac")
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 			}
@@ -78,20 +71,16 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		}
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
 			if input.Issuer != "" && !claims.VerifyIssuer(input.Issuer, true) {
-				fmt.Println("In Issuer")
 				return nil, jwt.NewValidationError("iss claims do not match", jwt.ValidationErrorIssuer)
 			}
 			if input.Audience != "" && !claims.VerifyAudience(input.Audience, true) {
-				fmt.Println("In Audience")
 				return nil, jwt.NewValidationError("aud claims do not match", jwt.ValidationErrorAudience)
 			}
 			subClaim, sok := claims["sub"].(string)
 			if input.Subject != "" && (!sok || strings.Compare(input.Subject, subClaim) != 0) {
-				fmt.Println("In subject")
 				return nil, jwt.NewValidationError("sub claims do not match", jwt.ValidationErrorClaimsInvalid)
 			}
 		} else {
-			fmt.Println("in claims error")
 			return nil, jwt.NewValidationError("unable to parse claims", jwt.ValidationErrorClaimsInvalid)
 		}
 
@@ -99,7 +88,6 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	})
 	output := Output{}
 	if token != nil && token.Valid {
-		fmt.Println("valid token")
 		output.Valid = true
 		output.Token = ParsedToken{Signature: token.Signature, SigningMethod: token.Method.Alg(), Header: token.Header}
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
@@ -113,15 +101,11 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 				}
 			}
 			output.Token.Claims = result
-			fmt.Println("claims aree:", output.Token.Claims)
 		}
-		fmt.Println("valid aree:", output.Valid)
 	} else if ve, ok := err.(*jwt.ValidationError); ok {
-		fmt.Println("invalid token")
 		output.Valid = false
 		output.ValidationMessage = ve.Error()
 	} else {
-		fmt.Println("errror in token")
 		output.Valid = false
 		output.Error = true
 		output.ValidationMessage = err.Error()

@@ -45,7 +45,8 @@ func main() {
 	response.SetIf("$.jwtService.outputs.valid == false")
 	response.SetCode(401)
 	response.SetData(map[string]interface{}{
-		"error": "=$.PetStorePets.outputs.result",
+		"error": "=$.jwtService.outputs",
+		"pet": "=$.PetStorePets.outputs.result",
 	})
 
 	settings, err := gateway.AddResource(app)
