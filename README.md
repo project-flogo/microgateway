@@ -11,7 +11,7 @@ The JSON Schema for the Microgateway resource can be found [here](internal/schem
 
 ### Services
 
-A service defines a function or activity of some sort that will be utilized in a step within an execution flow. Services have names, refs, and settings. Any Flogo activity works as a service. Services that are specific to a microgateway can be found [here](activity). Services may call external endpoints like HTTP servers or may stay within the context of the gateway, like the [js](actibity/js) activity. Once a service is defined it can be used as many times as needed within your routes and steps.
+A service defines a function or activity of some sort that will be utilized in a step within an execution flow. Services have names, refs, and settings. Any Flogo activity works as a service. Services that are specific to a microgateway can be found [here](activity). Services may call external endpoints like HTTP servers or may stay within the context of the gateway, like the [js](activity/js) activity. Once a service is defined it can be used as many times as needed within your routes and steps.
 
 ### Steps
 
