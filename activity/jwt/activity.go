@@ -48,6 +48,8 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 	fmt.Println("here")
+	input.Token = input.Token[7:]
+	fmt.Println("input is :",input.Token)
 	token, err := jwt.Parse(input.Token, func(token *jwt.Token) (interface{}, error) {
 		// Make sure signing alg matches what we expect
 		fmt.Println("input is :",input.Token)

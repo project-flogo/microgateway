@@ -38,13 +38,13 @@
           {
             "service": "jwtService",
             "input": {
-              "token": "=$.payload.header.Authorization"
+              "token": "=$.payload.headers.Authorization"
             }
           },
           {
             "service": "PetStorePets",
             "input": {
-              "pathParams.petId": "=$.jwtService.outputs.token"
+              "pathParams.petId": "=$.jwtService.outputs.token.claims.id"
             }
           }
         ],
@@ -73,7 +73,7 @@
         ],
         "services": [
           {
-            "name": "JWTService",
+            "name": "jwtService",
             "description": "Validating JWT token to access Petstore service",
             "ref": "github.com/project-flogo/microgateway/activity/jwt",
             "settings": {
