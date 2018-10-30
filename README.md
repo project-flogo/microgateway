@@ -32,7 +32,7 @@ A simple step looks like:
 
 As you can see above, a step consists of a simple condition, a service reference, input parameters, and (not shown) output parameters. The `service` must map to a service defined in the `services` array that is defined in the microgateway resource. Input key and value pairs are translated and handed off to the service execution. Output key value pairs are translated and retained after the service has executed. Values starting with `=` are evaluated as variables within the context of the execution. An optional `halt` condition is supported for steps. When the `halt` condition is true the execution of the steps is halted.
 
-## Responses
+### Responses
 
 Each microgateway has an optional set of responses that can be evaluated and returned to the invoking trigger. Much like routes, the first response with an `if` condition evaluating to true is the response that gets executed and returned. A response contains an `if` condition, an `error` boolean, a `code` value, and a `data` object. The `error` boolean dictates whether or not an error should be returned to the engine. The `code` is the status code returned to the trigger. The `data` object is evaluated within the context of the execution and then sent back to the trigger as well.
 
