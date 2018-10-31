@@ -39,10 +39,15 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/project-flogo/contrib v0.0.0-20181029195835-903d85faed58 h1:+n/YJ0H41rooHveiCHLPldR2VEowe7sp+0FlUYOTv+4=
 github.com/project-flogo/contrib v0.0.0-20181029195835-903d85faed58/go.mod h1:Q+uLEZCxZpkE4Ap9soT7XFMAi1GX54+TE9UZoP+Ndpw=
+github.com/project-flogo/contrib v0.0.0-20181031205748-377ceef640a0 h1:MZSRJ8F94m7ODLj/1p7n5Ge67kYRVB8YJdSHIJNvq1w=
+github.com/project-flogo/contrib v0.0.0-20181031205748-377ceef640a0/go.mod h1:4kkrCbxbMG1J4cfwZohIHaTDUkgjK7ICodU2czRgIbg=
 github.com/project-flogo/core v0.9.0-alpha.1 h1:c6BB8TPct70wvgyJ/FE1CCgZbn5WrLWZSZWJ6qR+Gq8=
 github.com/project-flogo/core v0.9.0-alpha.1/go.mod h1:2ahj+3BgitIAcO0P/3aW2YClPekCuVJzyDT6twLb2xM=
 github.com/project-flogo/core v0.9.0-alpha.1.0.20181029203834-5da815926b76 h1:NQ+hUaP+OUS65VMITcDSWJhKNNNazC2pzITm3nYktHQ=
 github.com/project-flogo/core v0.9.0-alpha.1.0.20181029203834-5da815926b76/go.mod h1:BHeB55AxPhvlNGd+it50rE977ag6xE3bD2RluSDeKBA=
+github.com/project-flogo/core v0.9.0-alpha.2/go.mod h1:BHeB55AxPhvlNGd+it50rE977ag6xE3bD2RluSDeKBA=
+github.com/project-flogo/core v0.9.0-alpha.2.0.20181031205817-e8b9d3b1d747 h1:Qclh/Elw3aJ9ddRiapDuMCLmQ058BxwM6VMMuj8RV40=
+github.com/project-flogo/core v0.9.0-alpha.2.0.20181031205817-e8b9d3b1d747/go.mod h1:BHeB55AxPhvlNGd+it50rE977ag6xE3bD2RluSDeKBA=
 github.com/sirupsen/logrus v1.1.1 h1:VzGj7lhU7KEB9e9gMpAV/v5XT2NVSvLJhJLCWbnkgXg=
 github.com/sirupsen/logrus v1.1.1/go.mod h1:zrgwTnHtNr00buQ1vSptGe8m1f/BbgsPukg8qsT7A+A=
 github.com/stretchr/objx v0.1.1 h1:2vfRuCMp5sSVIDSqO8oNnWJq7mPa6KVP3iPIwFBuy8A=
