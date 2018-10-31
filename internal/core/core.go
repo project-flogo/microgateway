@@ -98,7 +98,7 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 				continue
 			}
 			if truthiness {
-				output, oErr := translateMappings(scope, map[string]*Expr{"code": response.Output.Code})
+				output, oErr := TranslateMappings(scope, map[string]*Expr{"code": response.Output.Code})
 				if oErr != nil {
 					return -1, nil, oErr
 				}
@@ -126,12 +126,12 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 				// Translate data mappings
 				var data interface{}
 				if response.Output.Datum != nil {
-					data, oErr = translateMappings(scope, response.Output.Datum)
+					data, oErr = TranslateMappings(scope, response.Output.Datum)
 					if oErr != nil {
 						return -1, nil, oErr
 					}
 				} else {
-					interimData, dErr := translateMappings(scope, map[string]*Expr{"data": response.Output.Data})
+					interimData, dErr := TranslateMappings(scope, map[string]*Expr{"data": response.Output.Data})
 					if dErr != nil {
 						return -1, nil, dErr
 					}
@@ -154,8 +154,10 @@ func executeSteps(definition *Microgateway, host *microgatewayHost) (err error) 
 		if err != nil {
 			continue
 		}
+		ctxt := newServiceContext(step.Service, host)
+		ctxt.UpdateScope(nil)
 		if truthiness {
-			err = invokeService(step.Service, step.HaltCondition, host, step.Input)
+			err = invokeService(step.Service, step.HaltCondition, host, ctxt, step.Input)
 			if err != nil {
 				return err
 			}
@@ -260,13 +262,11 @@ func (s *serviceContext) Logger() logger.Logger {
 	return logger.ChildLogger(log, s.name)
 }
 
-func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, input map[string]*Expr) (err error) {
+func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, ctxt *serviceContext, input map[string]*Expr) (err error) {
 	log.Info("invoking service: ", serviceDef.Name)
-	// TODO: Translate service definition variables.
-	ctxt, scope := newServiceContext(serviceDef, host), host.Scope()
 
-	ctxt.UpdateScope(nil)
-	values, err := translateMappings(scope, input)
+	scope := host.Scope()
+	values, err := TranslateMappings(scope, input)
 	if err != nil {
 		return err
 	}
@@ -293,7 +293,7 @@ func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayH
 	return err
 }
 
-func translateMappings(scope data.Scope, mappings map[string]*Expr) (values map[string]interface{}, err error) {
+func TranslateMappings(scope data.Scope, mappings map[string]*Expr) (values map[string]interface{}, err error) {
 	values = make(map[string]interface{})
 	if len(mappings) == 0 {
 		return values, err

@@ -3,7 +3,9 @@ package microgateway
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/project-flogo/contrib/activity/rest"
 	coreactivity "github.com/project-flogo/core/activity"
@@ -12,6 +14,11 @@ import (
 	"github.com/project-flogo/microgateway/internal/testing/activity"
 	"github.com/project-flogo/microgateway/internal/testing/trigger"
 	"github.com/stretchr/testify/assert"
+
+	_ "github.com/project-flogo/contrib/activity/rest"
+	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
+	_ "github.com/project-flogo/microgateway/activity/jwt"
+	_ "github.com/project-flogo/microgateway/activity/ratelimiter"
 )
 
 func TestMicrogateway(t *testing.T) {
@@ -199,6 +206,63 @@ func TestMicrogatewayHandler(t *testing.T) {
 	assert.Equal(t, "1337", message)
 	assert.True(t, fired)
 	assert.False(t, defaultActionHit)
+}
+
+type handler struct {
+	hit bool
+}
+
+func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.hit = true
+	r.Body.Close()
+}
+
+func TestMicrogatewayHttpPattern(t *testing.T) {
+	defer func() {
+		trigger.Reset()
+		activity.Reset()
+	}()
+
+	testHandler := handler{}
+	s := &http.Server{
+		Addr:           ":1234",
+		Handler:        &testHandler,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	go func() {
+		s.ListenAndServe()
+	}()
+	defer s.Shutdown(context.Background())
+
+	app := api.NewApp()
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{ASetting: 1337})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{})
+	assert.Nil(t, err)
+
+	action, err := handler.NewAction(&Action{}, map[string]interface{}{
+		"pattern":           "DefaultHttpPattern",
+		"useRateLimiter":    false,
+		"useJWT":            false,
+		"useCircuitBreaker": false,
+		"backendUrl":        "http://localhost:1234/",
+		"rateLimit":         "3-M",
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, action)
+
+	e, err := api.NewEngine(app)
+	assert.Nil(t, err)
+	e.Start()
+	defer e.Stop()
+
+	result, err := trigger.Fire(0, map[string]interface{}{})
+	assert.Nil(t, err)
+	assert.NotNil(t, result)
+
+	assert.True(t, testHandler.hit)
 }
 
 func BenchmarkMicrogateway(b *testing.B) {

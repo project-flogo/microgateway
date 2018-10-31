@@ -53,11 +53,13 @@ Utilizing the response values can be seen in a response handler:
 {
   "if": "$.PetStorePets.outputs.result.status == 'available'",
   "error": false,
-  "code": 200,
-  "data": {
-    "body.pet": "=$.PetStorePets.outputs.result",
-    "body.inventory": "=$.PetStoreInventory.outputs.result",
-    "body.availableTimesTwo": "=$.JSCalc.outputs.result.total"
+  "output": {
+    "code": 200,
+    "data": {
+      "body.pet": "=$.PetStorePets.outputs.result",
+      "body.inventory": "=$.PetStoreInventory.outputs.result",
+      "body.availableTimesTwo": "=$.JSCalc.outputs.result.total"
+    }
   }
 }
 ```

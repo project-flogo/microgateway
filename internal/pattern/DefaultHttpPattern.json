@@ -5,15 +5,14 @@
       "if": "$.conf.useRateLimiter == true",
       "service": "RateLimiter",
       "input": {
-        "token": "global",
-        "limit": "=$.conf.rateLimit"
+        "token": "global"
       }
     },
     {
       "if": "$.conf.useJWT == true",
       "service": "JWTValidator",
       "input": {
-        "token": "=$.payload.header.Authorization",
+        "token": "=$.payload.headers.Authorization",
         "key": "=$.conf.jwtKey"
       }
     },
@@ -22,22 +21,19 @@
       "service": "CircuitBreaker"
     },
     {
-      "if": "$.conf.useJWT == false || $.JWTValidator.response.valid == true",
+      "if": "$.conf.useJWT == false || $.JWTValidator.outputs.valid == true",
       "service": "HttpBackend",
-      "input": {
-        "url": "=$.conf.backendUrl",
-        "netError": true
-      }
+      "halt": "($.HttpBackend.error != nil) && !error.isneterror($.HttpBackend.error)"
     },
     {
-      "if": "$.conf.useCircuitBreaker == true && $.HttpBackend.response.netError != ''",
+      "if": "$.conf.useCircuitBreaker == true && $.HttpBackend.error != nil",
       "service": "CircuitBreaker",
       "input": {
         "operation": "counter"
       }
     },
     {
-      "if": "$.conf.useCircuitBreaker == true && $.HttpBackend.response.netError == ''",
+      "if": "$.conf.useCircuitBreaker == true && $.HttpBackend.error == nil",
       "service": "CircuitBreaker",
       "input": {
         "operation": "reset"
@@ -46,7 +42,7 @@
   ],
   "responses": [
     {
-      "if": "$.RateLimiter.limitReached == true",
+      "if": "$.RateLimiter.outputs.limitReached == true",
       "error": true,
       "output": {
         "code": 403,
@@ -56,17 +52,17 @@
       }
     },
     {
-      "if": "$.conf.useJWT == true && $.JWTValidator.response.valid == false",
+      "if": "$.conf.useJWT == true && $.JWTValidator.outputs.valid == false",
       "error": true,
       "output": {
         "code": 401,
         "data": {
-          "error": "=$.JWTValidator.response"
+          "error": "=$.JWTValidator.outputs.errorMessage"
         }
       }
     },
     {
-      "if": "$.conf.useCircuitBreaker == true && $.CircuitBreaker.tripped == true",
+      "if": "$.conf.useCircuitBreaker == true && $.CircuitBreaker.outputs.tripped == true",
       "error": true,
       "output": {
         "code": 403,
@@ -79,7 +75,7 @@
       "error": false,
       "output": {
         "code": 200,
-        "data": "=$.HttpBackend.response.body"
+        "data": "=$.HttpBackend.outputs.result"
       }
     }
   ],
@@ -87,26 +83,32 @@
     {
       "name": "RateLimiter",
       "description": "Rate limiter",
-      "ref": "github.com/project-flogo/microgateway-contrib/activity/ratelimiter"
+      "ref": "github.com/project-flogo/microgateway/activity/ratelimiter",
+      "settings": {
+        "limit": "=$.conf.rateLimit"
+      }
     },
     {
       "name": "JWTValidator",
       "description": "Validate some tokens",
-      "ref": "github.com/project-flogo/microgateway-contrib/activity/jwt"
+      "ref": "github.com/project-flogo/microgateway/activity/jwt"
     },
     {
       "name": "CircuitBreaker",
       "description": "Circuit breaker service",
-      "ref": "github.com/project-flogo/microgateway-contrib/activity/circuitbreaker",
+      "ref": "github.com/project-flogo/microgateway/activity/circuitbreaker",
       "settings": {
-        "mode": "a",
-        "context": "get"
+        "mode": "a"
       }
     },
     {
       "name": "HttpBackend",
       "description": "Make an http call to your backend",
-      "ref": "github.com/project-flogo/microgateway-contrib/activity/http"
+      "ref": "github.com/project-flogo/contrib/activity/rest",
+      "settings": {
+        "method": "GET",
+        "uri": "=$.conf.backendUrl"
+      }
     }
   ]
 }

@@ -5,7 +5,7 @@
       "if": "$.conf.useJWT == true",
       "service": "JWTValidator",
       "input": {
-        "token": "=$.payload.header.Authorization",
+        "token": "=$.payload.headers.Authorization",
         "key": "=$.conf.jwtKey"
       }
     },
@@ -14,24 +14,25 @@
       "service": "CircuitBreaker"
     },
     {
-      "if": "$.conf.useJWT == false || $.JWTValidator.response.valid == true",
+      "if": "$.conf.useJWT == false || $.JWTValidator.outputs.valid == true",
       "service": "ActionBackend",
       "input": {
         "inputs": {
           "channel": "test",
           "value": "test"
         }
-      }
+      },
+      "halt": "false"
     },
     {
-      "if": "$.conf.useCircuitBreaker == true && $.ActionBackend.response.error != ''",
+      "if": "$.conf.useCircuitBreaker == true && $.ActionBackend.error != nil",
       "service": "CircuitBreaker",
       "input": {
         "operation": "counter"
       }
     },
     {
-      "if": "$.conf.useCircuitBreaker == true && $.ActionBackend.response.error == ''",
+      "if": "$.conf.useCircuitBreaker == true && $.ActionBackend.error == nil",
       "service": "CircuitBreaker",
       "input": {
         "operation": "reset"
@@ -40,17 +41,17 @@
   ],
   "responses": [
     {
-      "if": "$.conf.useJWT == true && $.JWTValidator.response.valid == false",
+      "if": "$.conf.useJWT == true && $.JWTValidator.outputs.valid == false",
       "error": true,
       "output": {
         "code": 401,
         "data": {
-          "error": "=$.JWTValidator.response"
+          "error": "=$.JWTValidator.outputs.errorMessage"
         }
       }
     },
     {
-      "if": "$.conf.useCircuitBreaker == true && $.CircuitBreaker.tripped == true",
+      "if": "$.conf.useCircuitBreaker == true && $.CircuitBreaker.outputs.tripped == true",
       "error": true,
       "output": {
         "code": 403,
@@ -73,24 +74,20 @@
     {
       "name": "JWTValidator",
       "description": "Validate some tokens",
-      "ref": "github.com/project-flogo/microgateway-contrib/activity/jwt"
+      "ref": "github.com/project-flogo/microgateway/activity/jwt"
     },
     {
       "name": "CircuitBreaker",
       "description": "Circuit breaker service",
-      "ref": "github.com/project-flogo/microgateway-contrib/activity/circuitbreaker",
+      "ref": "github.com/project-flogo/microgateway/activity/circuitbreaker",
       "settings": {
-        "mode": "a",
-        "context": "get"
+        "mode": "a"
       }
     },
     {
       "name": "ActionBackend",
       "description": "Make an action call to your backend",
-      "ref": "github.com/project-flogo/microgateway-contrib/activity/flogoactivity",
-      "settings": {
-        "ref": "github.com/TIBCOSoftware/flogo-contrib/activity/channel"
-      }
+      "ref": "github.com/project-flogo/contrib/activity/channel"
     }
   ]
 }

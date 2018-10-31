@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
 
 	_ "github.com/project-flogo/contrib/function"
 	"github.com/project-flogo/core/action"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/app/resource"
+	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/expression"
 	_ "github.com/project-flogo/core/data/expression/script"
 	"github.com/project-flogo/core/data/mapper"
@@ -131,48 +134,17 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		return nil, errors.New("no definition found for microgateway")
 	}
 
-	services := make(map[string]*core.Service, len(actionData.Services))
-	for i := range actionData.Services {
-		name := actionData.Services[i].Name
-		if _, ok := services[name]; ok {
-			return nil, fmt.Errorf("duplicate service name: %s", name)
-		}
-
-		if ref := actionData.Services[i].Ref; ref != "" {
-			if factory := activity.GetFactory(ref); factory != nil {
-				actvt, err := factory(&initContext{
-					settings: actionData.Services[i].Settings,
-					name:     name,
-				})
-				if err != nil {
-					return nil, err
-				}
-				services[name] = &core.Service{
-					Name:     name,
-					Settings: actionData.Services[i].Settings,
-					Activity: actvt,
-				}
-				continue
-			}
-			actvt := activity.Get(ref)
-			if actvt == nil {
-				return nil, fmt.Errorf("can't find activity %s", ref)
-			}
-			services[name] = &core.Service{
-				Name:     name,
-				Settings: actionData.Services[i].Settings,
-				Activity: actvt,
-			}
-		} else if handler := actionData.Services[i].Handler; handler != nil {
-			services[name] = &core.Service{
-				Name:     name,
-				Settings: actionData.Services[i].Settings,
-				Activity: &core.Adapter{Handler: handler},
-			}
-		} else {
-			return nil, fmt.Errorf("no ref or handler for service: %s", name)
-		}
+	envFlags := make(map[string]string)
+	for _, e := range os.Environ() {
+		pair := strings.Split(e, "=")
+		envFlags[pair[0]] = pair[1]
 	}
+	executionContext := map[string]interface{}{
+		"async": act.settings.Async,
+		"env":   envFlags,
+		"conf":  config.Settings,
+	}
+	scope := data.NewSimpleScope(executionContext, nil)
 
 	expressionFactory := expression.NewFactory(resolve.GetBasicResolver())
 	getExpression := func(value interface{}) (*core.Expr, error) {
@@ -184,6 +156,63 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			return core.NewExpr(stringValue, expr), nil
 		}
 		return core.NewExpr(fmt.Sprintf("%v", value), expression.NewLiteralExpr(value)), nil
+	}
+
+	services := make(map[string]*core.Service, len(actionData.Services))
+	for i := range actionData.Services {
+		name := actionData.Services[i].Name
+		if _, ok := services[name]; ok {
+			return nil, fmt.Errorf("duplicate service name: %s", name)
+		}
+
+		values := make(map[string]*core.Expr, len(actionData.Services[i].Settings))
+		for key, value := range actionData.Services[i].Settings {
+			values[key], err = getExpression(value)
+			if err != nil {
+				log.Infof("expression parsing error: %s", value)
+				return nil, err
+			}
+		}
+
+		settings, err := core.TranslateMappings(scope, values)
+		if err != nil {
+			return nil, err
+		}
+
+		if ref := actionData.Services[i].Ref; ref != "" {
+			if factory := activity.GetFactory(ref); factory != nil {
+				actvt, err := factory(&initContext{
+					settings: settings,
+					name:     name,
+				})
+				if err != nil {
+					return nil, err
+				}
+				services[name] = &core.Service{
+					Name:     name,
+					Settings: settings,
+					Activity: actvt,
+				}
+				continue
+			}
+			actvt := activity.Get(ref)
+			if actvt == nil {
+				return nil, fmt.Errorf("can't find activity %s", ref)
+			}
+			services[name] = &core.Service{
+				Name:     name,
+				Settings: settings,
+				Activity: actvt,
+			}
+		} else if handler := actionData.Services[i].Handler; handler != nil {
+			services[name] = &core.Service{
+				Name:     name,
+				Settings: settings,
+				Activity: &core.Adapter{Handler: handler},
+			}
+		} else {
+			return nil, fmt.Errorf("no ref or handler for service: %s", name)
+		}
 	}
 
 	steps, responses := actionData.Steps, actionData.Responses
