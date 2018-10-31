@@ -15,6 +15,7 @@ import (
 	"github.com/project-flogo/microgateway/internal/testing/trigger"
 	"github.com/stretchr/testify/assert"
 
+	_ "github.com/project-flogo/contrib/activity/channel"
 	_ "github.com/project-flogo/contrib/activity/rest"
 	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
 	_ "github.com/project-flogo/microgateway/activity/jwt"
@@ -263,6 +264,36 @@ func TestMicrogatewayHttpPattern(t *testing.T) {
 	assert.NotNil(t, result)
 
 	assert.True(t, testHandler.hit)
+}
+
+func TestMicrogatewayChannelPattern(t *testing.T) {
+	defer func() {
+		trigger.Reset()
+		activity.Reset()
+	}()
+
+	app := api.NewApp()
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{ASetting: 1337})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{})
+	assert.Nil(t, err)
+
+	action, err := handler.NewAction(&Action{}, map[string]interface{}{
+		"pattern":           "DefaultChannelPattern",
+		"useJWT":            false,
+		"useCircuitBreaker": false,
+	})
+	assert.Nil(t, err)
+	assert.NotNil(t, action)
+
+	e, err := api.NewEngine(app)
+	assert.Nil(t, err)
+	e.Start()
+	defer e.Stop()
+
+	result, err := trigger.Fire(0, map[string]interface{}{})
+	assert.Nil(t, err)
+	assert.NotNil(t, result)
 }
 
 func BenchmarkMicrogateway(b *testing.B) {
