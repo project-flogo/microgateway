@@ -235,6 +235,10 @@ func TestMicrogatewayHttpPattern(t *testing.T) {
 	go func() {
 		s.ListenAndServe()
 	}()
+	_, err := http.Get("http://localhost:1234/")
+	for err != nil {
+		_, err = http.Get("http://localhost:1234/")
+	}
 	defer s.Shutdown(context.Background())
 
 	app := api.NewApp()
