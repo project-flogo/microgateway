@@ -1,0 +1,104 @@
+{
+  "name": "MyProxy",
+  "type": "flogo:app",
+  "version": "1.0.0",
+  "description": "This is a simple proxy.",
+  "properties": null,
+  "channels": null,
+  "triggers": [
+    {
+      "name": "flogo-rest",
+      "id": "MyProxy",
+      "ref": "github.com/project-flogo/contrib/trigger/rest",
+      "settings": {
+        "port": "9096"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "method": "PUT",
+            "path": "/test"
+          },
+          "actions": [
+            {
+              "id": "microgateway:Test"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "microgateway:Test",
+      "compressed": false,
+      "data": {
+        "name": "Update",
+        "steps": [
+          {
+            "service": "Anomaly",
+            "input": {
+              "payload": "=$.payload.content"
+            }
+          },
+          {
+            "if": "($.Anomaly.outputs.count < 100) || ($.Anomaly.outputs.complexity < 3)",
+            "service": "Update",
+            "input": {
+              "content": "=$.payload.content"
+            }
+          }
+        ],
+        "responses": [
+          {
+            "if": "($.Anomaly.outputs.count < 100) || ($.Anomaly.outputs.complexity < 3)",
+            "error": false,
+            "output": {
+              "code": 200,
+              "data": "=$.Update.outputs.result"
+            }
+          },
+          {
+            "error": true,
+            "output": {
+              "code": 403,
+              "data": {
+                "error": "anomaly!",
+                "complexity": "=$.Anomaly.outputs.complexity"
+              }
+            }
+          }
+        ],
+        "services": [
+          {
+            "name": "Anomaly",
+            "description": "Look for anomalies",
+            "ref": "github.com/project-flogo/microgateway/activity/anomaly",
+            "settings": {
+              "depth": 3
+            }
+          },
+          {
+            "name": "Update",
+            "description": "Make calls to test",
+            "ref": "github.com/project-flogo/contrib/activity/rest",
+            "settings": {
+              "uri": "http://localhost:1234/test",
+              "method": "PUT"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "actions": [
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "microgateway:Test"
+      },
+      "id": "microgateway:Test",
+      "metadata": null
+    }
+  ]
+}

@@ -10,10 +10,10 @@ import (
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/metadata"
-	"github.com/project-flogo/core/support/logger"
+	logger "github.com/project-flogo/core/support/log"
 )
 
-var log = logger.GetLogger("microgateway")
+var log = logger.ChildLogger(logger.RootLogger(), "microgateway")
 
 type microgatewayHost struct {
 	id         string
@@ -98,7 +98,7 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 				continue
 			}
 			if truthiness {
-				output, oErr := translateMappings(scope, map[string]*Expr{"code": response.Output.Code})
+				output, oErr := TranslateMappings(scope, map[string]*Expr{"code": response.Output.Code})
 				if oErr != nil {
 					return -1, nil, oErr
 				}
@@ -126,12 +126,12 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 				// Translate data mappings
 				var data interface{}
 				if response.Output.Datum != nil {
-					data, oErr = translateMappings(scope, response.Output.Datum)
+					data, oErr = TranslateMappings(scope, response.Output.Datum)
 					if oErr != nil {
 						return -1, nil, oErr
 					}
 				} else {
-					interimData, dErr := translateMappings(scope, map[string]*Expr{"data": response.Output.Data})
+					interimData, dErr := TranslateMappings(scope, map[string]*Expr{"data": response.Output.Data})
 					if dErr != nil {
 						return -1, nil, dErr
 					}
@@ -152,10 +152,12 @@ func executeSteps(definition *Microgateway, host *microgatewayHost) (err error) 
 		var truthiness bool
 		truthiness, err = evaluateTruthiness(step.Condition, host.Scope())
 		if err != nil {
-			return err
+			continue
 		}
+		ctxt := newServiceContext(step.Service, host)
+		ctxt.UpdateScope(nil)
 		if truthiness {
-			err = invokeService(step.Service, step.HaltCondition, host, step.Input)
+			err = invokeService(step.Service, step.HaltCondition, host, ctxt, step.Input)
 			if err != nil {
 				return err
 			}
@@ -256,13 +258,15 @@ func (s *serviceContext) GetSharedTempData() map[string]interface{} {
 	return nil
 }
 
-func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, input map[string]*Expr) (err error) {
-	log.Info("invoking service: ", serviceDef.Name)
-	// TODO: Translate service definition variables.
-	ctxt, scope := newServiceContext(serviceDef, host), host.Scope()
+func (s *serviceContext) Logger() logger.Logger {
+	return logger.ChildLogger(log, s.name)
+}
 
-	ctxt.UpdateScope(nil)
-	values, err := translateMappings(scope, input)
+func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, ctxt *serviceContext, input map[string]*Expr) (err error) {
+	log.Info("invoking service: ", serviceDef.Name)
+
+	scope := host.Scope()
+	values, err := TranslateMappings(scope, input)
 	if err != nil {
 		return err
 	}
@@ -278,7 +282,7 @@ func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayH
 	if haltCondition != nil {
 		truthiness, err := evaluateTruthiness(haltCondition, scope)
 		if err != nil {
-			return err
+			return nil
 		}
 		if truthiness {
 			return fmt.Errorf("execution halted with expression: %s", haltCondition)
@@ -289,7 +293,7 @@ func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayH
 	return err
 }
 
-func translateMappings(scope data.Scope, mappings map[string]*Expr) (values map[string]interface{}, err error) {
+func TranslateMappings(scope data.Scope, mappings map[string]*Expr) (values map[string]interface{}, err error) {
 	values = make(map[string]interface{})
 	if len(mappings) == 0 {
 		return values, err
