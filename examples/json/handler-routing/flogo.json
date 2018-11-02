@@ -1,0 +1,136 @@
+{
+  "name": "MyProxy",
+  "type": "flogo:app",
+  "version": "1.0.0",
+  "description": "This is a simple proxy.",
+  "properties": null,
+  "channels": null,
+  "triggers": [
+    {
+      "name": "flogo-rest",
+      "id": "MyProxy",
+      "ref": "github.com/project-flogo/contrib/trigger/rest",
+      "settings": {
+        "port": "9096"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "method": "GET",
+            "path": "/pets/:petId"
+          },
+          "actions": [
+            {
+              "if": "$.headers.Auth == \"1337\"",
+              "id": "microgateway:PetsAuthed"
+            },
+            {
+              "id": "microgateway:Pets"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "microgateway:Pets",
+      "compressed": false,
+      "data": {
+        "name": "Pets",
+        "steps": [
+          {
+            "service": "PetStorePets",
+            "if": "string.integer($.payload.pathParams.petId) < 8",
+            "input": {
+              "pathParams": "=$.payload.pathParams"
+            }
+          }
+        ],
+        "responses": [
+          {
+            "if": "string.integer($.payload.pathParams.petId) < 8",
+            "error": false,
+            "output": {
+              "code": 200,
+              "data": "=$.PetStorePets.outputs.data"
+            }
+          },
+          {
+            "error": true,
+            "output": {
+              "code": 404,
+              "data": {
+                "error": "id must be less than 8"
+              }
+            }
+          }
+        ],
+        "services": [
+          {
+            "name": "PetStorePets",
+            "description": "Get pets by ID from the petstore",
+            "ref": "github.com/project-flogo/contrib/activity/rest",
+            "settings": {
+              "uri": "http://petstore.swagger.io/v2/pet/:petId",
+              "method": "GET"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "microgateway:PetsAuthed",
+      "compressed": false,
+      "data": {
+        "name": "Pets",
+        "steps": [
+          {
+            "service": "PetStorePets",
+            "input": {
+              "pathParams": "=$.payload.pathParams"
+            }
+          }
+        ],
+        "responses": [
+          {
+            "error": false,
+            "output": {
+              "code": 200,
+              "data": "=$.PetStorePets.outputs.data"
+            }
+          }
+        ],
+        "services": [
+          {
+            "name": "PetStorePets",
+            "description": "Get pets by ID from the petstore",
+            "ref": "github.com/project-flogo/contrib/activity/rest",
+            "settings": {
+              "uri": "http://petstore.swagger.io/v2/pet/:petId",
+              "method": "GET"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "actions": [
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "microgateway:Pets"
+      },
+      "id": "microgateway:Pets",
+      "metadata": null
+    },
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "microgateway:PetsAuthed"
+      },
+      "id": "microgateway:PetsAuthed",
+      "metadata": null
+    }
+  ]
+}
