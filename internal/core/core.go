@@ -13,8 +13,6 @@ import (
 	logger "github.com/project-flogo/core/support/log"
 )
 
-var log = logger.ChildLogger(logger.RootLogger(), "microgateway")
-
 type microgatewayHost struct {
 	id         string
 	name       string
@@ -53,7 +51,7 @@ func (m *microgatewayHost) Scope() data.Scope {
 }
 
 // Execute executes the microgateway
-func Execute(id string, payload interface{}, definition *Microgateway, iometadata *metadata.IOMetadata) (code int, output interface{}, err error) {
+func Execute(id string, payload interface{}, definition *Microgateway, iometadata *metadata.IOMetadata, log logger.Logger) (code int, output interface{}, err error) {
 
 	// Contains all elements of request: right now just payload, environment flags and service instances.
 	envFlags := make(map[string]string)
@@ -79,9 +77,9 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 	if definition != nil {
 		if definition.Async {
 			log.Info("executing route asynchronously")
-			go executeSteps(definition, &host)
+			go executeSteps(definition, &host, log)
 		} else {
-			err = executeSteps(definition, &host)
+			err = executeSteps(definition, &host, log)
 		}
 		if err != nil {
 			log.Error("error executing route: ", err)
@@ -93,12 +91,12 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 	if definition != nil {
 		for _, response := range definition.Responses {
 			var truthiness bool
-			truthiness, err = evaluateTruthiness(response.Condition, scope)
+			truthiness, err = evaluateTruthiness(response.Condition, scope, log)
 			if err != nil {
 				continue
 			}
 			if truthiness {
-				output, oErr := TranslateMappings(scope, map[string]*Expr{"code": response.Output.Code})
+				output, oErr := TranslateMappings(scope, map[string]*Expr{"code": response.Output.Code}, log)
 				if oErr != nil {
 					return -1, nil, oErr
 				}
@@ -126,12 +124,12 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 				// Translate data mappings
 				var data interface{}
 				if response.Output.Datum != nil {
-					data, oErr = TranslateMappings(scope, response.Output.Datum)
+					data, oErr = TranslateMappings(scope, response.Output.Datum, log)
 					if oErr != nil {
 						return -1, nil, oErr
 					}
 				} else {
-					interimData, dErr := TranslateMappings(scope, map[string]*Expr{"data": response.Output.Data})
+					interimData, dErr := TranslateMappings(scope, map[string]*Expr{"data": response.Output.Data}, log)
 					if dErr != nil {
 						return -1, nil, dErr
 					}
@@ -147,17 +145,17 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 	return 404, nil, err
 }
 
-func executeSteps(definition *Microgateway, host *microgatewayHost) (err error) {
+func executeSteps(definition *Microgateway, host *microgatewayHost, log logger.Logger) (err error) {
 	for _, step := range definition.Steps {
 		var truthiness bool
-		truthiness, err = evaluateTruthiness(step.Condition, host.Scope())
+		truthiness, err = evaluateTruthiness(step.Condition, host.Scope(), log)
 		if err != nil {
 			continue
 		}
-		ctxt := newServiceContext(step.Service, host)
+		ctxt := newServiceContext(step.Service, host, log)
 		ctxt.UpdateScope(nil)
 		if truthiness {
-			err = invokeService(step.Service, step.HaltCondition, host, ctxt, step.Input)
+			err = invokeService(step.Service, step.HaltCondition, host, ctxt, step.Input, log)
 			if err != nil {
 				return err
 			}
@@ -169,7 +167,7 @@ func executeSteps(definition *Microgateway, host *microgatewayHost) (err error) 
 	return nil
 }
 
-func evaluateTruthiness(expr *Expr, scope data.Scope) (truthy bool, err error) {
+func evaluateTruthiness(expr *Expr, scope data.Scope, log logger.Logger) (truthy bool, err error) {
 	if expr == nil {
 		log.Info("condition was empty and thus evaluates to true")
 		return true, nil
@@ -196,11 +194,12 @@ func evaluateTruthiness(expr *Expr, scope data.Scope) (truthy bool, err error) {
 type serviceContext struct {
 	name    string
 	host    activity.Host
+	logger  logger.Logger
 	Inputs  map[string]interface{}
 	Outputs map[string]interface{}
 }
 
-func newServiceContext(def *Service, host activity.Host) *serviceContext {
+func newServiceContext(def *Service, host activity.Host, log logger.Logger) *serviceContext {
 	inputs := make(map[string]interface{}, len(def.Settings))
 	for k, v := range def.Settings {
 		inputs[k] = v
@@ -208,6 +207,7 @@ func newServiceContext(def *Service, host activity.Host) *serviceContext {
 	return &serviceContext{
 		name:    def.Name,
 		host:    host,
+		logger:  logger.ChildLogger(log, def.Name),
 		Inputs:  inputs,
 		Outputs: make(map[string]interface{}),
 	}
@@ -259,14 +259,14 @@ func (s *serviceContext) GetSharedTempData() map[string]interface{} {
 }
 
 func (s *serviceContext) Logger() logger.Logger {
-	return logger.ChildLogger(log, s.name)
+	return s.logger
 }
 
-func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, ctxt *serviceContext, input map[string]*Expr) (err error) {
+func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, ctxt *serviceContext, input map[string]*Expr, log logger.Logger) (err error) {
 	log.Info("invoking service: ", serviceDef.Name)
 
 	scope := host.Scope()
-	values, err := TranslateMappings(scope, input)
+	values, err := TranslateMappings(scope, input, log)
 	if err != nil {
 		return err
 	}
@@ -280,7 +280,7 @@ func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayH
 	}
 	ctxt.UpdateScope(err)
 	if haltCondition != nil {
-		truthiness, err := evaluateTruthiness(haltCondition, scope)
+		truthiness, err := evaluateTruthiness(haltCondition, scope, log)
 		if err != nil {
 			return nil
 		}
@@ -293,7 +293,7 @@ func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayH
 	return err
 }
 
-func TranslateMappings(scope data.Scope, mappings map[string]*Expr) (values map[string]interface{}, err error) {
+func TranslateMappings(scope data.Scope, mappings map[string]*Expr, log logger.Logger) (values map[string]interface{}, err error) {
 	values = make(map[string]interface{})
 	if len(mappings) == 0 {
 		return values, err

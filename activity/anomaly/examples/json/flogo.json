@@ -55,7 +55,7 @@
             "error": false,
             "output": {
               "code": 200,
-              "data": "=$.Update.outputs.result"
+              "data": "=$.Update.outputs.data"
             }
           },
           {

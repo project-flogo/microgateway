@@ -40,12 +40,12 @@ A simple response looks like:
 
 ```json
 {
-  "if": "$.PetStorePets.outputs.result.status == 'available'",
+  "if": "$.PetStorePets.outputs.data.status == 'available'",
   "error": false,
   "code": 200,
   "data": {
-    "body.pet": "=$.PetStorePets.outputs.result",
-    "body.inventory": "=$.PetStoreInventory.outputs.result"
+    "body.pet": "=$.PetStorePets.outputs.data",
+    "body.inventory": "=$.PetStoreInventory.outputs.data"
   }
 }
 ```

@@ -53,7 +53,7 @@ Utilizing the response values can be seen in a response handler:
   "error": false,
   "output": {
     "code": 200,
-    "data": "=$.Update.outputs.result"
+    "data": "=$.Update.outputs.data"
   }
 }
 ```

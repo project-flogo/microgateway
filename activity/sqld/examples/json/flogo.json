@@ -55,7 +55,7 @@
             "error": false,
             "output": {
               "code": 200,
-              "data": "=$.PetStorePetsUpdate.outputs.result"
+              "data": "=$.PetStorePetsUpdate.outputs.data"
             }
           },
           {

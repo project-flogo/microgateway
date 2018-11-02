@@ -69,25 +69,25 @@
             }
           },
           {
-            "if": "$.PetStorePets.outputs.result.status != 'available'",
+            "if": "$.PetStorePets.outputs.data.status != 'available'",
             "error": true,
             "output": {
               "code": 403,
               "data": {
                 "error": "Pet is unavailable",
-                "pet": "=$.PetStorePets.outputs.result",
-                "status": "=$.PetStorePets.outputs.result.status"
+                "pet": "=$.PetStorePets.outputs.data",
+                "status": "=$.PetStorePets.outputs.data.status"
               }
             }
           },
           {
-            "if": "$.PetStorePets.outputs.result.status == 'available'",
+            "if": "$.PetStorePets.outputs.data.status == 'available'",
             "error": false,
             "output": {
               "code": 200,
               "data": {
-                "pet": "=$.PetStorePets.outputs.result",
-                "status": "=$.PetStorePets.outputs.result.status"
+                "pet": "=$.PetStorePets.outputs.data",
+                "status": "=$.PetStorePets.outputs.data.status"
               }
             }
           },

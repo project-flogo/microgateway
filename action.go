@@ -26,13 +26,12 @@ import (
 	"github.com/project-flogo/microgateway/internal/schema"
 )
 
-var log = logger.ChildLogger(logger.RootLogger(), "microgateway")
-
 // Action is the microgateway action
 type Action struct {
 	id           string
 	settings     Settings
 	microgateway *core.Microgateway
+	logger       logger.Logger
 }
 
 // Manager loads the microgateway definition resource
@@ -70,8 +69,17 @@ type Factory struct {
 }
 
 type initContext struct {
-	settings map[string]interface{}
-	name     string
+	settings      map[string]interface{}
+	mapperFactory mapper.Factory
+	logger        logger.Logger
+}
+
+func newInitContext(name string, settings map[string]interface{}, log logger.Logger) *initContext {
+	return &initContext{
+		settings:      settings,
+		mapperFactory: mapper.NewFactory(resolve.GetBasicResolver()),
+		logger:        logger.ChildLogger(log, name),
+	}
 }
 
 func (i *initContext) Settings() map[string]interface{} {
@@ -79,11 +87,11 @@ func (i *initContext) Settings() map[string]interface{} {
 }
 
 func (i *initContext) MapperFactory() mapper.Factory {
-	return nil
+	return i.mapperFactory
 }
 
 func (i *initContext) Logger() logger.Logger {
-	return logger.ChildLogger(log, i.name)
+	return i.logger
 }
 
 func (f *Factory) Initialize(ctx action.InitContext) error {
@@ -93,8 +101,10 @@ func (f *Factory) Initialize(ctx action.InitContext) error {
 
 // New creates a new microgateway
 func (f *Factory) New(config *action.Config) (action.Action, error) {
+	log := logger.ChildLogger(logger.RootLogger(), "microgateway")
 	act := Action{
-		id: config.Id,
+		id:     config.Id,
+		logger: log,
 	}
 	if act.id == "" {
 		act.id = config.Ref
@@ -174,17 +184,14 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			}
 		}
 
-		settings, err := core.TranslateMappings(scope, values)
+		settings, err := core.TranslateMappings(scope, values, log)
 		if err != nil {
 			return nil, err
 		}
 
 		if ref := actionData.Services[i].Ref; ref != "" {
 			if factory := activity.GetFactory(ref); factory != nil {
-				actvt, err := factory(&initContext{
-					settings: settings,
-					name:     name,
-				})
+				actvt, err := factory(newInitContext(name, settings, log))
 				if err != nil {
 					return nil, err
 				}
@@ -311,7 +318,7 @@ func (a *Action) IOMetadata() *metadata.IOMetadata {
 
 // Run executes the microgateway
 func (a *Action) Run(ctx context.Context, input map[string]interface{}) (map[string]interface{}, error) {
-	code, mData, err := core.Execute(a.id, input, a.microgateway, a.IOMetadata())
+	code, mData, err := core.Execute(a.id, input, a.microgateway, a.IOMetadata(), a.logger)
 	output := make(map[string]interface{}, 8)
 	output["code"] = code
 	output["data"] = mData

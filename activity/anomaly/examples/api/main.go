@@ -32,7 +32,7 @@ func main() {
 	response := gateway.NewResponse(false)
 	response.SetIf("($.Anomaly.outputs.count < 100) || ($.Anomaly.outputs.complexity < 3)")
 	response.SetCode(200)
-	response.SetData("=$.Update.outputs.result")
+	response.SetData("=$.Update.outputs.data")
 	response = gateway.NewResponse(true)
 	response.SetCode(403)
 	response.SetData(map[string]interface{}{

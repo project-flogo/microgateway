@@ -22,12 +22,10 @@ func main() {
 	jwtService.AddSetting("iss", "Mashling")
 	jwtService.AddSetting("sub", "tempuser@mail.com")
 
-
 	serviceStore := gateway.NewService("PetStorePets", &rest.Activity{})
 	serviceStore.SetDescription("Get pets by ID from the petstore")
 	serviceStore.AddSetting("uri", "https://petstore.swagger.io/v2/pet/:petId")
 	serviceStore.AddSetting("method", "GET")
-
 
 	step := gateway.NewStep(jwtService)
 	step.AddInput("token", "=$.payload.headers.Authorization")
@@ -39,14 +37,14 @@ func main() {
 	response.SetCode(200)
 	response.SetData(map[string]interface{}{
 		"error": "JWT token is valid",
-		"pet": "=$.PetStorePets.outputs.result",
+		"pet":   "=$.PetStorePets.outputs.data",
 	})
 	response = gateway.NewResponse(true)
 	response.SetIf("$.jwtService.outputs.valid == false")
 	response.SetCode(401)
 	response.SetData(map[string]interface{}{
 		"error": "=$.jwtService.outputs",
-		"pet": "=$.PetStorePets.outputs.result",
+		"pet":   "=$.PetStorePets.outputs.data",
 	})
 
 	settings, err := gateway.AddResource(app)
@@ -74,4 +72,3 @@ func main() {
 	}
 	engine.RunEngine(e)
 }
-

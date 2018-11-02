@@ -1,5 +1,7 @@
 module github.com/project-flogo/microgateway
 
+replace github.com/project-flogo/core => github.com/pointlander/core v0.9.0-alpha.0.0.20181102192353-c6bcaae4c33f
+
 require (
 	github.com/awalterschulze/gographviz v0.0.0-20170410065617-c84395e536e1 // indirect
 	github.com/chewxy/hm v1.0.0 // indirect
@@ -13,8 +15,8 @@ require (
 	github.com/leesper/go_rng v0.0.0-20171009123644-5344a9259b21 // indirect
 	github.com/pkg/errors v0.8.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/project-flogo/contrib v0.0.0-20181031205748-377ceef640a0
-	github.com/project-flogo/core v0.9.0-alpha.2.0.20181031205817-e8b9d3b1d747
+	github.com/project-flogo/contrib v0.0.0-20181102044714-faa70a874eed
+	github.com/project-flogo/core v0.9.0-alpha.2.0.20181102174659-cb0e18f709b5
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.2.2
 	github.com/ulule/limiter v2.2.0+incompatible

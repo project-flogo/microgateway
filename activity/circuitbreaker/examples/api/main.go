@@ -41,19 +41,19 @@ func main() {
 		"error": "circuit breaker tripped",
 	})
 	response = gateway.NewResponse(true)
-	response.SetIf("$.PetStorePets.outputs.result.status != 'available'")
+	response.SetIf("$.PetStorePets.outputs.data.status != 'available'")
 	response.SetCode(403)
 	response.SetData(map[string]interface{}{
 		"error":  "Pet is unavailable",
-		"pet":    "=$.PetStorePets.outputs.result",
-		"status": "=$.PetStorePets.outputs.result.status",
+		"pet":    "=$.PetStorePets.outputs.data",
+		"status": "=$.PetStorePets.outputs.data.status",
 	})
 	response = gateway.NewResponse(false)
-	response.SetIf("$.PetStorePets.outputs.result.status == 'available'")
+	response.SetIf("$.PetStorePets.outputs.data.status == 'available'")
 	response.SetCode(200)
 	response.SetData(map[string]interface{}{
-		"pet":    "=$.PetStorePets.outputs.result",
-		"status": "=$.PetStorePets.outputs.result.status",
+		"pet":    "=$.PetStorePets.outputs.data",
+		"status": "=$.PetStorePets.outputs.data.status",
 	})
 	response = gateway.NewResponse(true)
 	response.SetCode(403)

@@ -75,7 +75,7 @@
       "error": false,
       "output": {
         "code": 200,
-        "data": "=$.HttpBackend.outputs.result"
+        "data": "=$.HttpBackend.outputs.data"
       }
     }
   ],

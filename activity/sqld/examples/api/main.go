@@ -31,7 +31,7 @@ func main() {
 	response := gateway.NewResponse(false)
 	response.SetIf("$.SQLSecurity.outputs.attack < 80")
 	response.SetCode(200)
-	response.SetData("=$.PetStorePetsUpdate.outputs.result")
+	response.SetData("=$.PetStorePetsUpdate.outputs.data")
 	response = gateway.NewResponse(true)
 	response.SetIf("$.SQLSecurity.outputs.attack > 80")
 	response.SetCode(403)

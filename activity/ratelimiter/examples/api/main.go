@@ -43,7 +43,7 @@ func main() {
 	})
 	response = gateway.NewResponse(false)
 	response.SetCode(200)
-	response.SetData("=$.PetStorePets.outputs.result")
+	response.SetData("=$.PetStorePets.outputs.data")
 
 	settings, err := gateway.AddResource(app)
 	if err != nil {

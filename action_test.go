@@ -240,6 +240,7 @@ func TestMicrogatewayHttpPattern(t *testing.T) {
 		_, err = http.Get("http://localhost:1234/")
 	}
 	defer s.Shutdown(context.Background())
+	testHandler.hit = false
 
 	app := api.NewApp()
 

@@ -73,7 +73,7 @@
               "error": false,
               "output": {
                   "code": 200,
-                  "data": "=$.PetStorePets.outputs.result"
+                  "data": "=$.PetStorePets.outputs.data"
               }
           }
         ],
