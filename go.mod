@@ -13,8 +13,8 @@ require (
 	github.com/leesper/go_rng v0.0.0-20171009123644-5344a9259b21 // indirect
 	github.com/pkg/errors v0.8.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/project-flogo/contrib v0.0.0-20181103024438-71cb103ef1ab
-	github.com/project-flogo/core v0.9.0-alpha.2.0.20181103030734-594ed5e9cbb2
+	github.com/project-flogo/contrib v0.9.0-alpha.3.0.20181105173100-2e8b1851a5ac
+	github.com/project-flogo/core v0.9.0-alpha.3.0.20181105051932-8e2356547b1a
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.2.2
 	github.com/ulule/limiter v2.2.0+incompatible
