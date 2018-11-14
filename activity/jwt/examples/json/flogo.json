@@ -55,7 +55,8 @@
             "output": {
               "code": 401,
               "data": {
-                "error": "=$.PetStorePets.outputs"
+                "error": "=$.jwtService.outputs",
+                "pet": "=$.PetStorePets.outputs.data"
               }
             }
           },

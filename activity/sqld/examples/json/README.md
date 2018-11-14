@@ -28,7 +28,7 @@ and test below scenarios.
 ### Payload without SQL injection attack
 Run the following command:
 ```
-curl http://localhost:9096/pets --upload-file payload.json
+curl -H "Content-Type:application/json" http://localhost:9096/pets --upload-file payload.json
 ```
 
 You should see the following response:
@@ -55,7 +55,7 @@ You should see the following response:
 
 ### Payload with SQL injection attack
 ```
-curl http://localhost:9096/pets --upload-file attack-payload.json
+curl -H "Content-Type:application/json" http://localhost:9096/pets --upload-file attack-payload.json
 ```
 
 You should see the following response:

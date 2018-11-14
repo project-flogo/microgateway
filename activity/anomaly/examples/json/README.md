@@ -48,7 +48,7 @@ A 1024 payloads have been fed into the anomaly detection service, and zero anoma
 
 Now run the following to feed one more payload into the anomaly detection service:
 ```
-curl http://localhost:9096/test --upload-file anomaly-payload.json
+curl -H "Content-Type:application/json" http://localhost:9096/test --upload-file anomaly-payload.json
 ```
 
 You should see the following response:
