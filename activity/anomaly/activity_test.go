@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -323,7 +324,7 @@ func TestIntegrationJSON(t *testing.T) {
 		t.Skip("skipping JSON integration test in short mode")
 	}
 
-	data, err := ioutil.ReadFile("./examples/json/flogo.json")
+	data, err := ioutil.ReadFile(filepath.FromSlash("./examples/json/flogo.json"))
 	assert.Nil(t, err)
 	cfg, err := engine.LoadAppConfig(string(data), false)
 	assert.Nil(t, err)
