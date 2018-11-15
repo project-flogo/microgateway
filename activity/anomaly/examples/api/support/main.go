@@ -85,6 +85,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
+			req.Header.Set("Content-Type", "application/json")
 			response, err := client.Do(req)
 			if err != nil {
 				panic(err)
@@ -118,6 +119,7 @@ func main() {
 				panic(err)
 			}
 			fmt.Println(string(body))
+			w.Header().Set("Content-Type", "application/json")
 			_, err = w.Write(body)
 			if err != nil {
 				panic(err)
