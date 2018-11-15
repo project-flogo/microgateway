@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -16,8 +15,14 @@ import (
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
+	"github.com/project-flogo/core/engine"
 	logger "github.com/project-flogo/core/support/log"
 	"github.com/stretchr/testify/assert"
+
+	_ "github.com/project-flogo/contrib/activity/rest"
+	_ "github.com/project-flogo/contrib/trigger/rest"
+	_ "github.com/project-flogo/core/data/expression/script"
+	_ "github.com/project-flogo/microgateway"
 )
 
 var complexityTests = []string{`{
@@ -240,11 +245,7 @@ var anomalyPayload = `{
  ]
 }`
 
-func TestIntegration(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test in short mode")
-	}
-
+func testApplication(t *testing.T, e engine.Engine) {
 	testHandler := handler{}
 	s := &http.Server{
 		Addr:           ":1234",
@@ -262,12 +263,15 @@ func TestIntegration(t *testing.T) {
 	}
 	defer s.Shutdown(context.Background())
 
-	e, err := Example()
+	err = e.Start()
 	assert.Nil(t, err)
-	e.Start()
-	defer e.Stop()
+	defer func() {
+		e.Stop()
+	}()
 
-	rnd, client := rand.New(rand.NewSource(1)), &http.Client{}
+	rnd, client := rand.New(rand.NewSource(1)), &http.Client{
+		Transport: &http.Transport{},
+	}
 	for i := 0; i < 1024; i++ {
 		data, err := json.Marshal(generateRandomJSON(rnd))
 		assert.Nil(t, err)
@@ -298,9 +302,32 @@ func TestIntegration(t *testing.T) {
 		err = json.Unmarshal(body, &rsp)
 		assert.Nil(t, err)
 		assert.Equal(t, "anomaly!", rsp.Error)
-		fmt.Println(rsp.Complexity)
 		assert.Condition(t, func() bool {
 			return rsp.Complexity > 8
 		})
 	}
+}
+
+func TestIntegrationAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping API integration test in short mode")
+	}
+
+	e, err := Example()
+	assert.Nil(t, err)
+	testApplication(t, e)
+}
+
+func TestIntegrationJSON(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping JSON integration test in short mode")
+	}
+
+	data, err := ioutil.ReadFile("./examples/json/flogo.json")
+	assert.Nil(t, err)
+	cfg, err := engine.LoadAppConfig(string(data), false)
+	assert.Nil(t, err)
+	e, err := engine.New(cfg)
+	assert.Nil(t, err)
+	testApplication(t, e)
 }
