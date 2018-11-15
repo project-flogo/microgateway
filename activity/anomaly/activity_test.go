@@ -1,16 +1,27 @@
 package anomaly
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"math"
 	"math/rand"
+	"net/http"
 	"testing"
+	"time"
 
+	"github.com/project-flogo/contrib/activity/rest"
+	trigger "github.com/project-flogo/contrib/trigger/rest"
 	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
 	logger "github.com/project-flogo/core/support/log"
+	"github.com/project-flogo/microgateway"
+	microapi "github.com/project-flogo/microgateway/api"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -199,4 +210,142 @@ func TestActivity(t *testing.T) {
 	assert.Condition(t, func() (success bool) {
 		return a > b
 	}, "complexity sanity check failed")
+}
+
+type handler struct {
+}
+
+func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = w.Write(body)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// Response is a reply form the server
+type Response struct {
+	Error      string  `json:"error"`
+	Complexity float64 `json:"complexity"`
+}
+
+var anomalyPayload = `{
+ "alfa": [
+  {"alfa": "1"},
+	{"bravo": "2"}
+ ],
+ "bravo": [
+  {"alfa": "3"},
+	{"bravo": "4"}
+ ]
+}`
+
+func TestIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+
+	testHandler := handler{}
+	s := &http.Server{
+		Addr:           ":1234",
+		Handler:        &testHandler,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	go func() {
+		s.ListenAndServe()
+	}()
+	_, err := http.Get("http://localhost:1234/test")
+	for err != nil {
+		_, err = http.Get("http://localhost:1234/test")
+	}
+	defer s.Shutdown(context.Background())
+
+	app := api.NewApp()
+
+	gateway := microapi.New("Test")
+	serviceAnomaly := gateway.NewService("Anomaly", &Activity{})
+	serviceAnomaly.SetDescription("Look for anomalies")
+	serviceAnomaly.AddSetting("depth", 3)
+
+	serviceUpdate := gateway.NewService("Update", &rest.Activity{})
+	serviceUpdate.SetDescription("Make calls to test")
+	serviceUpdate.AddSetting("uri", "http://localhost:1234/test")
+	serviceUpdate.AddSetting("method", "PUT")
+
+	step := gateway.NewStep(serviceAnomaly)
+	step.AddInput("payload", "=$.payload.content")
+	step = gateway.NewStep(serviceUpdate)
+	step.SetIf("($.Anomaly.outputs.count < 100) || ($.Anomaly.outputs.complexity < 3)")
+	step.AddInput("content", "=$.payload.content")
+
+	response := gateway.NewResponse(false)
+	response.SetIf("($.Anomaly.outputs.count < 100) || ($.Anomaly.outputs.complexity < 3)")
+	response.SetCode(200)
+	response.SetData("=$.Update.outputs.data")
+	response = gateway.NewResponse(true)
+	response.SetCode(403)
+	response.SetData(map[string]interface{}{
+		"error":      "anomaly!",
+		"complexity": "=$.Anomaly.outputs.complexity",
+	})
+
+	settings, err := gateway.AddResource(app)
+	assert.Nil(t, err)
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{Port: 9096})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{
+		Method: "PUT",
+		Path:   "/test",
+	})
+	assert.Nil(t, err)
+
+	_, err = handler.NewAction(&microgateway.Action{}, settings)
+	assert.Nil(t, err)
+
+	e, err := api.NewEngine(app)
+	assert.Nil(t, err)
+	e.Start()
+	defer e.Stop()
+
+	rnd, client := rand.New(rand.NewSource(1)), &http.Client{}
+	for i := 0; i < 1024; i++ {
+		data, err := json.Marshal(generateRandomJSON(rnd))
+		assert.Nil(t, err)
+		req, err := http.NewRequest(http.MethodPut, "http://localhost:9096/test", bytes.NewReader(data))
+		assert.Nil(t, err)
+		response, err := client.Do(req)
+		assert.Nil(t, err)
+		body, err := ioutil.ReadAll(response.Body)
+		assert.Nil(t, err)
+		response.Body.Close()
+		rsp := Response{}
+		err = json.Unmarshal(body, &rsp)
+		assert.Nil(t, err)
+		assert.NotEqual(t, "anomaly!", rsp.Error)
+	}
+
+	{
+		req, err := http.NewRequest(http.MethodPut, "http://localhost:9096/test", bytes.NewBufferString(anomalyPayload))
+		assert.Nil(t, err)
+		response, err := client.Do(req)
+		assert.Nil(t, err)
+		body, err := ioutil.ReadAll(response.Body)
+		assert.Nil(t, err)
+		response.Body.Close()
+		rsp := Response{}
+		err = json.Unmarshal(body, &rsp)
+		assert.Nil(t, err)
+		assert.Equal(t, "anomaly!", rsp.Error)
+		fmt.Println(rsp.Complexity)
+		assert.Condition(t, func() bool {
+			return rsp.Complexity > 8
+		})
+	}
 }
