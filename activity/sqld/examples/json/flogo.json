@@ -45,7 +45,7 @@
             "if": "$.SQLSecurity.outputs.attack < 80",
             "service": "PetStorePetsUpdate",
             "input": {
-              "body": "=$.payload.content"
+              "content": "=$.payload.content"
             }
           }
         ],
