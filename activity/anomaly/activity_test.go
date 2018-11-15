@@ -320,6 +320,7 @@ func TestIntegration(t *testing.T) {
 		assert.Nil(t, err)
 		req, err := http.NewRequest(http.MethodPut, "http://localhost:9096/test", bytes.NewReader(data))
 		assert.Nil(t, err)
+		req.Header.Set("Content-Type", "application/json")
 		response, err := client.Do(req)
 		assert.Nil(t, err)
 		body, err := ioutil.ReadAll(response.Body)
@@ -334,6 +335,7 @@ func TestIntegration(t *testing.T) {
 	{
 		req, err := http.NewRequest(http.MethodPut, "http://localhost:9096/test", bytes.NewBufferString(anomalyPayload))
 		assert.Nil(t, err)
+		req.Header.Set("Content-Type", "application/json")
 		response, err := client.Do(req)
 		assert.Nil(t, err)
 		body, err := ioutil.ReadAll(response.Body)
