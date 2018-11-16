@@ -19,11 +19,6 @@ import (
 	"github.com/project-flogo/core/engine"
 	logger "github.com/project-flogo/core/support/log"
 	"github.com/stretchr/testify/assert"
-
-	_ "github.com/project-flogo/contrib/activity/rest"
-	_ "github.com/project-flogo/contrib/trigger/rest"
-	_ "github.com/project-flogo/core/data/expression/script"
-	_ "github.com/project-flogo/microgateway"
 )
 
 var complexityTests = []string{`{
@@ -223,6 +218,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(body)
 	if err != nil {
 		panic(err)
