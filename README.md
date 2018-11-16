@@ -1,5 +1,24 @@
+[![godoc](https://godoc.org/github.com/project-flogo/microgateway?status.svg)](https://godoc.org/github.com/project-flogo/microgateway)
+
 # Microgateway Action
-This is a microgateway action which supports the conditional evaluation of activities. The microgateway has one setting: 'uri' which is the URI of the microgateway JSON resource.
+
+This is a Microgateway Action which supports the conditional evaluation of activities. The Microgateway has one setting: 'uri' which is the URI of the Microgateway JSON resource.
+
+# Quick Start
+
+## With Flogo CLI
+
+The Flogo CLI takes a Flogo application defined in JSON and produces an executable application. The Flogo CLI can be installed from [here](https://github.com/project-flogo/cli). Next, follow the instructions [here](examples/json/basic-gateway) to build your first Microgateway Flogo application.
+
+## With Flogo API
+
+The Flogo API allows developers to define Flogo applications in the Go programming language without using the Flogo CLI. You can get started by cloning this repo:
+
+```bash
+git clone https://github.com/project-flogo/microgateway.git
+```
+
+and then following the instructions [here](examples/api/basic-gateway) to build your first Microgateway Flogo application. Documentation for the Flogo Microgateway API can be found [here](https://godoc.org/github.com/project-flogo/microgateway/api).
 
 # Resource
 
@@ -11,7 +30,21 @@ The JSON Schema for the Microgateway resource can be found [here](internal/schem
 
 ### Services
 
-A service defines a function or activity of some sort that will be utilized in a step within an execution flow. Services have names, refs, and settings. Any Flogo activity works as a service. Services that are specific to a microgateway can be found [here](activity). Services may call external endpoints like HTTP servers or may stay within the context of the gateway, like the [js](activity/js) activity. Once a service is defined it can be used as many times as needed within your routes and steps.
+A service defines a function or activity of some sort that will be utilized in a step within an execution flow. Services have names, refs, and settings. Any Flogo activity works as a service. Services that are specific to a microgateway can be found [here](activity). Services may call external endpoints like HTTP servers or may stay within the context of the gateway, like the [js](activity/circuitbreaker) activity. Once a service is defined it can be used as many times as needed within your routes and steps.
+
+A service definition looks like:
+
+```json
+{
+  "name": "PetStorePets",
+  "description": "Get pets by ID from the petstore",
+  "ref": "github.com/project-flogo/contrib/activity/rest",
+  "settings": {
+    "uri": "http://petstore.swagger.io/v2/pet/:petId",
+    "method": "GET"
+  }
+}
+```
 
 ### Steps
 
