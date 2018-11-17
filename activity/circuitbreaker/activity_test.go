@@ -18,6 +18,7 @@ import (
 	"github.com/project-flogo/core/engine"
 	logger "github.com/project-flogo/core/support/log"
 	"github.com/project-flogo/microgateway/activity/circuitbreaker/example"
+	test "github.com/project-flogo/microgateway/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -384,6 +385,7 @@ func testApplication(t *testing.T, e engine.Engine) {
 		now = time.Now
 	}()
 
+	test.Drain("1234")
 	testHandler := handler{}
 	s := &http.Server{
 		Addr:           ":1234",
@@ -395,20 +397,23 @@ func testApplication(t *testing.T, e engine.Engine) {
 	go func() {
 		s.ListenAndServe()
 	}()
-	_, err := http.Get("http://localhost:1234/pets/1")
-	for err != nil {
-		_, err = http.Get("http://localhost:1234/pets/1")
-	}
+	test.Pour("1234")
 	defer s.Shutdown(context.Background())
 
-	err = e.Start()
+	test.Drain("9096")
+	err := e.Start()
 	assert.Nil(t, err)
 	defer func() {
-		e.Stop()
+		err := e.Stop()
+		assert.Nil(t, err)
 	}()
 
+	transport := &http.Transport{
+		MaxIdleConns: 1,
+	}
+	defer transport.CloseIdleConnections()
 	client := &http.Client{
-		Transport: &http.Transport{},
+		Transport: transport,
 	}
 
 	var r interface{}
@@ -436,6 +441,7 @@ func testApplication(t *testing.T, e engine.Engine) {
 	assert.Equal(t, len(data), len(response.Pet))
 
 	s.Shutdown(context.Background())
+	transport.CloseIdleConnections()
 	for i := 0; i < 5; i++ {
 		response := request()
 		assert.Equal(t, "connection failure", response.Error)
@@ -444,6 +450,7 @@ func testApplication(t *testing.T, e engine.Engine) {
 	response = request()
 	assert.Equal(t, "circuit breaker tripped", response.Error)
 
+	test.Drain("1234")
 	sr := &http.Server{
 		Addr:           ":1234",
 		Handler:        &testHandler,
@@ -454,10 +461,7 @@ func testApplication(t *testing.T, e engine.Engine) {
 	go func() {
 		sr.ListenAndServe()
 	}()
-	_, err = http.Get("http://localhost:1234/pets/1")
-	for err != nil {
-		_, err = http.Get("http://localhost:1234/pets/1")
-	}
+	test.Pour("1234")
 	defer sr.Shutdown(context.Background())
 
 	clock = clock.Add(60 * time.Second)

@@ -18,6 +18,7 @@ import (
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/engine"
 	logger "github.com/project-flogo/core/support/log"
+	test "github.com/project-flogo/microgateway/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -243,6 +244,7 @@ var anomalyPayload = `{
 }`
 
 func testApplication(t *testing.T, e engine.Engine) {
+	test.Drain("1234")
 	testHandler := handler{}
 	s := &http.Server{
 		Addr:           ":1234",
@@ -254,20 +256,23 @@ func testApplication(t *testing.T, e engine.Engine) {
 	go func() {
 		s.ListenAndServe()
 	}()
-	_, err := http.Get("http://localhost:1234/test")
-	for err != nil {
-		_, err = http.Get("http://localhost:1234/test")
-	}
+	test.Pour("1234")
 	defer s.Shutdown(context.Background())
 
-	err = e.Start()
+	test.Drain("9096")
+	err := e.Start()
 	assert.Nil(t, err)
 	defer func() {
-		e.Stop()
+		err := e.Stop()
+		assert.Nil(t, err)
 	}()
 
+	transport := &http.Transport{
+		MaxIdleConns: 1,
+	}
+	defer transport.CloseIdleConnections()
 	rnd, client := rand.New(rand.NewSource(1)), &http.Client{
-		Transport: &http.Transport{},
+		Transport: transport,
 	}
 	for i := 0; i < 1024; i++ {
 		data, err := json.Marshal(generateRandomJSON(rnd))

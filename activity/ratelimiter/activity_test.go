@@ -15,6 +15,7 @@ import (
 	"github.com/project-flogo/core/engine"
 	logger "github.com/project-flogo/core/support/log"
 	"github.com/project-flogo/microgateway/activity/ratelimiter/example"
+	test "github.com/project-flogo/microgateway/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -155,14 +156,20 @@ type Response struct {
 }
 
 func testApplication(t *testing.T, e engine.Engine) {
+	test.Drain("9096")
 	err := e.Start()
 	assert.Nil(t, err)
 	defer func() {
-		e.Stop()
+		err := e.Stop()
+		assert.Nil(t, err)
 	}()
 
+	transport := &http.Transport{
+		MaxIdleConns: 1,
+	}
+	defer transport.CloseIdleConnections()
 	client := &http.Client{
-		Transport: &http.Transport{},
+		Transport: transport,
 	}
 
 	request := func(token string) Response {
@@ -194,7 +201,7 @@ func testApplication(t *testing.T, e engine.Engine) {
 	assert.NotEqual(t, "Rate Limit Exceeded - The service you have requested is over the allowed limit.", response.Status)
 	assert.NotEqual(t, "Token not found", response.Status)
 
-	time.Sleep(time.Minute)
+	time.Sleep(time.Minute + 3*time.Second)
 
 	response = request("TOKEN1")
 	assert.NotEqual(t, "Rate Limit Exceeded - The service you have requested is over the allowed limit.", response.Status)

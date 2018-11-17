@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -15,6 +14,7 @@ import (
 	"github.com/project-flogo/core/engine"
 	logger "github.com/project-flogo/core/support/log"
 	"github.com/project-flogo/microgateway/activity/jwt/example"
+	test "github.com/project-flogo/microgateway/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -142,14 +142,20 @@ type Error struct {
 }
 
 func testApplication(t *testing.T, e engine.Engine) {
+	test.Drain("9096")
 	err := e.Start()
 	assert.Nil(t, err)
 	defer func() {
-		e.Stop()
+		err := e.Stop()
+		assert.Nil(t, err)
 	}()
 
+	transport := &http.Transport{
+		MaxIdleConns: 1,
+	}
+	defer transport.CloseIdleConnections()
 	client := &http.Client{
-		Transport: &http.Transport{},
+		Transport: transport,
 	}
 
 	request := func(auth string) Response {
@@ -187,7 +193,6 @@ func testApplication(t *testing.T, e engine.Engine) {
 	err = json.Unmarshal(response.Error, &er)
 	assert.Nil(t, err)
 	assert.Equal(t, "signature is invalid", er.ValidationMessage)
-	fmt.Println(string(response.Pet))
 	assert.Equal(t, "null", string(response.Pet))
 }
 

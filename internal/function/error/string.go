@@ -24,5 +24,9 @@ func (fnString) Sig() (paramTypes []data.Type, isVariadic bool) {
 
 // Eval executes the function
 func (fnString) Eval(params ...interface{}) (interface{}, error) {
-	return params[0].(error).Error(), nil
+	err, ok := params[0].(error)
+	if !ok {
+		return "", nil
+	}
+	return err.Error(), nil
 }
