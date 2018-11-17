@@ -1,6 +1,10 @@
 package ratelimiter
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -8,7 +12,9 @@ import (
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
+	"github.com/project-flogo/core/engine"
 	logger "github.com/project-flogo/core/support/log"
+	"github.com/project-flogo/microgateway/activity/ratelimiter/example"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -141,4 +147,83 @@ func TestRatelimiter(t *testing.T) {
 	_, err = activity.Eval(ctx)
 	assert.Nil(t, err)
 	assert.False(t, ctx.output["limitReached"].(bool), "limit should not be reached")
+}
+
+// Response is a reply form the server
+type Response struct {
+	Status string `json:"status"`
+}
+
+func testApplication(t *testing.T, e engine.Engine) {
+	err := e.Start()
+	assert.Nil(t, err)
+	defer func() {
+		e.Stop()
+	}()
+
+	client := &http.Client{
+		Transport: &http.Transport{},
+	}
+
+	request := func(token string) Response {
+		req, err := http.NewRequest(http.MethodGet, "http://localhost:9096/pets/1", nil)
+		assert.Nil(t, err)
+		if token != "" {
+			req.Header.Add("Token", token)
+		}
+		response, err := client.Do(req)
+		assert.Nil(t, err)
+		body, err := ioutil.ReadAll(response.Body)
+		assert.Nil(t, err)
+		response.Body.Close()
+		var rsp Response
+		err = json.Unmarshal(body, &rsp)
+		assert.Nil(t, err)
+		return rsp
+	}
+
+	for i := 0; i < 3; i++ {
+		response := request("TOKEN1")
+		assert.NotEqual(t, "Rate Limit Exceeded - The service you have requested is over the allowed limit.", response.Status)
+		assert.NotEqual(t, "Token not found", response.Status)
+	}
+	response := request("TOKEN1")
+	assert.Equal(t, "Rate Limit Exceeded - The service you have requested is over the allowed limit.", response.Status)
+
+	response = request("TOKEN2")
+	assert.NotEqual(t, "Rate Limit Exceeded - The service you have requested is over the allowed limit.", response.Status)
+	assert.NotEqual(t, "Token not found", response.Status)
+
+	time.Sleep(time.Minute)
+
+	response = request("TOKEN1")
+	assert.NotEqual(t, "Rate Limit Exceeded - The service you have requested is over the allowed limit.", response.Status)
+	assert.NotEqual(t, "Token not found", response.Status)
+
+	response = request("")
+	assert.Equal(t, "Token not found", response.Status)
+}
+
+func TestIntegrationAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping API integration test in short mode")
+	}
+
+	e, err := example.Example(&Activity{})
+	assert.Nil(t, err)
+	testApplication(t, e)
+}
+
+func TestIntegrationJSON(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping JSON integration test in short mode")
+	}
+
+	data, err := ioutil.ReadFile(filepath.FromSlash("./examples/json/flogo.json"))
+	assert.Nil(t, err)
+	cfg, err := engine.LoadAppConfig(string(data), false)
+	assert.Nil(t, err)
+	e, err := engine.New(cfg)
+	assert.Nil(t, err)
+	testApplication(t, e)
 }
