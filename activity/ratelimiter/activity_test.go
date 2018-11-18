@@ -163,6 +163,7 @@ func testApplication(t *testing.T, e engine.Engine) {
 		err := e.Stop()
 		assert.Nil(t, err)
 	}()
+	test.Pour("9096")
 
 	transport := &http.Transport{
 		MaxIdleConns: 1,
