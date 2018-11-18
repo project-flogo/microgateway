@@ -20,6 +20,28 @@ git clone https://github.com/project-flogo/microgateway.git
 
 and then following the instructions [here](examples/api/basic-gateway) to build your first Microgateway Flogo application. Documentation for the Flogo Microgateway API can be found [here](https://godoc.org/github.com/project-flogo/microgateway/api).
 
+# Development
+
+## Testing
+
+To run tests issue the following command in the root of the project:
+
+```bash
+go test -p 1 ./...
+```
+
+The `-p 1` is needed to prevent tests from being run in parallel. The tests should take ~2 mintues. To re-run the tests first run the following:
+
+```bash
+go clean -testcache
+```
+
+To skip the integration tests use the `-short` flag:
+
+```bash
+go test -p 1 -short ./...
+```
+
 # Resource
 
 ## Schema
