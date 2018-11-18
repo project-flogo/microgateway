@@ -2,12 +2,11 @@ package main
 
 import (
 	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/microgateway/activity/ratelimiter"
-	"github.com/project-flogo/microgateway/activity/ratelimiter/example"
+	"github.com/project-flogo/microgateway/activity/ratelimiter/examples"
 )
 
 func main() {
-	e, err := example.Example(&ratelimiter.Activity{})
+	e, err := examples.Example()
 	if err != nil {
 		panic(err)
 	}

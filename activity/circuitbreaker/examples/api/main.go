@@ -2,12 +2,11 @@ package main
 
 import (
 	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/microgateway/activity/circuitbreaker"
-	"github.com/project-flogo/microgateway/activity/circuitbreaker/example"
+	"github.com/project-flogo/microgateway/activity/circuitbreaker/examples"
 )
 
 func main() {
-	e, err := example.Example(&circuitbreaker.Activity{})
+	e, err := examples.Example()
 	if err != nil {
 		panic(err)
 	}

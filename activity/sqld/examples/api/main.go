@@ -2,12 +2,11 @@ package main
 
 import (
 	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/microgateway/activity/sqld"
-	"github.com/project-flogo/microgateway/activity/sqld/example"
+	"github.com/project-flogo/microgateway/activity/sqld/examples"
 )
 
 func main() {
-	e, err := example.Example(&sqld.Activity{})
+	e, err := examples.Example()
 	if err != nil {
 		panic(err)
 	}

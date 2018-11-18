@@ -1,4 +1,4 @@
-package anomaly
+package examples
 
 import (
 	"github.com/project-flogo/contrib/activity/rest"
@@ -6,6 +6,7 @@ import (
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/engine"
 	"github.com/project-flogo/microgateway"
+	"github.com/project-flogo/microgateway/activity/anomaly"
 	microapi "github.com/project-flogo/microgateway/api"
 )
 
@@ -14,7 +15,7 @@ func Example() (engine.Engine, error) {
 	app := api.NewApp()
 
 	gateway := microapi.New("Test")
-	serviceAnomaly := gateway.NewService("Anomaly", &Activity{})
+	serviceAnomaly := gateway.NewService("Anomaly", &anomaly.Activity{})
 	serviceAnomaly.SetDescription("Look for anomalies")
 	serviceAnomaly.AddSetting("depth", 3)
 

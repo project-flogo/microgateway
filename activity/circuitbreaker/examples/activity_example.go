@@ -1,22 +1,22 @@
-package example
+package examples
 
 import (
 	"github.com/project-flogo/contrib/activity/rest"
 	trigger "github.com/project-flogo/contrib/trigger/rest"
-	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/engine"
 	"github.com/project-flogo/microgateway"
+	"github.com/project-flogo/microgateway/activity/circuitbreaker"
 	microapi "github.com/project-flogo/microgateway/api"
 )
 
 // Example returns an API example
-func Example(activity activity.Activity) (engine.Engine, error) {
+func Example() (engine.Engine, error) {
 	app := api.NewApp()
 
 	gateway := microapi.New("Pets")
 
-	serviceCircuitBreaker := gateway.NewService("CircuitBreaker", activity)
+	serviceCircuitBreaker := gateway.NewService("CircuitBreaker", &circuitbreaker.Activity{})
 	serviceCircuitBreaker.SetDescription("Circuit breaker service")
 	serviceCircuitBreaker.AddSetting("mode", "a")
 

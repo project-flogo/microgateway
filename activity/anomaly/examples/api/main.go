@@ -2,11 +2,11 @@ package main
 
 import (
 	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/microgateway/activity/anomaly"
+	"github.com/project-flogo/microgateway/activity/anomaly/examples"
 )
 
 func main() {
-	e, err := anomaly.Example()
+	e, err := examples.Example()
 	if err != nil {
 		panic(err)
 	}
