@@ -111,13 +111,13 @@ func (a *activityContext) Logger() logger.Logger {
 func TestCircuitBreakerModeA(t *testing.T) {
 	rand.Seed(1)
 	clock := time.Unix(1533930608, 0)
-	now = func() time.Time {
+	Now = func() time.Time {
 		now := clock
 		clock = clock.Add(time.Duration(rand.Intn(2)+1) * time.Second)
 		return now
 	}
 	defer func() {
-		now = time.Now
+		Now = time.Now
 	}()
 
 	activity, err := New(newInitContext(nil))
@@ -157,13 +157,13 @@ func TestCircuitBreakerModeA(t *testing.T) {
 func TestCircuitBreakerModeB(t *testing.T) {
 	rand.Seed(1)
 	clock := time.Unix(1533930608, 0)
-	now = func() time.Time {
+	Now = func() time.Time {
 		now := clock
 		clock = clock.Add(time.Duration(rand.Intn(2)+1) * time.Second)
 		return now
 	}
 	defer func() {
-		now = time.Now
+		Now = time.Now
 	}()
 
 	activity, err := New(newInitContext(map[string]interface{}{
@@ -204,13 +204,13 @@ func TestCircuitBreakerModeB(t *testing.T) {
 func TestCircuitBreakerModeC(t *testing.T) {
 	rand.Seed(1)
 	clock := time.Unix(1533930608, 0)
-	now = func() time.Time {
+	Now = func() time.Time {
 		now := clock
 		clock = clock.Add(time.Duration(rand.Intn(2)+1) * time.Second)
 		return now
 	}
 	defer func() {
-		now = time.Now
+		Now = time.Now
 	}()
 
 	activity, err := New(newInitContext(map[string]interface{}{
@@ -259,13 +259,13 @@ func TestCircuitBreakerModeC(t *testing.T) {
 func TestCircuitBreakerModeD(t *testing.T) {
 	rand.Seed(1)
 	clock := time.Unix(1533930608, 0)
-	now = func() time.Time {
+	Now = func() time.Time {
 		now := clock
 		clock = clock.Add(time.Duration(rand.Intn(2)+1) * time.Second)
 		return now
 	}
 	defer func() {
-		now = time.Now
+		Now = time.Now
 	}()
 
 	activity, err := New(newInitContext(map[string]interface{}{
@@ -282,7 +282,7 @@ func TestCircuitBreakerModeD(t *testing.T) {
 		execute("reset", nil, nil)
 		execute("reset", map[string]interface{}{"operation": "reset"}, nil)
 	}
-	p := activity.(*Activity).context.Probability(now())
+	p := activity.(*Activity).context.Probability(Now())
 	assert.Equal(t, 0.0, math.Floor(p*100))
 
 	type Test struct {
@@ -320,6 +320,6 @@ func TestCircuitBreakerModeD(t *testing.T) {
 		}
 		execute("reset", map[string]interface{}{"operation": "reset"}, test.b)
 	}
-	p = activity.(*Activity).context.Probability(now())
+	p = activity.(*Activity).context.Probability(Now())
 	assert.Equal(t, 0.0, math.Floor(p*100))
 }

@@ -36,7 +36,7 @@ var (
 	// ErrorCircuitBreakerTripped happens when the circuit breaker has tripped
 	ErrorCircuitBreakerTripped = errors.New("circuit breaker tripped")
 	activityMetadata           = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
-	now                        = time.Now
+	Now                        = time.Now
 )
 
 func New(ctx activity.InitContext) (activity.Activity, error) {
@@ -109,7 +109,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 
-	context, now, tripped := &a.context, now(), false
+	context, now, tripped := &a.context, Now(), false
 	switch input.Operation {
 	case "counter":
 		context.Lock()
