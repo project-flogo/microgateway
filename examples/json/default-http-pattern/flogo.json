@@ -1,0 +1,46 @@
+{
+  "name": "MyProxy",
+  "type": "flogo:app",
+  "version": "1.0.0",
+  "description": "This is a simple proxy.",
+  "properties": null,
+  "channels": null,
+  "triggers": [
+    {
+      "name": "flogo-rest",
+      "id": "MyProxy",
+      "ref": "github.com/project-flogo/contrib/trigger/rest",
+      "settings": {
+        "port": "9096"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "method": "GET",
+            "path": "/endpoint"
+          },
+          "actions": [
+            {
+              "ref": "github.com/project-flogo/microgateway",
+              "settings": {
+                "pattern": "DefaultHttpPattern",
+            		"useRateLimiter": true,
+            		"rateLimit": "1-S",
+            		"useJWT": true,
+            		"jwtSigningMethod": "HMAC",
+            		"jwtKey": "qwertyuiopasdfghjklzxcvbnm789101",
+            		"jwtAud": "www.mashling.io",
+            		"jwtIss": "Mashling",
+            		"jwtSub": "tempuser@mail.com",
+            		"useCircuitBreaker": true,
+            		"backendUrl": "http://localhost:1234/pets"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [],
+  "actions": []
+}

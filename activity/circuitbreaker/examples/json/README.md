@@ -10,7 +10,6 @@ This recipe is a gateway with a service protected by a circuit breaker.
 git clone https://github.com/project-flogo/microgateway
 cd microgateway/activity/circuitbreaker/examples/json
 ```
-Place the Downloaded Mashling-Gateway binary in circuit-breaker-gateway folder.
 
 ## Testing
 Create the gateway:
