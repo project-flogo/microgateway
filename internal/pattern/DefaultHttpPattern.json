@@ -13,7 +13,11 @@
       "service": "JWTValidator",
       "input": {
         "token": "=$.payload.headers.Authorization",
-        "key": "=$.conf.jwtKey"
+        "signingMethod": "=$.conf.jwtSigningMethod",
+        "key": "=$.conf.jwtKey",
+        "aud": "=$.conf.jwtAud",
+        "iss": "=$.conf.jwtIss",
+        "sub": "=$.conf.jwtSub"
       }
     },
     {
@@ -57,7 +61,8 @@
       "output": {
         "code": 401,
         "data": {
-          "error": "=$.JWTValidator.outputs.errorMessage"
+          "errorMessage": "=$.JWTValidator.outputs.errorMessage",
+          "validationMessage": "=$.JWTValidator.outputs.validationMessage"
         }
       }
     },

@@ -1,8 +1,10 @@
 package jwt
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
@@ -30,7 +32,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 	return act, nil
 }
 
-type Activity struct {}
+type Activity struct{}
 
 // Metadata return the metadata for the activity
 func (a *Activity) Metadata() *activity.Metadata {
@@ -43,6 +45,9 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	err = ctx.GetInputObject(&input)
 	if err != nil {
 		return false, err
+	}
+	if len(input.Token) < 8 {
+		return false, errors.New("token should be longer")
 	}
 	input.Token = input.Token[7:]
 	token, err := jwt.Parse(input.Token, func(token *jwt.Token) (interface{}, error) {
@@ -97,7 +102,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 				case "id":
 					result[key] = value.(string)
 				default:
-				//none
+					//none
 				}
 			}
 			output.Token.Claims = result
@@ -115,5 +120,5 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	if err != nil {
 		return false, err
 	}
-	return true,nil
+	return true, nil
 }
