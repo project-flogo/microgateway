@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/project-flogo/core/engine"
+	"github.com/project-flogo/microgateway/api"
 	test "github.com/project-flogo/microgateway/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,6 +20,7 @@ type Response struct {
 }
 
 func testApplication(t *testing.T, e engine.Engine) {
+	defer api.ClearResources()
 	test.Drain("9096")
 	err := e.Start()
 	assert.Nil(t, err)

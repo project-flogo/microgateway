@@ -2,18 +2,30 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/support"
 )
 
-var resources = make(map[string]*Microgateway)
+var (
+	resources      = make(map[string]*Microgateway)
+	resourcesMutex = sync.RWMutex{}
+)
 
 // GetResource gets the resource
 func GetResource(name string) *Microgateway {
+	resourcesMutex.RLock()
+	defer resourcesMutex.RUnlock()
 	return resources[name]
+}
+
+// ClearResources clears the resources for testing
+func ClearResources() {
+	resources = make(map[string]*Microgateway)
 }
 
 // New creates a new microgateway action
@@ -113,7 +125,15 @@ func (r *Response) SetData(data interface{}) {
 // AddResource adds the microgateway resource to the app and returns the action settings
 func (m *Microgateway) AddResource(app *api.App) (map[string]interface{}, error) {
 	name := "microgateway:" + m.Name
+	resourcesMutex.RLock()
+	_, ok := resources[name]
+	resourcesMutex.RUnlock()
+	if ok {
+		return nil, fmt.Errorf("resource already exists: %s", name)
+	}
+	resourcesMutex.Lock()
 	resources[name] = m
+	resourcesMutex.Unlock()
 
 	data, err := json.Marshal(m)
 	if err != nil {

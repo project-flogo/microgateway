@@ -24,6 +24,7 @@ import (
 
 func TestMicrogateway(t *testing.T) {
 	defer func() {
+		microapi.ClearResources()
 		trigger.Reset()
 		activity.Reset()
 	}()
@@ -88,6 +89,7 @@ func TestMicrogateway(t *testing.T) {
 
 func TestMicrogatewayHalt(t *testing.T) {
 	defer func() {
+		microapi.ClearResources()
 		trigger.Reset()
 		activity.Reset()
 	}()
@@ -141,6 +143,7 @@ func TestMicrogatewayHalt(t *testing.T) {
 
 func TestMicrogatewayHandler(t *testing.T) {
 	defer func() {
+		microapi.ClearResources()
 		trigger.Reset()
 		activity.Reset()
 	}()
@@ -220,6 +223,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func TestMicrogatewayHttpPattern(t *testing.T) {
 	defer func() {
+		microapi.ClearResources()
 		trigger.Reset()
 		activity.Reset()
 	}()
@@ -273,6 +277,7 @@ func TestMicrogatewayHttpPattern(t *testing.T) {
 
 func TestMicrogatewayChannelPattern(t *testing.T) {
 	defer func() {
+		microapi.ClearResources()
 		trigger.Reset()
 		activity.Reset()
 	}()
@@ -303,6 +308,7 @@ func TestMicrogatewayChannelPattern(t *testing.T) {
 
 func BenchmarkMicrogateway(b *testing.B) {
 	defer func() {
+		microapi.ClearResources()
 		trigger.Reset()
 		activity.Reset()
 	}()

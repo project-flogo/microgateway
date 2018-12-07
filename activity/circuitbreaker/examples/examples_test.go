@@ -12,6 +12,7 @@ import (
 
 	"github.com/project-flogo/core/engine"
 	"github.com/project-flogo/microgateway/activity/circuitbreaker"
+	"github.com/project-flogo/microgateway/api"
 	test "github.com/project-flogo/microgateway/internal/testing"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,6 +59,7 @@ type Response struct {
 }
 
 func testApplication(t *testing.T, e engine.Engine) {
+	defer api.ClearResources()
 	rand.Seed(1)
 	clock := time.Unix(1533930608, 0)
 	circuitbreaker.Now = func() time.Time {
