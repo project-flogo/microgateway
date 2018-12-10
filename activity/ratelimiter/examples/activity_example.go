@@ -11,14 +11,14 @@ import (
 )
 
 // Example returns an API example
-func Example() (engine.Engine, error) {
+func Example(limit string) (engine.Engine, error) {
 	app := api.NewApp()
 
 	gateway := microapi.New("Pets")
 
 	serviceLimiter := gateway.NewService("RateLimiter", &ratelimiter.Activity{})
 	serviceLimiter.SetDescription("Rate limiter")
-	serviceLimiter.AddSetting("limit", "3-M")
+	serviceLimiter.AddSetting("limit", limit)
 
 	serviceStore := gateway.NewService("PetStorePets", &rest.Activity{})
 	serviceStore.SetDescription("Get pets by ID from the petstore")

@@ -58,7 +58,13 @@ type Response struct {
 	Error  string          `json:"error"`
 }
 
-func testApplication(t *testing.T, e engine.Engine) {
+func testApplication(t *testing.T, e engine.Engine, threshold int, timeout int) {
+	if threshold == 0{
+		threshold = 5
+	}
+	if timeout == 0{
+		timeout = 60
+	}
 	defer api.ClearResources()
 	rand.Seed(1)
 	clock := time.Unix(1533930608, 0)
@@ -129,7 +135,7 @@ func testApplication(t *testing.T, e engine.Engine) {
 
 	s.Shutdown(context.Background())
 	transport.CloseIdleConnections()
-	for i := 0; i < 5; i++ {
+	for i := 0; i < threshold; i++ {
 		response := request()
 		assert.Equal(t, "connection failure", response.Error)
 	}
@@ -151,7 +157,7 @@ func testApplication(t *testing.T, e engine.Engine) {
 	test.Pour("1234")
 	defer sr.Shutdown(context.Background())
 
-	clock = clock.Add(60 * time.Second)
+	clock = clock.Add(time.Duration(timeout) * time.Second)
 	response = request()
 	assert.Equal(t, "available", response.Status)
 	assert.Equal(t, len(data), len(response.Pet))
@@ -161,22 +167,70 @@ func TestIntegrationAPI(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping API integration test in short mode")
 	}
-
-	e, err := Example()
-	assert.Nil(t, err)
-	testApplication(t, e)
+	parameters := []struct {
+		mode string
+		threshold int //0 is default setting
+		timeout int //0 is default setting
+		period int //or mode b and c
+	}{
+		//{"mode","threshold","timeout","period"}
+		{"a",2,0,0},{"b",4,30,0},{"c",3,20,40},
+	}
+	for i := range parameters {
+		e, err := Example(parameters[i].mode,parameters[i].threshold,parameters[i].timeout,parameters[i].period)
+		assert.Nil(t, err)
+		testApplication(t, e,parameters[i].threshold,parameters[i].timeout)
+	}
 }
 
 func TestIntegrationJSON(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping JSON integration test in short mode")
 	}
-
+	parameters := []struct {
+		mode string
+		threshold int //0 is default setting
+		timeout int //0 is default setting
+		period int //or mode b and c
+	}{
+		//{"mode","threshold","timeout","period"}
+		{"a",2,40,10},{"b",4,30,20},{"c",3,20,40},
+	}
 	data, err := ioutil.ReadFile(filepath.FromSlash("./json/flogo.json"))
 	assert.Nil(t, err)
-	cfg, err := engine.LoadAppConfig(string(data), false)
-	assert.Nil(t, err)
-	e, err := engine.New(cfg)
-	assert.Nil(t, err)
-	testApplication(t, e)
+	for i := range parameters {
+		var Input input
+		err = json.Unmarshal(data, &Input)
+		Input.Resources[0].Data.Services[0]["settings"] = map[string]interface{}{"mode":parameters[i].mode,
+			"threshold":parameters[i].threshold, "timeout":parameters[i].timeout, "period":parameters[i].period}
+		data, _ = json.Marshal(Input)
+		cfg, err := engine.LoadAppConfig(string(data), false)
+		assert.Nil(t, err)
+		e, err := engine.New(cfg)
+		assert.Nil(t, err)
+		testApplication(t, e,parameters[i].threshold,parameters[i].timeout)
+	}
+}
+
+//--------data structure-------//
+
+type input struct{
+	Name string `json:"name"`
+	Type string `json:"type"`
+	Version string `json:"version"`
+	Desc string `json:"description"`
+	Prop interface{} `json:"properties"`
+	Channels interface{} `json:"channels"`
+	Trig interface{} `json:"triggers"`
+	Resources []struct{
+		Id string `json:"id"`
+		Compress bool `json:"compressed"`
+		Data struct{
+			   Name string `json:"name"`
+			   Steps []interface{} `json:"steps"`
+			   Responses []interface{} `json:"responses"`
+			   Services []map[string]interface{} `json:"services"`
+		   } `json:"data"`
+	} `json:"resources"`
+	Actions interface{} `json:"actions"`
 }
