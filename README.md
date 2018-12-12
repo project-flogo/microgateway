@@ -1,8 +1,21 @@
+<p align="center">
+  <img src ="https://raw.githubusercontent.com/TIBCOSoftware/flogo/master/images/flynn_traffic_with_cone.png" />
+</p>
+
+<p align="center" >
+  <b>Microgateway Action for common microgateway patterns</b>
+</p>
+
 [![godoc](https://godoc.org/github.com/project-flogo/microgateway?status.svg)](https://godoc.org/github.com/project-flogo/microgateway)
 
 # Microgateway Action
 
-This is a Microgateway Action which supports the conditional evaluation of activities. The Microgateway has one setting: 'uri' which is the URI of the Microgateway JSON resource.
+This is a Microgateway Action which supports several common microgateway patterns , key ones highlighted below: <br />
+
+:twisted_rightwards_arrows: Conditional, content-based routing <br />
+:closed_lock_with_key: JWT validation <br />
+:hourglass_flowing_sand: Rate limiting <br />
+:electric_plug: Circuit breaking <br />
 
 # Quick Start
 
