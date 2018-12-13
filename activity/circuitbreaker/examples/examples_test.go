@@ -183,6 +183,7 @@ func TestIntegrationAPI(t *testing.T) {
 	}
 }
 
+
 func TestIntegrationJSON(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping JSON integration test in short mode")

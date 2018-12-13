@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	e, err := examples.Example()
+	e, err := examples.Example("3-M")
 	if err != nil {
 		panic(err)
 	}
