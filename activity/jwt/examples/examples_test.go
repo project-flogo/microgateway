@@ -59,7 +59,7 @@ func testApplication(t *testing.T, e engine.Engine) {
 		return rsp
 	}
 
-	response := request("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJNYXNobGluZyIsImlhdCI6MTU0MDQ4NzgzNywiZXhwIjoxNTcyMDIzODM4LCJhdWQiOiJ3d3cubWFzaGxpbmcuaW8iLCJzdWIiOiJ0ZW1wdXNlckBtYWlsLmNvbSIsImlkIjoiMSJ9.-Tzfn5ZS0kM-u07qkpFrDxdyptBJIvLesuUzVXdqn48")
+	response := request("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJNYXNobGluZyIsImlhdCI6MTU0NDA1MTUyMCwiZXhwIjoxNTc1NTg3NTIxLCJhdWQiOiJ3d3cubWFzaGxpbmcuaW8iLCJzdWIiOiJ0ZW1wdXNlckBtYWlsLmNvbSIsImlkIjoiNCIsInNpZ25pbmdNZXRob2QiOiJITUFDIn0.e4d8QkOxQi4SQhBJLSoq5twYgpZjVnAnVr64fQKiYMk")
 	assert.Equal(t, "\"JWT token is valid\"", string(response.Error))
 	assert.Condition(t, func() bool {
 		return len(response.Pet) > 0
@@ -77,6 +77,27 @@ func testApplication(t *testing.T, e engine.Engine) {
 	err = json.Unmarshal(response.Error, &er)
 	assert.Nil(t, err)
 	assert.Equal(t, "signature is invalid", er.ValidationMessage)
+	assert.Equal(t, "null", string(response.Pet))
+
+	response = request("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJNYXNobGluZ0Vycm9yIiwiaWF0IjoxNTQ0MDUxNTIwLCJleHAiOjE1NzU1ODc1MjEsImF1ZCI6Ind3dy5tYXNobGluZy5pbyIsInN1YiI6InRlbXB1c2VyQG1haWwuY29tIiwiaWQiOiI0Iiwic2lnbmluZ01ldGhvZCI6IkhNQUMifQ.r4yFp-UEBf7gniNI4A2dAUa8kQgPlowI5hrgnwsFdd8")
+	er = Error{}
+	err = json.Unmarshal(response.Error, &er)
+	assert.Nil(t, err)
+	assert.Equal(t, "iss claims do not match", er.ValidationMessage)
+	assert.Equal(t, "null", string(response.Pet))
+
+	response = request("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJNYXNobGluZyIsImlhdCI6MTU0NDA1MTUyMCwiZXhwIjoxNTc1NTg3NTIxLCJhdWQiOiJ3d3cubWFzaGxpbmcuaW8uZXJyb3IiLCJzdWIiOiJ0ZW1wdXNlckBtYWlsLmNvbSIsImlkIjoiNCIsInNpZ25pbmdNZXRob2QiOiJITUFDIn0.Fp2-O5fuO5b9r3DBafN70AbkenLn3gJuikjRZNxaY0M")
+	er = Error{}
+	err = json.Unmarshal(response.Error, &er)
+	assert.Nil(t, err)
+	assert.Equal(t, "aud claims do not match", er.ValidationMessage)
+	assert.Equal(t, "null", string(response.Pet))
+
+	response = request("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJNYXNobGluZyIsImlhdCI6MTU0NDA1MTUyMCwiZXhwIjoxNTc1NTg3NTIxLCJhdWQiOiJ3d3cubWFzaGxpbmcuaW8iLCJzdWIiOiJ0ZW1wdXNlcmVycm9yQG1haWwuY29tIiwiaWQiOiI0Iiwic2lnbmluZ01ldGhvZCI6IkhNQUMifQ.S99Pr15zK3ZLAEkZZ9ObcL6VAczrX6ojZRUvOcH3RPo")
+	er = Error{}
+	err = json.Unmarshal(response.Error, &er)
+	assert.Nil(t, err)
+	assert.Equal(t, "sub claims do not match", er.ValidationMessage)
 	assert.Equal(t, "null", string(response.Pet))
 }
 

@@ -11,15 +11,23 @@ import (
 )
 
 // Example returns an API example
-func Example() (engine.Engine, error) {
+func Example(mode string, threshold int, timeout int, period int) (engine.Engine, error) {
 	app := api.NewApp()
 
 	gateway := microapi.New("Pets")
 
 	serviceCircuitBreaker := gateway.NewService("CircuitBreaker", &circuitbreaker.Activity{})
 	serviceCircuitBreaker.SetDescription("Circuit breaker service")
-	serviceCircuitBreaker.AddSetting("mode", "a")
-
+	serviceCircuitBreaker.AddSetting("mode", mode)
+	if threshold > 0 {
+		serviceCircuitBreaker.AddSetting("threshold", threshold)
+	}
+	if timeout > 0 {
+		serviceCircuitBreaker.AddSetting("timeout", timeout)
+	}
+	if period > 0 {
+		serviceCircuitBreaker.AddSetting("period", period)
+	}
 	serviceStore := gateway.NewService("PetStorePets", &rest.Activity{})
 	serviceStore.SetDescription("Get pets by ID from the petstore")
 	serviceStore.AddSetting("uri", "http://localhost:1234/pets")
