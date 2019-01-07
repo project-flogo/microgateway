@@ -24,6 +24,9 @@ func Example(limit string) (engine.Engine, error) {
 	serviceStore.SetDescription("Get pets by ID from the petstore")
 	serviceStore.AddSetting("uri", "http://petstore.swagger.io/v2/pet/:petId")
 	serviceStore.AddSetting("method", "GET")
+	serviceStore.AddSetting("headers", map[string]string{
+		"Accept": "application/json",
+	})
 
 	step := gateway.NewStep(serviceLimiter)
 	step.AddInput("token", "=$.payload.headers.Token")

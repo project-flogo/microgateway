@@ -92,7 +92,10 @@
             "ref": "github.com/project-flogo/contrib/activity/rest",
             "settings": {
               "uri": "http://petstore.swagger.io/v2/pet/:petId",
-              "method": "GET"
+              "method": "GET",
+              "headers": {
+                "Accept": "application/json"
+              }
             }
           }
         ]

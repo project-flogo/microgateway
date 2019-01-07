@@ -18,6 +18,9 @@ func BasicGatewayExample() (engine.Engine, error) {
 	service.SetDescription("Get pets by ID from the petstore")
 	service.AddSetting("uri", "http://petstore.swagger.io/v2/pet/:petId")
 	service.AddSetting("method", "GET")
+	service.AddSetting("headers", map[string]string{
+		"Accept": "application/json",
+	})
 	step := gateway.NewStep(service)
 	step.AddInput("pathParams", "=$.payload.pathParams")
 	response := gateway.NewResponse(false)
@@ -54,6 +57,9 @@ func HandlerRoutingExample() (engine.Engine, error) {
 	service.SetDescription("Get pets by ID from the petstore")
 	service.AddSetting("uri", "http://petstore.swagger.io/v2/pet/:petId")
 	service.AddSetting("method", "GET")
+	service.AddSetting("headers", map[string]string{
+		"Accept": "application/json",
+	})
 
 	step := gateway.NewStep(service)
 	step.SetIf("string.integer($.payload.pathParams.petId) < 8")
@@ -79,6 +85,9 @@ func HandlerRoutingExample() (engine.Engine, error) {
 	service.SetDescription("Get pets by ID from the petstore")
 	service.AddSetting("uri", "http://petstore.swagger.io/v2/pet/:petId")
 	service.AddSetting("method", "GET")
+	service.AddSetting("headers", map[string]string{
+		"Accept": "application/json",
+	})
 
 	step = gatewayAuthed.NewStep(service)
 	step.AddInput("pathParams", "=$.payload.pathParams")
