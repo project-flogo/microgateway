@@ -5,9 +5,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"testing"
 	"time"
-	"strconv"
+
 	"github.com/project-flogo/core/engine"
 	"github.com/project-flogo/microgateway/api"
 	test "github.com/project-flogo/microgateway/internal/testing"
@@ -55,7 +56,7 @@ func testApplication(t *testing.T, e engine.Engine, limit string) {
 		return rsp
 	}
 
-	num,_ := strconv.Atoi(string(limit[0]))
+	num, _ := strconv.Atoi(string(limit[0]))
 	for i := 0; i < num; i++ {
 		response := request("TOKEN1")
 		assert.NotEqual(t, "Rate Limit Exceeded - The service you have requested is over the allowed limit.", response.Status)
@@ -67,11 +68,11 @@ func testApplication(t *testing.T, e engine.Engine, limit string) {
 	response = request("TOKEN2")
 	assert.NotEqual(t, "Rate Limit Exceeded - The service you have requested is over the allowed limit.", response.Status)
 	assert.NotEqual(t, "Token not found", response.Status)
-	if string(limit[2]) == "M"{
+	if string(limit[2]) == "M" {
 		time.Sleep(time.Minute + time.Duration(num)*time.Second)
-	}else if string(limit[2]) == "S"{
+	} else if string(limit[2]) == "S" {
 		time.Sleep(time.Second + time.Duration(num)*time.Second)
-	}else{
+	} else {
 		time.Sleep(time.Hour + time.Duration(num)*time.Second)
 	}
 	response = request("TOKEN1")
@@ -89,12 +90,12 @@ func TestIntegrationAPI(t *testing.T) {
 	parameters := []struct {
 		limit string
 	}{
-		{"3-M"},{"1-S"},
+		{"3-M"}, {"1-S"},
 	}
 	for i := range parameters {
 		e, err := Example(parameters[i].limit)
 		assert.Nil(t, err)
-		testApplication(t, e,parameters[i].limit)
+		testApplication(t, e, parameters[i].limit)
 	}
 }
 
@@ -105,7 +106,7 @@ func TestIntegrationJSON(t *testing.T) {
 	parameters := []struct {
 		limit string
 	}{
-		{"4-M"},{"2-S"},
+		{"3-M"}, {"1-S"},
 	}
 	data, err := ioutil.ReadFile(filepath.FromSlash("./json/flogo.json"))
 	assert.Nil(t, err)
@@ -125,23 +126,23 @@ func TestIntegrationJSON(t *testing.T) {
 
 //--------data structure-------//
 
-type input struct{
-	Name string `json:"name"`
-	Type string `json:"type"`
-	Version string `json:"version"`
-	Desc string `json:"description"`
-	Prop interface{} `json:"properties"`
-	Channels interface{} `json:"channels"`
-	Trig interface{} `json:"triggers"`
-	Resources []struct{
-		Id string `json:"id"`
-		Compress bool `json:"compressed"`
-		Data struct{
-			   Name string `json:"name"`
-			   Steps []interface{} `json:"steps"`
-			   Responses []interface{} `json:"responses"`
-			   Services []map[string]interface{} `json:"services"`
-		   } `json:"data"`
+type input struct {
+	Name      string      `json:"name"`
+	Type      string      `json:"type"`
+	Version   string      `json:"version"`
+	Desc      string      `json:"description"`
+	Prop      interface{} `json:"properties"`
+	Channels  interface{} `json:"channels"`
+	Trig      interface{} `json:"triggers"`
+	Resources []struct {
+		Id       string `json:"id"`
+		Compress bool   `json:"compressed"`
+		Data     struct {
+			Name      string                   `json:"name"`
+			Steps     []interface{}            `json:"steps"`
+			Responses []interface{}            `json:"responses"`
+			Services  []map[string]interface{} `json:"services"`
+		} `json:"data"`
 	} `json:"resources"`
 	Actions interface{} `json:"actions"`
 }
