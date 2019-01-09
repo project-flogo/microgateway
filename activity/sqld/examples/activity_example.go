@@ -22,6 +22,9 @@ func Example() (engine.Engine, error) {
 	serviceUpdate.SetDescription("Update pets")
 	serviceUpdate.AddSetting("uri", "http://petstore.swagger.io/v2/pet")
 	serviceUpdate.AddSetting("method", "PUT")
+	serviceUpdate.AddSetting("headers", map[string]string{
+		"Accept": "application/json",
+	})
 
 	step := gateway.NewStep(serviceSQLD)
 	step.AddInput("payload", "=$.payload")

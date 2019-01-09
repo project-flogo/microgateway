@@ -27,6 +27,9 @@ func Example() (engine.Engine, error) {
 	serviceStore.SetDescription("Get pets by ID from the petstore")
 	serviceStore.AddSetting("uri", "https://petstore.swagger.io/v2/pet/:petId")
 	serviceStore.AddSetting("method", "GET")
+	serviceStore.AddSetting("headers", map[string]string{
+		"Accept": "application/json",
+	})
 
 	step := gateway.NewStep(jwtService)
 	step.AddInput("token", "=$.payload.headers.Authorization")
@@ -45,7 +48,7 @@ func Example() (engine.Engine, error) {
 	response.SetCode(401)
 	response.SetData(map[string]interface{}{
 		"error": "=$.jwtService.outputs",
-		"pet":   "=$.PetStorePets.outputs.data",
+		"pet":   nil,
 	})
 
 	settings, err := gateway.AddResource(app)

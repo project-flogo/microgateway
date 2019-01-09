@@ -56,7 +56,7 @@
               "code": 401,
               "data": {
                 "error": "=$.jwtService.outputs",
-                "pet": "=$.PetStorePets.outputs.data"
+                "pet": null
               }
             }
           },
@@ -91,7 +91,10 @@
             "ref": "github.com/project-flogo/contrib/activity/rest",
             "settings": {
               "uri": "https://petstore.swagger.io/v2/pet/:petId",
-              "method": "GET"
+              "method": "GET",
+              "headers": {
+                "Accept": "application/json"
+              }
             }
           }
         ]
