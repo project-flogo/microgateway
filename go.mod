@@ -12,9 +12,8 @@ require (
 	github.com/google/flatbuffers v1.10.0 // indirect
 	github.com/leesper/go_rng v0.0.0-20171009123644-5344a9259b21 // indirect
 	github.com/pkg/errors v0.8.0 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/project-flogo/contrib v0.9.0-alpha.3.0.20181105173100-2e8b1851a5ac
-	github.com/project-flogo/core v0.9.0-alpha.3.0.20181105051932-8e2356547b1a
+	github.com/project-flogo/contrib v0.9.0-alpha.3.0.20190115023822-118c915f5736
+	github.com/project-flogo/core v0.9.0-alpha.4.0.20190116201316-ba1703f1f4cf
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.2.2
 	github.com/ulule/limiter v2.2.0+incompatible
@@ -22,8 +21,6 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v0.0.0-20181016150526-f3a9dae5b194
 	github.com/xtgo/set v1.0.0 // indirect
-	go.uber.org/atomic v1.3.2 // indirect
-	go.uber.org/multierr v1.1.0 // indirect
 	golang.org/x/exp v0.0.0-20181022080537-42ba7d4b6eb2 // indirect
 	golang.org/x/net v0.0.0-20181023162649-9b4f9f5ad519
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f // indirect
