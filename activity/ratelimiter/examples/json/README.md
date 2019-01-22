@@ -88,7 +88,7 @@ You can set global rate limit to a service (i.e. applies accross users) by using
 }
 ```
 
-Re run the gateway:
+Create and run the gateway:
 ```
 bin/MyProxy
 ```
