@@ -50,4 +50,4 @@ You should see the following response:
  "error": "anomaly!"
 }
 ```
-The complexity is13.715719 standard deviations from the mean. Because this is greater than the 3 standard deviation threshold the payload is considered an anomaly. In this scenario the standard deviation threshold was increased until only a small number of anomalies were detected.
+The complexity is 13.715719 standard deviations from the mean. Because this is greater than the 3 standard deviation threshold the payload is considered an anomaly. In this scenario the standard deviation threshold was increased until only a small number of anomalies were detected.
