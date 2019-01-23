@@ -71,7 +71,7 @@ You should see the following like response:
 ```
 
 ### #3 Global rate limiter
-You can set global rate limit to a service (i.e. applies accross users) by using some hard coded token value. To do that modify rate limiter `step` in the gateway descriptor `main.go` as follows:
+You can set global rate limit to a service (i.e. applies accross users) by using some hard coded token value. To do that modify rate limiter `step` in the gateway descriptor `activity_example.go` in the examples folder as follows:
 ```
 step.AddInput("token", "MY_GLOBAL_TOKEN")
 ```

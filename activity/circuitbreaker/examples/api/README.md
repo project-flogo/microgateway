@@ -54,12 +54,12 @@ You should see the following response:
 ```
 The target service is in a working state.
 
-Now simulate a service failure by stopping the target service, and then run the following command 6 times:
+Now simulate a service failure by stopping the target service, and then run the following command 3 times:
 ```
 curl http://localhost:9096/pets/1
 ```
 
-You should see the below response 5 times:
+You should see the below response 2 times:
 ```json
 {
  "error": "connection failure"
