@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"testing"
 	"time"
-
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/mapper"
@@ -282,6 +281,7 @@ func TestCircuitBreakerModeD(t *testing.T) {
 		execute("reset", nil, nil)
 		execute("reset", map[string]interface{}{"operation": "reset"}, nil)
 	}
+
 	p := activity.(*Activity).context.Probability(Now())
 	assert.Equal(t, 0.0, math.Floor(p*100))
 
