@@ -77,12 +77,26 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 	if definition != nil {
 		if definition.Async {
 			log.Info("executing route asynchronously")
-			go executeSteps(definition, &host, log)
+			go func() {
+				done, err := executeSteps(definition, &host, log)
+				if err != nil {
+					if done {
+						log.Info("error executing route: ", err)
+					} else {
+						log.Error("error executing route: ", err)
+					}
+				}
+			}()
 		} else {
-			err = executeSteps(definition, &host, log)
-		}
-		if err != nil {
-			log.Error("error executing route: ", err)
+			var done bool
+			done, err = executeSteps(definition, &host, log)
+			if err != nil {
+				if done {
+					log.Info("error executing route: ", err)
+				} else {
+					log.Error("error executing route: ", err)
+				}
+			}
 		}
 	} else {
 		log.Info("no route to execute, continuing to reply handler")
@@ -145,7 +159,7 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 	return 404, nil, err
 }
 
-func executeSteps(definition *Microgateway, host *microgatewayHost, log logger.Logger) (err error) {
+func executeSteps(definition *Microgateway, host *microgatewayHost, log logger.Logger) (done bool, err error) {
 	for _, step := range definition.Steps {
 		var truthiness bool
 		truthiness, err = evaluateTruthiness(step.Condition, host.Scope(), log)
@@ -155,16 +169,16 @@ func executeSteps(definition *Microgateway, host *microgatewayHost, log logger.L
 		ctxt := newServiceContext(step.Service, host, log)
 		ctxt.UpdateScope(nil)
 		if truthiness {
-			err = invokeService(step.Service, step.HaltCondition, host, ctxt, step.Input, log)
+			done, err = invokeService(step.Service, step.HaltCondition, host, ctxt, step.Input, log)
 			if err != nil {
-				return err
+				return done, err
 			}
 			if host.halt {
-				return nil
+				return true, nil
 			}
 		}
 	}
-	return nil
+	return true, nil
 }
 
 func evaluateTruthiness(expr *Expr, scope data.Scope, log logger.Logger) (truthy bool, err error) {
@@ -262,18 +276,18 @@ func (s *serviceContext) Logger() logger.Logger {
 	return s.logger
 }
 
-func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, ctxt *serviceContext, input map[string]*Expr, log logger.Logger) (err error) {
+func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, ctxt *serviceContext, input map[string]*Expr, log logger.Logger) (done bool, err error) {
 	log.Info("invoking service: ", serviceDef.Name)
 
 	scope := host.Scope()
 	values, err := TranslateMappings(scope, input, log)
 	if err != nil {
-		return err
+		return false, err
 	}
 	ctxt.Merge(values)
 
 	ctxt.UpdateScope(nil)
-	_, err = serviceDef.Activity.Eval(ctxt)
+	done, err = serviceDef.Activity.Eval(ctxt)
 
 	if err == nil {
 		err = host.err
@@ -282,17 +296,18 @@ func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayH
 	if haltCondition != nil {
 		truthiness, err := evaluateTruthiness(haltCondition, scope, log)
 		if err != nil {
-			return nil
+			return true, nil
 		}
 		if truthiness {
-			return fmt.Errorf("execution halted with expression: %s", haltCondition)
+			return true, fmt.Errorf("execution halted with expression: %s", haltCondition)
 		}
-		return nil
+		return false, nil
 	}
 
-	return err
+	return done, err
 }
 
+// TranslateMappings translates dot notation mappings
 func TranslateMappings(scope data.Scope, mappings map[string]*Expr, log logger.Logger) (values map[string]interface{}, err error) {
 	values = make(map[string]interface{})
 	if len(mappings) == 0 {

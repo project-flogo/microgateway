@@ -47,7 +47,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 	if len(input.Token) < 8 {
-		return false, errors.New("token should be longer")
+		return true, errors.New("token should be longer")
 	}
 	input.Token = input.Token[7:]
 	token, err := jwt.Parse(input.Token, func(token *jwt.Token) (interface{}, error) {
