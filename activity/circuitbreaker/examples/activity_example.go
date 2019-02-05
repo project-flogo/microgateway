@@ -88,6 +88,5 @@ func Example(mode string, threshold int, timeout int, period int) (engine.Engine
 	if err != nil {
 		return nil, err
 	}
-
 	return api.NewEngine(app)
 }
