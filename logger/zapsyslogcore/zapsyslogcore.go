@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/project-flogo/core/support/log/config"
 	"github.com/project-flogo/core/support/log/zapcores"
 	"go.uber.org/zap/zapcore"
 )
@@ -110,11 +111,11 @@ func zapSysLogCore() (*SysLogCore, *SysLogCore) {
 
 	envLogFormat := strings.ToUpper(os.Getenv("FLOGO_LOG_FORMAT"))
 	if strings.Compare(envLogFormat, "JSON") != 0 {
-		enc = zapcore.NewConsoleEncoder(zapcores.GetDefConfig().GetDefaultLogConfig().EncoderConfig)
-		traceEnc = zapcore.NewConsoleEncoder(zapcores.GetDefConfig().GetDefaultTraceLogConfig().EncoderConfig)
+		enc = zapcore.NewConsoleEncoder(config.GetDefConfig().GetDefaultLogConfig().EncoderConfig)
+		traceEnc = zapcore.NewConsoleEncoder(config.GetDefConfig().GetDefaultTraceLogConfig().EncoderConfig)
 	} else {
-		enc = zapcore.NewJSONEncoder(zapcores.GetDefConfig().GetDefaultLogConfig().EncoderConfig)
-		traceEnc = zapcore.NewJSONEncoder(zapcores.GetDefConfig().GetDefaultTraceLogConfig().EncoderConfig)
+		enc = zapcore.NewJSONEncoder(config.GetDefConfig().GetDefaultLogConfig().EncoderConfig)
+		traceEnc = zapcore.NewJSONEncoder(config.GetDefConfig().GetDefaultTraceLogConfig().EncoderConfig)
 	}
 
 	envSysLogTag := strings.ToUpper(os.Getenv("MICROGATEWAY_SYSLOG_TAG"))
@@ -127,5 +128,5 @@ func zapSysLogCore() (*SysLogCore, *SysLogCore) {
 		log.Fatal("failed to set up syslog")
 	}
 
-	return newSyslogCore(zapcores.GetDefConfig().GetDefaultTraceLogLevl(), traceEnc, writer), newSyslogCore(zapcores.GetDefConfig().GetDefaultLogLevl(), enc, writer)
+	return newSyslogCore(config.GetDefConfig().GetDefaultTraceLogLevl(), traceEnc, writer), newSyslogCore(config.GetDefConfig().GetDefaultLogLevl(), enc, writer)
 }
