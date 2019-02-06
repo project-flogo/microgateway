@@ -111,22 +111,23 @@ func zapSysLogCore() (*SysLogCore, *SysLogCore) {
 
 	envLogFormat := strings.ToUpper(os.Getenv("FLOGO_LOG_FORMAT"))
 	if strings.Compare(envLogFormat, "JSON") != 0 {
-		enc = zapcore.NewConsoleEncoder(config.GetDefConfig().GetDefaultLogConfig().EncoderConfig)
-		traceEnc = zapcore.NewConsoleEncoder(config.GetDefConfig().GetDefaultTraceLogConfig().EncoderConfig)
+		enc = zapcore.NewConsoleEncoder(config.GetDefConfig().GetDefLogConfig().EncoderConfig)
+		traceEnc = zapcore.NewConsoleEncoder(config.GetDefConfig().GetDefTraceLogConfig().EncoderConfig)
 	} else {
-		enc = zapcore.NewJSONEncoder(config.GetDefConfig().GetDefaultLogConfig().EncoderConfig)
-		traceEnc = zapcore.NewJSONEncoder(config.GetDefConfig().GetDefaultTraceLogConfig().EncoderConfig)
+		enc = zapcore.NewJSONEncoder(config.GetDefConfig().GetDefLogConfig().EncoderConfig)
+		traceEnc = zapcore.NewJSONEncoder(config.GetDefConfig().GetDefTraceLogConfig().EncoderConfig)
 	}
 
 	envSysLogTag := strings.ToUpper(os.Getenv("MICROGATEWAY_SYSLOG_TAG"))
 	if len(envSysLogTag) == 0 {
 		envSysLogTag = "zapsyslogtag"
 	}
-	// Initialize a syslog writer.
+
+	// Initialize syslog writer.
 	writer, err := syslog.New(syslog.LOG_INFO, envSysLogTag)
 	if err != nil {
 		log.Fatal("failed to set up syslog")
 	}
 
-	return newSyslogCore(config.GetDefConfig().GetDefaultTraceLogLevl(), traceEnc, writer), newSyslogCore(config.GetDefConfig().GetDefaultLogLevl(), enc, writer)
+	return newSyslogCore(config.GetDefConfig().GetDefTraceLogLvl(), traceEnc, writer), newSyslogCore(config.GetDefConfig().GetDefLogLvl(), enc, writer)
 }
