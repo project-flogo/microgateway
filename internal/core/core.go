@@ -110,7 +110,7 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 				continue
 			}
 			if truthiness {
-				output, oErr := TranslateMappings(scope, map[string]*Expr{"code": response.Output.Code}, log)
+				output, oErr := TranslateMappings(scope, []*Expr{response.Output.Code}, log)
 				if oErr != nil {
 					return -1, nil, oErr
 				}
@@ -143,7 +143,7 @@ func Execute(id string, payload interface{}, definition *Microgateway, iometadat
 						return -1, nil, oErr
 					}
 				} else {
-					interimData, dErr := TranslateMappings(scope, map[string]*Expr{"data": response.Output.Data}, log)
+					interimData, dErr := TranslateMappings(scope, []*Expr{response.Output.Data}, log)
 					if dErr != nil {
 						return -1, nil, dErr
 					}
@@ -167,7 +167,6 @@ func executeSteps(definition *Microgateway, host *microgatewayHost, log logger.L
 			continue
 		}
 		ctxt := newServiceContext(step.Service, host, log)
-		ctxt.UpdateScope(nil)
 		if truthiness {
 			done, err = invokeService(step.Service, step.HaltCondition, host, ctxt, step.Input, log)
 			if err != nil {
@@ -211,35 +210,32 @@ type serviceContext struct {
 	logger  logger.Logger
 	Inputs  map[string]interface{}
 	Outputs map[string]interface{}
+	values  map[string]interface{}
 }
 
 func newServiceContext(def *Service, host activity.Host, log logger.Logger) *serviceContext {
 	inputs := make(map[string]interface{}, len(def.Settings))
-	for k, v := range def.Settings {
-		inputs[k] = v
+	for _, setting := range def.Settings {
+		inputs[setting.Name] = setting.Value
 	}
-	return &serviceContext{
+	ctxt := &serviceContext{
 		name:    def.Name,
 		host:    host,
 		logger:  logger.ChildLogger(log, def.Name),
 		Inputs:  inputs,
 		Outputs: make(map[string]interface{}),
 	}
+	ctxt.values = map[string]interface{}{
+		"inputs":  inputs,
+		"outputs": ctxt.Outputs,
+		"error":   nil,
+	}
+	host.Scope().SetValue(def.Name, ctxt.values)
+	return ctxt
 }
 
-func (s *serviceContext) Merge(inputs map[string]interface{}) {
-	for k, v := range inputs {
-		s.Inputs[k] = v
-	}
-}
-
-func (s *serviceContext) UpdateScope(err error) {
-	activityData := map[string]interface{}{
-		"inputs":  s.Inputs,
-		"outputs": s.Outputs,
-		"error":   err,
-	}
-	s.host.Scope().SetValue(s.name, activityData)
+func (s *serviceContext) SetError(err error) {
+	s.values["error"] = err
 }
 
 func (s *serviceContext) ActivityHost() activity.Host {
@@ -265,6 +261,7 @@ func (s *serviceContext) GetInputObject(input data.StructValue) error {
 
 func (s *serviceContext) SetOutputObject(output data.StructValue) error {
 	s.Outputs = output.ToMap()
+	s.values["outputs"] = s.Outputs
 	return nil
 }
 
@@ -276,23 +273,21 @@ func (s *serviceContext) Logger() logger.Logger {
 	return s.logger
 }
 
-func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, ctxt *serviceContext, input map[string]*Expr, log logger.Logger) (done bool, err error) {
+func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, ctxt *serviceContext, input []*Expr, log logger.Logger) (done bool, err error) {
 	log.Info("invoking service: ", serviceDef.Name)
 
 	scope := host.Scope()
-	values, err := TranslateMappings(scope, input, log)
+	err = TranslateMappingsToTree(scope, input, ctxt.Inputs, log)
 	if err != nil {
 		return false, err
 	}
-	ctxt.Merge(values)
 
-	ctxt.UpdateScope(nil)
 	done, err = serviceDef.Activity.Eval(ctxt)
-
 	if err == nil {
 		err = host.err
 	}
-	ctxt.UpdateScope(err)
+	ctxt.SetError(err)
+
 	if haltCondition != nil {
 		truthiness, err := evaluateTruthiness(haltCondition, scope, log)
 		if err != nil {
@@ -308,28 +303,26 @@ func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayH
 }
 
 // TranslateMappings translates dot notation mappings
-func TranslateMappings(scope data.Scope, mappings map[string]*Expr, log logger.Logger) (values map[string]interface{}, err error) {
-	values = make(map[string]interface{})
-	if len(mappings) == 0 {
-		return values, err
+func TranslateMappings(scope data.Scope, mappings []*Expr, log logger.Logger) (tree map[string]interface{}, err error) {
+	length := len(mappings)
+	tree = make(map[string]interface{}, length)
+	if length == 0 {
+		return tree, err
 	}
-	for fullKey, expr := range mappings {
+	err = TranslateMappingsToTree(scope, mappings, tree, log)
+	return tree, err
+}
+
+// TranslateMappingsToTree translates dot notation mappings
+func TranslateMappingsToTree(scope data.Scope, mappings []*Expr, tree map[string]interface{}, log logger.Logger) (err error) {
+	for _, expr := range mappings {
 		value, err := expr.Eval(scope)
 		if err != nil {
 			log.Infof("mapping evaluation causes error: %s", expr)
-			return values, err
+			return err
 		}
-		values[fullKey] = value
-	}
-	return expandMap(values), err
-}
 
-// Turn dot notation map into nested map structure.
-func expandMap(m map[string]interface{}) map[string]interface{} {
-	var tree = make(map[string]interface{})
-	for key, value := range m {
-		keys := strings.Split(key, ".")
-		subTree := tree
+		keys, subTree := strings.Split(expr.Name, "."), tree
 		for _, treeKey := range keys[:len(keys)-1] {
 			subTreeNew, ok := subTree[treeKey]
 			if !ok {
@@ -340,5 +333,5 @@ func expandMap(m map[string]interface{}) map[string]interface{} {
 		}
 		subTree[keys[len(keys)-1]] = value
 	}
-	return tree
+	return err
 }

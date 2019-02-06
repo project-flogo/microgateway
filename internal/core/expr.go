@@ -8,13 +8,15 @@ import (
 type Expr struct {
 	source string
 	expression.Expr
+	Name string
 }
 
 // NewExpr creates a new expression
-func NewExpr(source string, expr expression.Expr) *Expr {
+func NewExpr(name, source string, expr expression.Expr) *Expr {
 	return &Expr{
 		source: source,
 		Expr:   expr,
+		Name:   name,
 	}
 }
 

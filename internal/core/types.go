@@ -17,14 +17,20 @@ type Microgateway struct {
 type Step struct {
 	Condition     *Expr
 	Service       *Service
-	Input         map[string]*Expr
+	Input         []*Expr
 	HaltCondition *Expr
+}
+
+// Setting is a service setting
+type Setting struct {
+	Name  string
+	Value interface{}
 }
 
 // Service defines a functional target that may be invoked by a step in an execution flow.
 type Service struct {
 	Name     string
-	Settings map[string]interface{}
+	Settings []Setting
 	Activity activity.Activity
 }
 
@@ -39,5 +45,5 @@ type Response struct {
 type Output struct {
 	Code  *Expr
 	Data  *Expr
-	Datum map[string]*Expr
+	Datum []*Expr
 }
