@@ -84,6 +84,12 @@ func main() {
 		"jwtSub":            "tempuser@mail.com",
 		"useCircuitBreaker": true,
 		"backendUrl":        "http://localhost:1234/pets",
+		"mode": "a",
+		"threshold": 5,
+		"timeout": 60,
+		"period": 60,
+		"method": "GET",
+		"payload": "",
 	})
 	if err != nil {
 		panic(err)
