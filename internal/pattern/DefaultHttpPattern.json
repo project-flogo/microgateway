@@ -33,7 +33,7 @@
       "if": "($.conf.useJWT == false || $.JWTValidator.outputs.valid == true) && ($.conf.method == 'PUT' || $.conf.method == 'POST' || $.conf.method == 'PATCH')",
       "service": "HttpBackendB",
       "input": {
-        "content": "=$.conf.payload"
+        "content": "=$.conf.content"
       },
       "halt": "($.HttpBackendB.error != nil) && !error.isneterror($.HttpBackendB.error)"
     },

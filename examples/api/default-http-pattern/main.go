@@ -89,7 +89,7 @@ func main() {
 		"timeout": 60,
 		"period": 60,
 		"method": "GET",
-		"payload": "",
+		"content": "",
 	})
 	if err != nil {
 		panic(err)

@@ -33,7 +33,13 @@
             		"jwtIss": "Mashling",
             		"jwtSub": "tempuser@mail.com",
             		"useCircuitBreaker": true,
-            		"backendUrl": "http://localhost:1234/pets"
+            		"backendUrl": "http://localhost:1234/pets",
+                    "mode": "a",
+                    "threshold": 2,
+                    "timeout": 60,
+                    "period": 60,
+                    "method": "POST",
+                    "content": "{\"name\":\"sally\"}"
               }
             }
           ]
