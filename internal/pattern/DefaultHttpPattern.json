@@ -38,14 +38,14 @@
       "halt": "($.HttpBackendB.error != nil) && !error.isneterror($.HttpBackendB.error)"
     },
     {
-      "if": "$.conf.useCircuitBreaker == true && $.HttpBackend.error != nil",
+      "if": "$.conf.useCircuitBreaker == true && (($.HttpBackendA.error != nil && $.conf.method == 'GET')|| ($.HttpBackendB.error != nil && $.conf.method == 'PUT'))",
       "service": "CircuitBreaker",
       "input": {
         "operation": "counter"
       }
     },
     {
-      "if": "$.conf.useCircuitBreaker == true && $.HttpBackend.error == nil",
+      "if": "$.conf.useCircuitBreaker == true && (($.HttpBackendA.error == nil && $.conf.method == 'GET')|| ($.HttpBackendB.error == nil && $.conf.method == 'PUT'))",
       "service": "CircuitBreaker",
       "input": {
         "operation": "reset"
@@ -85,7 +85,7 @@
       }
     },
     {
-      "if": "$.HttpBackendA.outputs.data != ''",
+      "if": "($.conf.useJWT == false || $.JWTValidator.outputs.valid == true) && $.conf.method == 'GET'",
       "error": false,
       "output": {
         "code": 200,
@@ -93,7 +93,7 @@
       }
     },
     {
-      "if": "$.HttpBackendB.outputs.data != ''",
+      "if": "($.conf.useJWT == false || $.JWTValidator.outputs.valid == true) && ($.conf.method == 'PUT' || $.conf.method == 'POST' || $.conf.method == 'PATCH')",
       "error": false,
       "output": {
         "code": 200,
@@ -101,9 +101,10 @@
       }
     },
     {
-      "error": false,
+      "error": true,
       "output": {
-        "code": 200
+        "code": 400,
+        "data": "Error"
       }
     }
   ],
