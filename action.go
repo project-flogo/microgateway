@@ -157,15 +157,15 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 	scope := data.NewSimpleScope(executionContext, nil)
 
 	expressionFactory := expression.NewFactory(resolve.GetBasicResolver())
-	getExpression := func(value interface{}) (*core.Expr, error) {
+	getExpression := func(name string, value interface{}) (*core.Expr, error) {
 		if stringValue, ok := value.(string); ok && len(stringValue) > 0 && stringValue[0] == '=' {
 			expr, err := expressionFactory.NewExpr(stringValue[1:])
 			if err != nil {
 				return nil, err
 			}
-			return core.NewExpr(stringValue, expr), nil
+			return core.NewExpr(name, stringValue, expr), nil
 		}
-		return core.NewExpr(fmt.Sprintf("%v", value), expression.NewLiteralExpr(value)), nil
+		return core.NewExpr(name, fmt.Sprintf("%v", value), expression.NewLiteralExpr(value)), nil
 	}
 
 	services := make(map[string]*core.Service, len(actionData.Services))
@@ -175,23 +175,33 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			return nil, fmt.Errorf("duplicate service name: %s", name)
 		}
 
-		values := make(map[string]*core.Expr, len(actionData.Services[i].Settings))
+		values, index := make([]*core.Expr, len(actionData.Services[i].Settings)), 0
 		for key, value := range actionData.Services[i].Settings {
-			values[key], err = getExpression(value)
+			values[index], err = getExpression(key, value)
 			if err != nil {
 				log.Infof("expression parsing error: %s", value)
 				return nil, err
 			}
+			index++
 		}
 
-		settings, err := core.TranslateMappings(scope, values, log)
+		settingsMap, err := core.TranslateMappings(scope, values, log)
 		if err != nil {
 			return nil, err
+		}
+		settings := make([]core.Setting, len(settingsMap))
+		index = 0
+		for key, value := range settingsMap {
+			settings[index] = core.Setting{
+				Name:  key,
+				Value: value,
+			}
+			index++
 		}
 
 		if ref := actionData.Services[i].Ref; ref != "" {
 			if factory := activity.GetFactory(ref); factory != nil {
-				actvt, err := factory(newInitContext(name, settings, log))
+				actvt, err := factory(newInitContext(name, settingsMap, log))
 				if err != nil {
 					return nil, err
 				}
@@ -237,7 +247,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 				log.Infof("condition parsing error: %s", condition)
 				return nil, err
 			}
-			microgateway.Steps[j].Condition = core.NewExpr(condition, expr)
+			microgateway.Steps[j].Condition = core.NewExpr("condition", condition, expr)
 		}
 
 		service := services[steps[j].Service]
@@ -247,12 +257,13 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		microgateway.Steps[j].Service = service
 
 		input := steps[j].Input
-		inputExpression := make(map[string]*core.Expr, len(input))
+		inputExpression, index := make([]*core.Expr, len(input)), 0
 		for key, value := range input {
-			inputExpression[key], err = getExpression(value)
+			inputExpression[index], err = getExpression(key, value)
 			if err != nil {
 				return nil, err
 			}
+			index++
 		}
 		microgateway.Steps[j].Input = inputExpression
 
@@ -262,7 +273,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 				log.Infof("halt condition parsing error: %s", condition)
 				return nil, err
 			}
-			microgateway.Steps[j].HaltCondition = core.NewExpr(condition, expr)
+			microgateway.Steps[j].HaltCondition = core.NewExpr("halt", condition, expr)
 		}
 	}
 
@@ -273,28 +284,29 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 				log.Infof("condition parsing error: %s", condition)
 				return nil, err
 			}
-			microgateway.Responses[j].Condition = core.NewExpr(condition, expr)
+			microgateway.Responses[j].Condition = core.NewExpr("condition", condition, expr)
 		}
 
 		microgateway.Responses[j].Error = responses[j].Error
 
-		microgateway.Responses[j].Output.Code, err = getExpression(responses[j].Output.Code)
+		microgateway.Responses[j].Output.Code, err = getExpression("code", responses[j].Output.Code)
 		if err != nil {
 			return nil, err
 		}
 
 		data := responses[j].Output.Data
 		if hashMap, ok := data.(map[string]interface{}); ok {
-			dataExpressions := make(map[string]*core.Expr, len(hashMap))
+			dataExpressions, index := make([]*core.Expr, len(hashMap)), 0
 			for key, value := range hashMap {
-				dataExpressions[key], err = getExpression(value)
+				dataExpressions[index], err = getExpression(key, value)
 				if err != nil {
 					return nil, err
 				}
+				index++
 			}
 			microgateway.Responses[j].Output.Datum = dataExpressions
 		} else {
-			microgateway.Responses[j].Output.Data, err = getExpression(data)
+			microgateway.Responses[j].Output.Data, err = getExpression("data", data)
 			if err != nil {
 				return nil, err
 			}
