@@ -7,12 +7,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/microgateway/examples"
 	_ "github.com/project-flogo/contrib/activity/rest"
+	"github.com/project-flogo/core/engine"
 	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
 	_ "github.com/project-flogo/microgateway/activity/jwt"
 	_ "github.com/project-flogo/microgateway/activity/ratelimiter"
+	"github.com/project-flogo/microgateway/examples"
 )
 
 var (
@@ -56,7 +56,8 @@ func main() {
 
 		return
 	}
-	e, err := examples.DefaultHttpPattern()
+
+	e, err := examples.DefaultHTTPPattern()
 	if err != nil {
 		panic(err)
 	}

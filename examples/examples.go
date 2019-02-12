@@ -124,7 +124,8 @@ func HandlerRoutingExample() (engine.Engine, error) {
 	return api.NewEngine(app)
 }
 
-func DefaultHttpPattern ()(engine.Engine, error){
+// DefaultHTTPPattern returns an engine configured for the DefaultHttpPattern
+func DefaultHTTPPattern() (engine.Engine, error) {
 	app := api.NewApp()
 
 	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{Port: 9096})
@@ -148,12 +149,12 @@ func DefaultHttpPattern ()(engine.Engine, error){
 		"jwtSub":            "tempuser@mail.com",
 		"useCircuitBreaker": true,
 		"backendUrl":        "http://localhost:1234/pets",
-		"mode": "a",
-		"threshold": 5,
-		"timeout": 60,
-		"period": 60,
-		"method": "GET",
-		"content": "",
+		"mode":              "a",
+		"threshold":         5,
+		"timeout":           60,
+		"period":            60,
+		"method":            "GET",
+		"content":           "",
 	})
 	if err != nil {
 		panic(err)

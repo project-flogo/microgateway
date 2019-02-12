@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -8,15 +9,15 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
-	"context"
-	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/microgateway/api"
-	test "github.com/project-flogo/microgateway/internal/testing"
-	"github.com/stretchr/testify/assert"
+
 	_ "github.com/project-flogo/contrib/activity/rest"
+	"github.com/project-flogo/core/engine"
 	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
 	_ "github.com/project-flogo/microgateway/activity/jwt"
 	_ "github.com/project-flogo/microgateway/activity/ratelimiter"
+	"github.com/project-flogo/microgateway/api"
+	test "github.com/project-flogo/microgateway/internal/testing"
+	"github.com/stretchr/testify/assert"
 )
 
 // Response is a reply form the server
@@ -57,7 +58,6 @@ const reply = `{
 	"tags": [{ "id": 0,"name": "string" }],
 	"status":"available"
 }`
-
 
 func testBasicGatewayApplication(t *testing.T, e engine.Engine) {
 	defer api.ClearResources()
@@ -186,8 +186,7 @@ func TestHandlerRoutingIntegrationJSON(t *testing.T) {
 	testHandlerRoutingApplication(t, e)
 }
 
-
-func testDefaultHttpPattern(t *testing.T, e engine.Engine) {
+func testDefaultHTTPPattern(t *testing.T, e engine.Engine) {
 	defer api.ClearResources()
 	test.Drain("1234")
 	testHandler := handler{}
@@ -211,7 +210,6 @@ func testDefaultHttpPattern(t *testing.T, e engine.Engine) {
 		err := e.Stop()
 		assert.Nil(t, err)
 	}()
-
 	test.Pour("9096")
 
 	transport := &http.Transport{
@@ -233,7 +231,7 @@ func testDefaultHttpPattern(t *testing.T, e engine.Engine) {
 	}
 
 	body := request()
-	assert.NotEqual(t, 0, string(body))
+	assert.NotEqual(t, 0, len(body))
 }
 
 func TestDefaultHttpPatternAPI(t *testing.T) {
@@ -241,9 +239,9 @@ func TestDefaultHttpPatternAPI(t *testing.T) {
 		t.Skip("skipping Basic Gateway API integration test in short mode")
 	}
 
-	e, err := DefaultHttpPattern()
+	e, err := DefaultHTTPPattern()
 	assert.Nil(t, err)
-	testDefaultHttpPattern(t, e)
+	testDefaultHTTPPattern(t, e)
 }
 
 func TestDefaultHttpPatternJSON(t *testing.T) {
@@ -256,5 +254,5 @@ func TestDefaultHttpPatternJSON(t *testing.T) {
 	assert.Nil(t, err)
 	e, err := engine.New(cfg)
 	assert.Nil(t, err)
-	testDefaultHttpPattern(t, e)
+	testDefaultHTTPPattern(t, e)
 }
