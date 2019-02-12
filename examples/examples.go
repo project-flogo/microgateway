@@ -123,3 +123,42 @@ func HandlerRoutingExample() (engine.Engine, error) {
 
 	return api.NewEngine(app)
 }
+
+// DefaultHTTPPattern returns an engine configured for the DefaultHttpPattern
+func DefaultHTTPPattern() (engine.Engine, error) {
+	app := api.NewApp()
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{Port: 9096})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{
+		Method: "GET",
+		Path:   "/endpoint",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
+		"pattern":           "DefaultHttpPattern",
+		"useRateLimiter":    true,
+		"rateLimit":         "1-S",
+		"useJWT":            true,
+		"jwtSigningMethod":  "HMAC",
+		"jwtKey":            "qwertyuiopasdfghjklzxcvbnm789101",
+		"jwtAud":            "www.mashling.io",
+		"jwtIss":            "Mashling",
+		"jwtSub":            "tempuser@mail.com",
+		"useCircuitBreaker": true,
+		"backendUrl":        "http://localhost:1234/pets",
+		"mode":              "a",
+		"threshold":         5,
+		"timeout":           60,
+		"period":            60,
+		"method":            "GET",
+		"content":           "",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return api.NewEngine(app)
+}

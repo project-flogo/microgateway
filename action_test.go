@@ -258,7 +258,12 @@ func TestMicrogatewayHttpPattern(t *testing.T) {
 		"useJWT":            false,
 		"useCircuitBreaker": false,
 		"backendUrl":        "http://localhost:1234/",
+		"method":            "GET",
 		"rateLimit":         "3-M",
+		"mode":              "a",
+		"threshold":         5,
+		"timeout":           60,
+		"period":            60,
 	})
 	assert.Nil(t, err)
 	assert.NotNil(t, action)

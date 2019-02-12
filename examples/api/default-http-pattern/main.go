@@ -7,15 +7,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	trigger "github.com/project-flogo/contrib/trigger/rest"
-	"github.com/project-flogo/core/api"
-	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/microgateway"
-
 	_ "github.com/project-flogo/contrib/activity/rest"
+	"github.com/project-flogo/core/engine"
 	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
 	_ "github.com/project-flogo/microgateway/activity/jwt"
 	_ "github.com/project-flogo/microgateway/activity/ratelimiter"
+	"github.com/project-flogo/microgateway/examples"
 )
 
 var (
@@ -24,8 +21,7 @@ var (
 
 const reply = `{
 	"id": 1,
-	"category": {
-		"id": 0,
+	"category": {		"id": 0,
 		"name": "string"
 	},
 	"name": "sally",
@@ -61,35 +57,7 @@ func main() {
 		return
 	}
 
-	app := api.NewApp()
-
-	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{Port: 9096})
-	handler, err := trg.NewHandler(&trigger.HandlerSettings{
-		Method: "GET",
-		Path:   "/endpoint",
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
-		"pattern":           "DefaultHttpPattern",
-		"useRateLimiter":    true,
-		"rateLimit":         "1-S",
-		"useJWT":            true,
-		"jwtSigningMethod":  "HMAC",
-		"jwtKey":            "qwertyuiopasdfghjklzxcvbnm789101",
-		"jwtAud":            "www.mashling.io",
-		"jwtIss":            "Mashling",
-		"jwtSub":            "tempuser@mail.com",
-		"useCircuitBreaker": true,
-		"backendUrl":        "http://localhost:1234/pets",
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	e, err := api.NewEngine(app)
+	e, err := examples.DefaultHTTPPattern()
 	if err != nil {
 		panic(err)
 	}

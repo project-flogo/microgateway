@@ -1,14 +1,20 @@
 package examples
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"testing"
+	"time"
 
+	_ "github.com/project-flogo/contrib/activity/rest"
 	"github.com/project-flogo/core/engine"
+	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
+	_ "github.com/project-flogo/microgateway/activity/jwt"
+	_ "github.com/project-flogo/microgateway/activity/ratelimiter"
 	"github.com/project-flogo/microgateway/api"
 	test "github.com/project-flogo/microgateway/internal/testing"
 	"github.com/stretchr/testify/assert"
@@ -18,6 +24,40 @@ import (
 type Response struct {
 	Error string `json:"error"`
 }
+
+type handler struct {
+	Slow bool
+}
+
+func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	_, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	if h.Slow {
+		time.Sleep(10 * time.Second)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write([]byte(reply))
+	if err != nil {
+		panic(err)
+	}
+}
+
+const reply = `{
+	"id": 1,
+	"category": {
+		"id": 0,
+		"name": "string"
+	},
+	"name": "sally",
+	"photoUrls": ["string"],
+	"tags": [{ "id": 0,"name": "string" }],
+	"status":"available"
+}`
 
 func testBasicGatewayApplication(t *testing.T, e engine.Engine) {
 	defer api.ClearResources()
@@ -144,4 +184,75 @@ func TestHandlerRoutingIntegrationJSON(t *testing.T) {
 	e, err := engine.New(cfg)
 	assert.Nil(t, err)
 	testHandlerRoutingApplication(t, e)
+}
+
+func testDefaultHTTPPattern(t *testing.T, e engine.Engine) {
+	defer api.ClearResources()
+	test.Drain("1234")
+	testHandler := handler{}
+	s := &http.Server{
+		Addr:           ":1234",
+		Handler:        &testHandler,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	go func() {
+		s.ListenAndServe()
+	}()
+	test.Pour("1234")
+	defer s.Shutdown(context.Background())
+
+	test.Drain("9096")
+	err := e.Start()
+	assert.Nil(t, err)
+	defer func() {
+		err := e.Stop()
+		assert.Nil(t, err)
+	}()
+	test.Pour("9096")
+
+	transport := &http.Transport{
+		MaxIdleConns: 1,
+	}
+	defer transport.CloseIdleConnections()
+	client := &http.Client{
+		Transport: transport,
+	}
+	request := func() string {
+		req, err := http.NewRequest(http.MethodGet, "http://localhost:9096/pets/1", nil)
+		assert.Nil(t, err)
+		response, err := client.Do(req)
+		assert.Nil(t, err)
+		body, err := ioutil.ReadAll(response.Body)
+		assert.Nil(t, err)
+		response.Body.Close()
+		return string(body)
+	}
+
+	body := request()
+	assert.NotEqual(t, 0, len(body))
+}
+
+func TestDefaultHttpPatternAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping Basic Gateway API integration test in short mode")
+	}
+
+	e, err := DefaultHTTPPattern()
+	assert.Nil(t, err)
+	testDefaultHTTPPattern(t, e)
+}
+
+func TestDefaultHttpPatternJSON(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping Basic Gateway JSON integration test in short mode")
+	}
+	data, err := ioutil.ReadFile(filepath.FromSlash("./json/default-http-pattern/flogo.json"))
+	assert.Nil(t, err)
+	cfg, err := engine.LoadAppConfig(string(data), false)
+	assert.Nil(t, err)
+	e, err := engine.New(cfg)
+	assert.Nil(t, err)
+	testDefaultHTTPPattern(t, e)
 }

@@ -25,19 +25,27 @@
       "service": "CircuitBreaker"
     },
     {
-      "if": "$.conf.useJWT == false || $.JWTValidator.outputs.valid == true",
-      "service": "HttpBackend",
-      "halt": "($.HttpBackend.error != nil) && !error.isneterror($.HttpBackend.error)"
+      "if": "($.conf.useJWT == false || $.JWTValidator.outputs.valid == true) && $.conf.method == 'GET'" ,
+      "service": "HttpBackendA",
+      "halt": "($.HttpBackendA.error != nil) && !error.isneterror($.HttpBackendA.error)"
     },
     {
-      "if": "$.conf.useCircuitBreaker == true && $.HttpBackend.error != nil",
+      "if": "($.conf.useJWT == false || $.JWTValidator.outputs.valid == true) && ($.conf.method == 'PUT' || $.conf.method == 'POST' || $.conf.method == 'PATCH')",
+      "service": "HttpBackendB",
+      "input": {
+        "content": "=$.conf.content"
+      },
+      "halt": "($.HttpBackendB.error != nil) && !error.isneterror($.HttpBackendB.error)"
+    },
+    {
+      "if": "$.conf.useCircuitBreaker == true && (($.HttpBackendA.error != nil && $.conf.method == 'GET')|| ($.HttpBackendB.error != nil && ($.conf.method == 'PUT' || $.conf.method == 'POST' || $.conf.method == 'PATCH')))",
       "service": "CircuitBreaker",
       "input": {
         "operation": "counter"
       }
     },
     {
-      "if": "$.conf.useCircuitBreaker == true && $.HttpBackend.error == nil",
+      "if": "$.conf.useCircuitBreaker == true && (($.HttpBackendA.error == nil && $.conf.method == 'GET')|| ($.HttpBackendB.error == nil && ($.conf.method == 'PUT' || $.conf.method == 'POST' || $.conf.method == 'PATCH')))",
       "service": "CircuitBreaker",
       "input": {
         "operation": "reset"
@@ -77,10 +85,26 @@
       }
     },
     {
+      "if": "($.conf.useJWT == false || $.JWTValidator.outputs.valid == true) && $.conf.method == 'GET'",
       "error": false,
       "output": {
         "code": 200,
-        "data": "=$.HttpBackend.outputs.data"
+        "data": "=$.HttpBackendA.outputs.data"
+      }
+    },
+    {
+      "if": "($.conf.useJWT == false || $.JWTValidator.outputs.valid == true) && ($.conf.method == 'PUT' || $.conf.method == 'POST' || $.conf.method == 'PATCH')",
+      "error": false,
+      "output": {
+        "code": 200,
+        "data": "=$.HttpBackendB.outputs.data"
+      }
+    },
+    {
+      "error": true,
+      "output": {
+        "code": 400,
+        "data": "Error"
       }
     }
   ],
@@ -103,15 +127,27 @@
       "description": "Circuit breaker service",
       "ref": "github.com/project-flogo/microgateway/activity/circuitbreaker",
       "settings": {
-        "mode": "a"
+        "mode": "=$.conf.mode",
+        "threshold": "=$.conf.threshold",
+        "timeout": "=$.conf.timeout",
+        "period": "=$.conf.period"
       }
     },
     {
-      "name": "HttpBackend",
+      "name": "HttpBackendA",
       "description": "Make an http call to your backend",
       "ref": "github.com/project-flogo/contrib/activity/rest",
       "settings": {
-        "method": "GET",
+        "method": "=$.conf.method",
+        "uri": "=$.conf.backendUrl"
+      }
+    },
+    {
+      "name": "HttpBackendB",
+      "description": "Make an http call to your backend",
+      "ref": "github.com/project-flogo/contrib/activity/rest",
+      "settings": {
+        "method": "=$.conf.method",
         "uri": "=$.conf.backendUrl"
       }
     }
