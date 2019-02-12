@@ -2,11 +2,18 @@ package ratelimiter
 
 import (
 	"context"
+	"sync"
+	"time"
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/ulule/limiter"
 	"github.com/ulule/limiter/drivers/store/memory"
+)
+
+const (
+	// MemorySize is the size of the circular buffer holding the request times
+	MemorySize = 256
 )
 
 var (
@@ -15,6 +22,13 @@ var (
 
 func init() {
 	activity.Register(&Activity{}, New)
+}
+
+// Context is a token context
+type Context struct {
+	sync.Mutex
+	index, prev, size int
+	memory            [MemorySize]int64
 }
 
 // Activity is a rate limiter service
@@ -31,8 +45,50 @@ func init() {
 // * 5 requests / hour : "5-H"
 type Activity struct {
 	limiter *limiter.Limiter
+
+	sync.RWMutex
+	context           map[string]*Context
+	filter, threshold float64
 }
 
+func (a *Activity) filterRequests(token string) (bool, float64) {
+	time := time.Now().UnixNano()
+
+	a.RLock()
+	context := a.context[token]
+	a.RUnlock()
+	if context == nil {
+		context = &Context{
+			prev: MemorySize - 1,
+		}
+		a.Lock()
+		a.context[token] = context
+		a.Unlock()
+	}
+
+	context.Lock()
+	previous := context.memory[context.prev]
+	context.memory[context.index] = time
+	context.index, context.prev = (context.index+1)%MemorySize, context.index
+	size, valid := context.size, true
+	if size < MemorySize {
+		size++
+		context.size, valid = size, false
+	}
+	oldest := context.memory[context.index]
+	context.Unlock()
+
+	alpha := float64(time-previous) / float64(time-oldest)
+	rate := float64(size) / float64(time-oldest)
+	a.Lock()
+	a.filter = alpha*rate + (1-alpha)*a.filter
+	filtered := rate / a.filter
+	a.Unlock()
+
+	return valid, filtered
+}
+
+// New creates a new rate limiter
 func New(ctx activity.InitContext) (activity.Activity, error) {
 	settings := Settings{}
 	err := metadata.MapToStruct(ctx.Settings(), &settings, true)
@@ -51,7 +107,9 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 	limiter := limiter.New(store, rate)
 
 	act := Activity{
-		limiter: limiter,
+		limiter:   limiter,
+		context:   make(map[string]*Context, 256),
+		threshold: settings.SpikeThreshold,
 	}
 
 	return &act, nil
@@ -90,9 +148,17 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return true, nil
 	}
 
+	var (
+		valid    bool
+		filtered float64
+	)
+	if a.threshold != 0 {
+		valid, filtered = a.filterRequests(input.Token)
+	}
+
 	// check the ratelimit
 	output.LimitAvailable = limiterContext.Remaining
-	if limiterContext.Reached {
+	if limiterContext.Reached || (valid && filtered > a.threshold) {
 		output.LimitReached = true
 	} else {
 		output.LimitReached = false
