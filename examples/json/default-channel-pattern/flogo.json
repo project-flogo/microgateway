@@ -1,0 +1,107 @@
+{
+  "name": "MyProxy",
+  "type": "flogo:app",
+  "version": "1.0.0",
+  "description": "This is a simple proxy.",
+  "properties": null,
+  "channels": null,
+  "triggers": [
+    {
+      "name": "flogo-rest",
+      "id": "MyProxy",
+      "ref": "github.com/project-flogo/contrib/trigger/rest",
+      "settings": {
+        "port": "9096"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "method": "GET",
+            "path": "/endpoint"
+          },
+          "actions": [
+            {
+              "ref": "github.com/project-flogo/microgateway",
+              "settings": {
+                "pattern": "DefaultChannelPattern",
+            		"useJWT": true,
+            		"jwtSigningMethod": "HMAC",
+            		"jwtKey": "qwertyuiopasdfghjklzxcvbnm789101",
+            		"jwtAud": "www.mashling.io",
+            		"jwtIss": "Mashling",
+            		"jwtSub": "tempuser@mail.com",
+            		"useCircuitBreaker": true,
+                    "mode": "a",
+                    "threshold": 2,
+                    "timeout": 60,
+                    "period": 60
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "flogo-channel",
+      "id": "MyChannelProxy",
+      "ref": "github.com/project-flogo/contrib/trigger/channel",
+      "settings": {
+      },
+      "handlers": [
+        {
+          "settings": {
+          },
+          "actions": [
+            {
+              "id": "microgateway:Log"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "microgateway:Log",
+      "compressed": false,
+      "data": {
+        "name": "Log",
+        "steps": [
+          {
+            "service": "LogService",
+            "input": {
+              "message": "Output: Test log message service invoked"
+            }
+          }
+        ],
+        "responses": [
+          {
+            "error": false,
+            "output": {
+              "code": 200
+            }
+          }
+        ],
+        "services": [
+          {
+            "name": "LogService",
+            "description": "simple Log service",
+            "ref": "github.com/project-flogo/contrib/activity/log",
+            "settings": {
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "actions": [
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "microgateway:Log"
+      },
+      "id": "microgateway:Log",
+      "metadata": null
+    }
+  ]
+}

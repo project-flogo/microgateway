@@ -17,10 +17,8 @@
       "if": "$.conf.useJWT == false || $.JWTValidator.outputs.valid == true",
       "service": "ActionBackend",
       "input": {
-        "inputs": {
           "channel": "test",
           "value": "test"
-        }
       },
       "halt": "false"
     },
@@ -81,7 +79,10 @@
       "description": "Circuit breaker service",
       "ref": "github.com/project-flogo/microgateway/activity/circuitbreaker",
       "settings": {
-        "mode": "a"
+        "mode": "=$.conf.mode",
+        "threshold": "=$.conf.threshold",
+        "timeout": "=$.conf.timeout",
+        "period": "=$.conf.period"
       }
     },
     {
