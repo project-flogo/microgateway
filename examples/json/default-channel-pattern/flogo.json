@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "description": "This is a simple proxy.",
   "properties": null,
-  "channels": null,
+  "channels": [
+    "test:5"
+  ],
   "triggers": [
     {
       "name": "flogo-rest",
@@ -24,17 +26,17 @@
               "ref": "github.com/project-flogo/microgateway",
               "settings": {
                 "pattern": "DefaultChannelPattern",
-            		"useJWT": true,
-            		"jwtSigningMethod": "HMAC",
-            		"jwtKey": "qwertyuiopasdfghjklzxcvbnm789101",
-            		"jwtAud": "www.mashling.io",
-            		"jwtIss": "Mashling",
-            		"jwtSub": "tempuser@mail.com",
-            		"useCircuitBreaker": true,
-                    "mode": "a",
-                    "threshold": 2,
-                    "timeout": 60,
-                    "period": 60
+                "useJWT": true,
+                "jwtSigningMethod": "HMAC",
+                "jwtKey": "qwertyuiopasdfghjklzxcvbnm789101",
+                "jwtAud": "www.mashling.io",
+                "jwtIss": "Mashling",
+                "jwtSub": "tempuser@mail.com",
+                "useCircuitBreaker": true,
+                "mode": "a",
+                "threshold": 2,
+                "timeout": 60,
+                "period": 60
               }
             }
           ]
@@ -50,6 +52,7 @@
       "handlers": [
         {
           "settings": {
+            "channel": "test"
           },
           "actions": [
             {
@@ -78,7 +81,8 @@
           {
             "error": false,
             "output": {
-              "code": 200
+              "code": 200,
+              "data": "Successful call to action"
             }
           }
         ],
