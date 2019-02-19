@@ -21,7 +21,8 @@ var (
 
 const reply = `{
 	"id": 1,
-	"category": {		"id": 0,
+	"category": {
+		"id": 0,
 		"name": "string"
 	},
 	"name": "sally",

@@ -9,6 +9,7 @@ import (
 	_ "github.com/project-flogo/contrib/activity/channel"
 )
 
+
 func main() {
 
 	e, err := examples.DefaultChannelPattern()

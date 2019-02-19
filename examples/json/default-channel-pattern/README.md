@@ -1,13 +1,6 @@
 # Gateway using Default Channel Pattern
 This recipe is a gateway using the defult channel pattern which uses JWT.
 
-#Channel Activity
-| Name   |  Type   | Description   |
-|:-----------|:--------|:--------------|
-| channel | string | The channel to put the value on |
-| data | string | The value to put on channel |
-
-
 #JWT
 | Name   |  Type   | Description   |
 |:-----------|:--------|:--------------|
@@ -18,9 +11,16 @@ This recipe is a gateway using the defult channel pattern which uses JWT.
 | subject | string | The 'sub' standard claim to match against |
 | audience | string | The 'aud' standard claim to match against |
 
+#Channel Activity
+| Name   |  Type   | Description   |
+|:-----------|:--------|:--------------|
+| channel | string | The channel to put the value on |
+| data | string | The value to put on channel |
+
 
 ## Installation
 * Install [Go](https://golang.org/)
+* Install the flogo [cli](https://github.com/project-flogo/cli)
 
 ## Setup
 ```bash
@@ -29,11 +29,20 @@ cd microgateway/examples/api/default-http-pattern
 ```
 
 ## Testing
-Start the gateway:
-```bash
-go run main.go
+Create the gateway:
+```
+flogo create -f flogo.json
+cd MyProxy
+flogo install github.com/project-flogo/contrib/activity/rest
+flogo install github.com/project-flogo/microgateway/activity/jwt
+flogo build
 ```
 
+Start the gateway:
+```
+bin/MyProxy
+
+and test below scenario.
 
 ### Request is successful
 Run the following command:

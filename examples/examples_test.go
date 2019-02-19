@@ -12,9 +12,7 @@ import (
 
 	_ "github.com/project-flogo/contrib/activity/rest"
 	"github.com/project-flogo/core/engine"
-	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
 	_ "github.com/project-flogo/microgateway/activity/jwt"
-	_ "github.com/project-flogo/microgateway/activity/ratelimiter"
 	_ "github.com/project-flogo/contrib/activity/channel"
 	"github.com/project-flogo/microgateway/api"
 	test "github.com/project-flogo/microgateway/internal/testing"

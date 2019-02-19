@@ -187,11 +187,6 @@ func DefaultChannelPattern() (engine.Engine, error) {
 		"jwtAud":            "www.mashling.io",
 		"jwtIss":            "Mashling",
 		"jwtSub":            "tempuser@mail.com",
-		"useCircuitBreaker": true,
-		"mode":              "a",
-		"threshold":         5,
-		"timeout":           60,
-		"period":            60,
 	})
 	if err != nil {
 		panic(err)

@@ -1,11 +1,27 @@
 # Gateway using Default Channel Pattern
+Link: https://github.com/project-flogo/microgateway/json/default-channel-pattern/flogo.json
+
 This recipe is a gateway using the defult channel pattern which uses JWT.
+This receipe uses 2 triggers.
+1. REST trigger:- For calling the channel pattern
+Link: https://github.com/project-flogo/contrib/trigger/rest
+
+2. Channel Trigger:- For calling second microgateway action
+Link: https://github.com/project-flogo/contrib/trigger/channel
+
+Channel Pattern:
+Channels allow one action to call another action. Channel pattern checks for JWT conditions.
+If valid ... it runs corresponding channel activity and message is sent over the channel defined by its name.
+Channel trigger then receives the message from channel and corresponding action (eg: log activity)  is called.
+
 
 #Channel Activity
 | Name   |  Type   | Description   |
 |:-----------|:--------|:--------------|
 | channel | string | The channel to put the value on |
 | data | string | The value to put on channel |
+
+Link: https://github.com/project-flogo/contrib/activity/channel
 
 
 #JWT
@@ -17,6 +33,8 @@ This recipe is a gateway using the defult channel pattern which uses JWT.
 | issuer | string | The 'iss' standard claim to match against |
 | subject | string | The 'sub' standard claim to match against |
 | audience | string | The 'aud' standard claim to match against |
+
+Link: https://github.com/project-flogo/microgateway/activity/jwt
 
 
 ## Installation
