@@ -1,5 +1,10 @@
 # Gateway using Default Channel Pattern
-Link: https://github.com/project-flogo/microgateway/json/default-channel-pattern/flogo.json
+Link: https://github.com/project-flogo/microgateway/internal/pattern/DefaultChannelPattern.json
+Examples:
+https://github.com/project-flogo/microgateway/examples/api/default-channel-pattern
+https://github.com/project-flogo/microgateway/examples/json/default-channel-pattern
+
+
 
 This recipe is a gateway using the defult channel pattern which uses JWT.
 This receipe uses 2 triggers.

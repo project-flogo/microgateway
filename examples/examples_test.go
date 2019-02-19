@@ -11,6 +11,8 @@ import (
 	"time"
 
 	_ "github.com/project-flogo/contrib/activity/rest"
+	_ "github.com/project-flogo/microgateway/activity/ratelimiter"
+	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
 	"github.com/project-flogo/core/engine"
 	_ "github.com/project-flogo/microgateway/activity/jwt"
 	_ "github.com/project-flogo/contrib/activity/channel"

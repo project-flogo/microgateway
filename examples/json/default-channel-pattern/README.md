@@ -35,6 +35,7 @@ flogo create -f flogo.json
 cd MyProxy
 flogo install github.com/project-flogo/contrib/activity/rest
 flogo install github.com/project-flogo/microgateway/activity/jwt
+flogo install github.com/project-flogo/contrib/activity/channel
 flogo build
 ```
 
