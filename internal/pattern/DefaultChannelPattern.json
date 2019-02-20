@@ -13,8 +13,8 @@
       "if": "$.conf.useJWT == false || $.JWTValidator.outputs.valid == true",
       "service": "ActionBackend",
       "input": {
-          "channel": "test",
-          "value": "test"
+        "channel": "=$.conf.channel",
+        "value": "=$.conf.value"
       },
       "halt": "false"
     }

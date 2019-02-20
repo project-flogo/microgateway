@@ -31,7 +31,9 @@
                 "jwtKey": "qwertyuiopasdfghjklzxcvbnm789101",
                 "jwtAud": "www.mashling.io",
                 "jwtIss": "Mashling",
-                "jwtSub": "tempuser@mail.com"
+                "jwtSub": "tempuser@mail.com",
+                "channel": "test",
+                "value": "test"
               }
             }
           ]

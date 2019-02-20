@@ -1,5 +1,7 @@
 module github.com/project-flogo/microgateway
 
+replace github.com/project-flogo/core => github.com/pointlander/core v0.9.0-alpha.0.0.20190220184728-615799d1e40b
+
 require (
 	github.com/awalterschulze/gographviz v0.0.0-20170410065617-c84395e536e1 // indirect
 	github.com/chewxy/hm v1.0.0 // indirect

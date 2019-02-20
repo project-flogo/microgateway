@@ -10,6 +10,7 @@ import (
 	"github.com/project-flogo/contrib/activity/rest"
 	coreactivity "github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/api"
+	"github.com/project-flogo/core/engine/channels"
 	microapi "github.com/project-flogo/microgateway/api"
 	"github.com/project-flogo/microgateway/internal/testing/activity"
 	"github.com/project-flogo/microgateway/internal/testing/trigger"
@@ -294,12 +295,16 @@ func TestMicrogatewayChannelPattern(t *testing.T) {
 	assert.Nil(t, err)
 
 	action, err := handler.NewAction(&Action{}, map[string]interface{}{
-		"pattern":           "DefaultChannelPattern",
-		"useJWT":            false,
-		"useCircuitBreaker": false,
+		"pattern": "DefaultChannelPattern",
+		"useJWT":  false,
+		"channel": "test",
+		"value":   "test",
 	})
 	assert.Nil(t, err)
 	assert.NotNil(t, action)
+
+	_, err = channels.New("test", 5)
+	assert.Nil(t, err)
 
 	e, err := api.NewEngine(app)
 	assert.Nil(t, err)

@@ -1,15 +1,15 @@
 package examples
 
 import (
-	"github.com/project-flogo/contrib/activity/rest"
 	"github.com/project-flogo/contrib/activity/log"
-	"github.com/project-flogo/core/api"
-	"github.com/project-flogo/core/engine"
-	"github.com/project-flogo/microgateway"
-	"github.com/project-flogo/core/engine/channels"
-	microapi "github.com/project-flogo/microgateway/api"
+	"github.com/project-flogo/contrib/activity/rest"
 	channeltrigger "github.com/project-flogo/contrib/trigger/channel"
 	trigger "github.com/project-flogo/contrib/trigger/rest"
+	"github.com/project-flogo/core/api"
+	"github.com/project-flogo/core/engine"
+	"github.com/project-flogo/core/engine/channels"
+	"github.com/project-flogo/microgateway"
+	microapi "github.com/project-flogo/microgateway/api"
 )
 
 // BasicGatewayExample returns a Basic Gateway API example
@@ -166,7 +166,6 @@ func DefaultHTTPPattern() (engine.Engine, error) {
 	return api.NewEngine(app)
 }
 
-
 func DefaultChannelPattern() (engine.Engine, error) {
 	app := api.NewApp()
 
@@ -180,13 +179,15 @@ func DefaultChannelPattern() (engine.Engine, error) {
 	}
 
 	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
-		"pattern":           "DefaultChannelPattern",
-		"useJWT":            true,
-		"jwtSigningMethod":  "HMAC",
-		"jwtKey":            "qwertyuiopasdfghjklzxcvbnm789101",
-		"jwtAud":            "www.mashling.io",
-		"jwtIss":            "Mashling",
-		"jwtSub":            "tempuser@mail.com",
+		"pattern":          "DefaultChannelPattern",
+		"useJWT":           true,
+		"jwtSigningMethod": "HMAC",
+		"jwtKey":           "qwertyuiopasdfghjklzxcvbnm789101",
+		"jwtAud":           "www.mashling.io",
+		"jwtIss":           "Mashling",
+		"jwtSub":           "tempuser@mail.com",
+		"channel":          "test",
+		"value":            "test",
 	})
 	if err != nil {
 		panic(err)
