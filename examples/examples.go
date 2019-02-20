@@ -1,10 +1,13 @@
 package examples
 
 import (
+	"github.com/project-flogo/contrib/activity/log"
 	"github.com/project-flogo/contrib/activity/rest"
+	channeltrigger "github.com/project-flogo/contrib/trigger/channel"
 	trigger "github.com/project-flogo/contrib/trigger/rest"
 	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/engine"
+	"github.com/project-flogo/core/engine/channels"
 	"github.com/project-flogo/microgateway"
 	microapi "github.com/project-flogo/microgateway/api"
 )
@@ -156,6 +159,67 @@ func DefaultHTTPPattern() (engine.Engine, error) {
 		"method":            "GET",
 		"content":           "",
 	})
+	if err != nil {
+		panic(err)
+	}
+
+	return api.NewEngine(app)
+}
+
+func DefaultChannelPattern() (engine.Engine, error) {
+	app := api.NewApp()
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{Port: 9096})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{
+		Method: "GET",
+		Path:   "/endpoint",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
+		"pattern":          "DefaultChannelPattern",
+		"useJWT":           true,
+		"jwtSigningMethod": "HMAC",
+		"jwtKey":           "qwertyuiopasdfghjklzxcvbnm789101",
+		"jwtAud":           "www.mashling.io",
+		"jwtIss":           "Mashling",
+		"jwtSub":           "tempuser@mail.com",
+		"channel":          "test",
+		"value":            "test",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	// channel
+	_, err = channels.New("test", 5)
+	if err != nil {
+		panic(err)
+	}
+
+	gateway := microapi.New("Log")
+	service := gateway.NewService("log", &log.Activity{})
+	service.SetDescription("Invoking test Log service")
+	step := gateway.NewStep(service)
+	step.AddInput("message", "Output: Test log message service invoked")
+	response := gateway.NewResponse(false)
+	response.SetCode(200)
+	settings, err := gateway.AddResource(app)
+	if err != nil {
+		panic(err)
+	}
+
+	channeltrg := app.NewTrigger(&channeltrigger.Trigger{}, nil)
+	channelhandler, err := channeltrg.NewHandler(&channeltrigger.HandlerSettings{
+		Channel: "test",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = channelhandler.NewAction(&microgateway.Action{}, settings)
 	if err != nil {
 		panic(err)
 	}

@@ -12,8 +12,8 @@ require (
 	github.com/google/flatbuffers v1.10.0 // indirect
 	github.com/leesper/go_rng v0.0.0-20171009123644-5344a9259b21 // indirect
 	github.com/pkg/errors v0.8.0 // indirect
-	github.com/project-flogo/contrib v0.9.0-alpha.3.0.20190115023822-118c915f5736
-	github.com/project-flogo/core v0.9.0-alpha.4.0.20190116201316-ba1703f1f4cf
+	github.com/project-flogo/contrib v0.9.0-alpha.3.0.20190211153431-680ebf186e58
+	github.com/project-flogo/core v0.9.0-alpha.4.0.20190220191401-07116138c345
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.2.2
 	github.com/ulule/limiter v2.2.0+incompatible

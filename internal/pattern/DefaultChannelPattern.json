@@ -10,33 +10,13 @@
       }
     },
     {
-      "if": "$.conf.useCircuitBreaker == true",
-      "service": "CircuitBreaker"
-    },
-    {
       "if": "$.conf.useJWT == false || $.JWTValidator.outputs.valid == true",
       "service": "ActionBackend",
       "input": {
-        "inputs": {
-          "channel": "test",
-          "value": "test"
-        }
+        "channel": "=$.conf.channel",
+        "value": "=$.conf.value"
       },
       "halt": "false"
-    },
-    {
-      "if": "$.conf.useCircuitBreaker == true && $.ActionBackend.error != nil",
-      "service": "CircuitBreaker",
-      "input": {
-        "operation": "counter"
-      }
-    },
-    {
-      "if": "$.conf.useCircuitBreaker == true && $.ActionBackend.error == nil",
-      "service": "CircuitBreaker",
-      "input": {
-        "operation": "reset"
-      }
     }
   ],
   "responses": [
@@ -47,16 +27,6 @@
         "code": 401,
         "data": {
           "error": "=$.JWTValidator.outputs.errorMessage"
-        }
-      }
-    },
-    {
-      "if": "$.conf.useCircuitBreaker == true && $.CircuitBreaker.outputs.tripped == true",
-      "error": true,
-      "output": {
-        "code": 403,
-        "data": {
-          "error": "circuit breaker tripped"
         }
       }
     },
@@ -75,14 +45,6 @@
       "name": "JWTValidator",
       "description": "Validate some tokens",
       "ref": "github.com/project-flogo/microgateway/activity/jwt"
-    },
-    {
-      "name": "CircuitBreaker",
-      "description": "Circuit breaker service",
-      "ref": "github.com/project-flogo/microgateway/activity/circuitbreaker",
-      "settings": {
-        "mode": "a"
-      }
     },
     {
       "name": "ActionBackend",

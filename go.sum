@@ -38,6 +38,8 @@ github.com/pointlander/core v0.9.0-alpha.0.0.20181102192353-c6bcaae4c33f h1:tGng
 github.com/pointlander/core v0.9.0-alpha.0.0.20181102192353-c6bcaae4c33f/go.mod h1:BHeB55AxPhvlNGd+it50rE977ag6xE3bD2RluSDeKBA=
 github.com/pointlander/core v0.9.0-alpha.0.0.20190115220707-01b9cad3c178 h1:sPojCVyc6nRZqFsJju/4txUWK+Z8yz9RXtQYBz01VOc=
 github.com/pointlander/core v0.9.0-alpha.0.0.20190115220707-01b9cad3c178/go.mod h1:BHeB55AxPhvlNGd+it50rE977ag6xE3bD2RluSDeKBA=
+github.com/pointlander/core v0.9.0-alpha.0.0.20190220184728-615799d1e40b h1:e5gjLKzpw7VziFqq4/8afKmXx/I3ghLjt8OoTY0ewHQ=
+github.com/pointlander/core v0.9.0-alpha.0.0.20190220184728-615799d1e40b/go.mod h1:Dof6t60n/nvN7aPpoUz97JL+VIKdsYMbhqwN++WCdz8=
 github.com/project-flogo/contrib v0.0.0-20181102044714-faa70a874eed h1:ovwna9Fk6kCsGpwXv/9lIBCozolTzHAO2oICscByD0U=
 github.com/project-flogo/contrib v0.0.0-20181102044714-faa70a874eed/go.mod h1:4kkrCbxbMG1J4cfwZohIHaTDUkgjK7ICodU2czRgIbg=
 github.com/project-flogo/contrib v0.0.0-20181103024438-71cb103ef1ab h1:SVilfDqHc/FO2tJkIg4hcVZu2qR5jzYkzbFFvO3qkio=
@@ -46,6 +48,8 @@ github.com/project-flogo/contrib v0.9.0-alpha.3.0.20181105173100-2e8b1851a5ac h1
 github.com/project-flogo/contrib v0.9.0-alpha.3.0.20181105173100-2e8b1851a5ac/go.mod h1:1RHAPbNoZcLQacY5XOd7zwO+AkoCsww9OJF/pDdWTkk=
 github.com/project-flogo/contrib v0.9.0-alpha.3.0.20190115023822-118c915f5736 h1:39J/KsTIzIAZ4bxn9QyKoTWpwHFEMBuScuWYfIxX4gk=
 github.com/project-flogo/contrib v0.9.0-alpha.3.0.20190115023822-118c915f5736/go.mod h1:tdinBFJomgOs2xQJCc3igHomrCeu2JaHu1EbuYb56Ww=
+github.com/project-flogo/contrib v0.9.0-alpha.3.0.20190211153431-680ebf186e58 h1:L3qUPNpuHxLUJh+mtQGSanFwfFMT9WccaKemhDTpiQk=
+github.com/project-flogo/contrib v0.9.0-alpha.3.0.20190211153431-680ebf186e58/go.mod h1:tdinBFJomgOs2xQJCc3igHomrCeu2JaHu1EbuYb56Ww=
 github.com/project-flogo/core v0.9.0-alpha.2/go.mod h1:BHeB55AxPhvlNGd+it50rE977ag6xE3bD2RluSDeKBA=
 github.com/project-flogo/core v0.9.0-alpha.2.0.20181102174659-cb0e18f709b5 h1:86cBHJmAqybh1NBXssPRNVhveU0Vtd1bFmuE0rsD95I=
 github.com/project-flogo/core v0.9.0-alpha.2.0.20181102174659-cb0e18f709b5/go.mod h1:BHeB55AxPhvlNGd+it50rE977ag6xE3bD2RluSDeKBA=
@@ -59,6 +63,8 @@ github.com/project-flogo/core v0.9.0-alpha.4.0.20190115151814-9af0a55fd853 h1:ZJ
 github.com/project-flogo/core v0.9.0-alpha.4.0.20190115151814-9af0a55fd853/go.mod h1:BHeB55AxPhvlNGd+it50rE977ag6xE3bD2RluSDeKBA=
 github.com/project-flogo/core v0.9.0-alpha.4.0.20190116201316-ba1703f1f4cf h1:8ix+yZGUm+bliXHrm2jKTFUV6IPa+3U4DR9s9dq326Y=
 github.com/project-flogo/core v0.9.0-alpha.4.0.20190116201316-ba1703f1f4cf/go.mod h1:BHeB55AxPhvlNGd+it50rE977ag6xE3bD2RluSDeKBA=
+github.com/project-flogo/core v0.9.0-alpha.4.0.20190220191401-07116138c345 h1:UXb1zbj3FTOP4m04AKEnCE/q5xjNNodGsSmcLLt4KsU=
+github.com/project-flogo/core v0.9.0-alpha.4.0.20190220191401-07116138c345/go.mod h1:Dof6t60n/nvN7aPpoUz97JL+VIKdsYMbhqwN++WCdz8=
 github.com/stretchr/objx v0.1.1 h1:2vfRuCMp5sSVIDSqO8oNnWJq7mPa6KVP3iPIwFBuy8A=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
