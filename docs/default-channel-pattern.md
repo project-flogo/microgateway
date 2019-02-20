@@ -24,7 +24,7 @@ Channel trigger then receives the message from channel and corresponding action 
 | Name   |  Type   | Description   |
 |:-----------|:--------|:--------------|
 | channel | string | The channel to put the value on |
-| data | string | The value to put on channel |
+| value | string | The value to put on channel |
 
 Link: https://github.com/project-flogo/contrib/activity/channel
 

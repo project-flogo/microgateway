@@ -5,7 +5,7 @@ This recipe is a gateway using the defult channel pattern which uses JWT.
 | Name   |  Type   | Description   |
 |:-----------|:--------|:--------------|
 | channel | string | The channel to put the value on |
-| data | string | The value to put on channel |
+| value | string | The value to put on channel |
 
 
 #JWT
