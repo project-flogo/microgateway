@@ -11,10 +11,11 @@ import (
 	"time"
 
 	_ "github.com/project-flogo/contrib/activity/rest"
-	"github.com/project-flogo/core/engine"
-	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
-	_ "github.com/project-flogo/microgateway/activity/jwt"
 	_ "github.com/project-flogo/microgateway/activity/ratelimiter"
+	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
+	"github.com/project-flogo/core/engine"
+	_ "github.com/project-flogo/microgateway/activity/jwt"
+	_ "github.com/project-flogo/contrib/activity/channel"
 	"github.com/project-flogo/microgateway/api"
 	test "github.com/project-flogo/microgateway/internal/testing"
 	"github.com/stretchr/testify/assert"
@@ -255,4 +256,62 @@ func TestDefaultHttpPatternJSON(t *testing.T) {
 	e, err := engine.New(cfg)
 	assert.Nil(t, err)
 	testDefaultHTTPPattern(t, e)
+}
+
+
+func testDefaultChannelPattern(t *testing.T, e engine.Engine) {
+	defer api.ClearResources()
+
+	test.Drain("9096")
+	err := e.Start()
+	assert.Nil(t, err)
+	defer func() {
+		err := e.Stop()
+		assert.Nil(t, err)
+	}()
+	test.Pour("9096")
+
+	transport := &http.Transport{
+		MaxIdleConns: 1,
+	}
+	defer transport.CloseIdleConnections()
+	client := &http.Client{
+		Transport: transport,
+	}
+	request := func() string {
+		req, err := http.NewRequest(http.MethodGet, "http://localhost:9096/endpoint", nil)
+		assert.Nil(t, err)
+		response, err := client.Do(req)
+		assert.Nil(t, err)
+		body, err := ioutil.ReadAll(response.Body)
+		assert.Nil(t, err)
+		response.Body.Close()
+		return string(body)
+	}
+
+	body := request()
+	assert.NotEqual(t, 0, len(body))
+}
+
+func TestDefaultChannelPatternAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping Basic Gateway API integration test in short mode")
+	}
+
+	e, err := DefaultChannelPattern()
+	assert.Nil(t, err)
+	testDefaultChannelPattern(t, e)
+}
+
+func TestDefaultChannelPatternJSON(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping Basic Gateway JSON integration test in short mode")
+	}
+	data, err := ioutil.ReadFile(filepath.FromSlash("./json/default-channel-pattern/flogo.json"))
+	assert.Nil(t, err)
+	cfg, err := engine.LoadAppConfig(string(data), false)
+	assert.Nil(t, err)
+	e, err := engine.New(cfg)
+	assert.Nil(t, err)
+	testDefaultChannelPattern(t, e)
 }
