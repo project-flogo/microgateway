@@ -52,8 +52,6 @@ type Activity struct {
 }
 
 func (a *Activity) filterRequests(token string) (bool, float64) {
-	time := time.Now().UnixNano()
-
 	a.RLock()
 	context := a.context[token]
 	a.RUnlock()
@@ -67,6 +65,7 @@ func (a *Activity) filterRequests(token string) (bool, float64) {
 	}
 
 	context.Lock()
+	time := time.Now().UnixNano()
 	previous := context.memory[context.prev]
 	context.memory[context.index] = time
 	context.index, context.prev = (context.index+1)%MemorySize, context.index
