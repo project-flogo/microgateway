@@ -1,6 +1,7 @@
 package examples
 
 import (
+
 	"github.com/project-flogo/contrib/activity/log"
 	"github.com/project-flogo/contrib/activity/rest"
 	channeltrigger "github.com/project-flogo/contrib/trigger/channel"
@@ -10,6 +11,7 @@ import (
 	"github.com/project-flogo/core/engine/channels"
 	"github.com/project-flogo/microgateway"
 	microapi "github.com/project-flogo/microgateway/api"
+	"github.com/project-flogo/microgateway/internal/pattern"
 )
 
 // BasicGatewayExample returns a Basic Gateway API example
@@ -220,6 +222,33 @@ func DefaultChannelPattern() (engine.Engine, error) {
 	}
 
 	_, err = channelhandler.NewAction(&microgateway.Action{}, settings)
+	if err != nil {
+		panic(err)
+	}
+
+	return api.NewEngine(app)
+}
+
+// CustomPattern returns an engine configured for given pattern name
+func CustomPattern(patternName string, custompattern string) (engine.Engine, error){
+	err := pattern.Register(patternName, custompattern)
+	if err != nil {
+		panic(err)
+	}
+	app := api.NewApp()
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{Port: 9096})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{
+		Method: "GET",
+		Path:   "/endpoint",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
+		"pattern": patternName,
+	})
 	if err != nil {
 		panic(err)
 	}
