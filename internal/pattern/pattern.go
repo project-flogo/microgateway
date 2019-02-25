@@ -3,24 +3,30 @@
 package pattern
 
 import (
+	"fmt"
 	"encoding/json"
 	"github.com/project-flogo/microgateway/api"
 )
 
 var patternMap = make(map[string][]byte)
 
+func init() {
+	patterns := []string{"DefaultChannelPattern", "DefaultHttpPattern"}
+	for i := range patterns {
+		patternName := patterns[i]+".json"
+		JSON, err := Asset(patternName)
+		if err != nil {
+			fmt.Println("Error from Asset function")
+		}
+		patternMap[patternName] = JSON
+	}
+}
+
+
 // Load loads a pattern
 func Load(pattern string) (*api.Microgateway, error) {
 	patternJSON := []byte{}
-	if pattern == "DefaultChannelPattern" || pattern == "DefaultHttpPattern"{
-		JSON, err := Asset(pattern + ".json")
-		if err != nil {
-			return nil, err
-		}
-		patternJSON = JSON
-	}else{
-		patternJSON = getPattern(pattern)
-	}
+	patternJSON = getPattern(pattern)
 	pDef := &api.Microgateway{}
 	err := json.Unmarshal(patternJSON, pDef)
 	if err != nil {
