@@ -7,10 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	_ "github.com/project-flogo/contrib/activity/counter"
 	_ "github.com/project-flogo/contrib/activity/rest"
 	"github.com/project-flogo/core/engine"
 	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
-	_ "github.com/project-flogo/contrib/activity/counter"
 	"github.com/project-flogo/microgateway/examples"
 )
 

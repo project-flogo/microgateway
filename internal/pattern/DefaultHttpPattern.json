@@ -21,6 +21,10 @@
       }
     },
     {
+      "if": "$.conf.useCircuitBreaker == true",
+      "service": "CircuitBreaker"
+    },
+    {
       "if": "($.conf.useJWT == false || $.JWTValidator.outputs.valid == true) && $.conf.method == 'GET'" ,
       "service": "HttpBackendA",
       "halt": "($.HttpBackendA.error != nil) && !error.isneterror($.HttpBackendA.error)"

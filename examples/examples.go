@@ -1,7 +1,6 @@
 package examples
 
 import (
-
 	"github.com/project-flogo/contrib/activity/log"
 	"github.com/project-flogo/contrib/activity/rest"
 	channeltrigger "github.com/project-flogo/contrib/trigger/channel"
@@ -230,7 +229,7 @@ func DefaultChannelPattern() (engine.Engine, error) {
 }
 
 // CustomPattern returns an engine configured for given pattern name
-func CustomPattern(patternName string, custompattern string) (engine.Engine, error){
+func CustomPattern(patternName string, custompattern string) (engine.Engine, error) {
 	err := pattern.Register(patternName, custompattern)
 	if err != nil {
 		panic(err)
