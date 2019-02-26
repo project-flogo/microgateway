@@ -206,6 +206,7 @@ func DefaultChannelPattern() (engine.Engine, error) {
 	step.AddInput("message", "Output: Test log message service invoked")
 	response := gateway.NewResponse(false)
 	response.SetCode(200)
+
 	settings, err := gateway.AddResource(app)
 	if err != nil {
 		panic(err)
@@ -222,6 +223,39 @@ func DefaultChannelPattern() (engine.Engine, error) {
 	_, err = channelhandler.NewAction(&microgateway.Action{}, settings)
 	if err != nil {
 		panic(err)
+	}
+
+	return api.NewEngine(app)
+}
+
+func AsyncGatewayExample() (engine.Engine, error) {
+	app := api.NewApp()
+	gateway := microapi.New("Log")
+	service := gateway.NewService("log", &log.Activity{})
+	service.SetDescription("Invoking test Log service in async gateway")
+	step := gateway.NewStep(service)
+	step.AddInput("message", "Output: Test log message service invoked")
+	response := gateway.NewResponse(false)
+	response.SetCode(200)
+	response.SetData("Successful call to action")
+	settings, err := gateway.AddResource(app)
+	settings["async"] = true
+	if err != nil {
+		panic(err)
+	}
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{Port: 9096})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{
+		Method: "GET",
+		Path:   "/endpoint",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = handler.NewAction(&microgateway.Action{}, settings)
+	if err != nil {
+		return nil, err
 	}
 
 	return api.NewEngine(app)
