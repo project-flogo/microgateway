@@ -1,0 +1,116 @@
+{
+  "name": "MyProxy",
+  "type": "flogo:app",
+  "version": "1.0.0",
+  "description": "Rate Limiter Gateway",
+  "properties": null,
+  "channels": null,
+  "triggers": [
+    {
+      "name": "flogo-rest",
+      "id": "MyProxy",
+      "ref": "github.com/project-flogo/contrib/trigger/rest",
+      "settings": {
+        "port": "9096"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "method": "GET",
+            "path": "/pets/:petId"
+          },
+          "actions": [
+            {
+              "id": "microgateway:Pets"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "microgateway:Pets",
+      "compressed": false,
+      "data": {
+        "name": "Pets",
+        "steps": [
+          {
+              "service": "RateLimiter",
+              "input": {
+                  "token": "=$.payload.headers.Token"
+              }
+          },
+          {
+            "service": "PetStorePets",
+            "input": {
+              "pathParams": "=$.payload.pathParams"
+            }
+          }
+        ],
+        "responses": [
+          {
+              "if": "$.RateLimiter.outputs.error == true",
+              "error": true,
+              "output": {
+                  "code": 403,
+                  "data": {
+                      "status": "=$.RateLimiter.outputs.errorMessage"
+                  }
+              }
+          },
+          {
+              "if": "$.RateLimiter.outputs.limitReached == true",
+              "error": true,
+              "output": {
+                  "code": 403,
+                  "data": {
+                      "status": "Rate Limit Exceeded - The service you have requested is over the allowed limit."
+                  }
+              }
+          },
+          {
+              "error": false,
+              "output": {
+                  "code": 200,
+                  "data": "=$.PetStorePets.outputs.data"
+              }
+          }
+        ],
+        "services": [
+          {
+              "name": "RateLimiter",
+              "description": "Rate limiter",
+              "ref": "github.com/project-flogo/microgateway/activity/ratelimiter",
+              "settings": {
+                  "limit": "1000-S",
+                  "spikeThreshold": "2"
+              }
+          },
+          {
+            "name": "PetStorePets",
+            "description": "Get pets by ID from the petstore",
+            "ref": "github.com/project-flogo/contrib/activity/rest",
+            "settings": {
+              "uri": "http://petstore.swagger.io/v2/pet/:petId",
+              "method": "GET",
+              "headers": {
+                "Accept": "application/json"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "actions": [
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "microgateway:Pets"
+      },
+      "id": "microgateway:Pets",
+      "metadata": null
+    }
+  ]
+}

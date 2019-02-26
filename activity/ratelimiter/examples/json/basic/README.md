@@ -8,7 +8,7 @@ This recipe is a gateway which applies rate limit on specified dispatches.
 ## Setup
 ```
 git clone https://github.com/project-flogo/microgateway
-cd microgateway/activity/ratelimiter/examples/json
+cd microgateway/activity/ratelimiter/examples/json/basic
 ```
 
 ## Testing

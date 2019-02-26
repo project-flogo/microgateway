@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -93,7 +95,7 @@ func TestIntegrationAPI(t *testing.T) {
 		{"3-M"}, {"1-S"},
 	}
 	for i := range parameters {
-		e, err := Example(parameters[i].limit)
+		e, err := Example(parameters[i].limit, 0)
 		assert.Nil(t, err)
 		testApplication(t, e, parameters[i].limit)
 	}
@@ -108,11 +110,12 @@ func TestIntegrationJSON(t *testing.T) {
 	}{
 		{"3-M"}, {"1-S"},
 	}
-	data, err := ioutil.ReadFile(filepath.FromSlash("./json/flogo.json"))
+	data, err := ioutil.ReadFile(filepath.FromSlash("./json/basic/flogo.json"))
 	assert.Nil(t, err)
 	for i := range parameters {
 		var Input input
 		err = json.Unmarshal(data, &Input)
+		assert.Nil(t, err)
 		Input.Resources[0].Data.Services[0]["settings"] = map[string]interface{}{"limit": parameters[i].limit}
 		data, _ = json.Marshal(Input)
 
@@ -122,6 +125,102 @@ func TestIntegrationJSON(t *testing.T) {
 		assert.Nil(t, err)
 		testApplication(t, e, parameters[i].limit)
 	}
+}
+
+func testSmartApplication(t *testing.T, e engine.Engine) {
+	const failCondition = "Rate Limit Exceeded - The service you have requested is over the allowed limit."
+	defer api.ClearResources()
+	test.Drain("9096")
+	err := e.Start()
+	assert.Nil(t, err)
+	defer func() {
+		err := e.Stop()
+		assert.Nil(t, err)
+	}()
+	test.Pour("9096")
+
+	transport := &http.Transport{
+		MaxIdleConns: 1,
+	}
+	defer transport.CloseIdleConnections()
+	client := &http.Client{
+		Transport: transport,
+	}
+
+	request := func(token string) Response {
+		req, err := http.NewRequest(http.MethodGet, "http://localhost:9096/pets/1", nil)
+		assert.Nil(t, err)
+		if token != "" {
+			req.Header.Add("Token", token)
+		}
+		response, err := client.Do(req)
+		assert.Nil(t, err)
+		body, err := ioutil.ReadAll(response.Body)
+		assert.Nil(t, err)
+		response.Body.Close()
+		var rsp Response
+		err = json.Unmarshal(body, &rsp)
+		assert.Nil(t, err)
+		return rsp
+	}
+
+	for i := 0; i < 256; i++ {
+		time.Sleep(50 * time.Millisecond)
+		response := request("TEST")
+		assert.NotEqual(t, response.Status, failCondition)
+	}
+	wait, blocked, notBlocked := sync.WaitGroup{}, uint64(0), uint64(0)
+	wait.Add(10)
+	for i := 0; i < 10; i++ {
+		time.Sleep(10 * time.Millisecond)
+		go func() {
+			response := request("TEST")
+			if response.Status == failCondition {
+				atomic.AddUint64(&blocked, 1)
+			} else {
+				atomic.AddUint64(&notBlocked, 1)
+			}
+			wait.Done()
+		}()
+	}
+	wait.Wait()
+	for i := 0; i < 256; i++ {
+		time.Sleep(50 * time.Millisecond)
+		response := request("TEST")
+		if response.Status == failCondition {
+			blocked++
+		} else {
+			notBlocked++
+		}
+	}
+	assert.Condition(t, func() (success bool) {
+		return blocked > 0
+	}, "some requests should have been blocked")
+	assert.Condition(t, func() (success bool) {
+		return notBlocked > 0
+	}, "some requests should not have been blocked")
+}
+
+func TestIntegrationSmartAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping API integration test in short mode")
+	}
+	e, err := Example("1000-S", 2)
+	assert.Nil(t, err)
+	testSmartApplication(t, e)
+}
+
+func TestIntegrationSmartJSON(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping JSON integration test in short mode")
+	}
+	data, err := ioutil.ReadFile(filepath.FromSlash("./json/smart/flogo.json"))
+	assert.Nil(t, err)
+	cfg, err := engine.LoadAppConfig(string(data), false)
+	assert.Nil(t, err)
+	e, err := engine.New(cfg)
+	assert.Nil(t, err)
+	testSmartApplication(t, e)
 }
 
 //--------data structure-------//
@@ -135,7 +234,7 @@ type input struct {
 	Channels  interface{} `json:"channels"`
 	Trig      interface{} `json:"triggers"`
 	Resources []struct {
-		Id       string `json:"id"`
+		ID       string `json:"id"`
 		Compress bool   `json:"compressed"`
 		Data     struct {
 			Name      string                   `json:"name"`

@@ -8,6 +8,7 @@ import (
 type Settings struct {
 	Limit          string  `md:"limit,required"`
 	SpikeThreshold float64 `md:"spikeThreshold"`
+	DecayRate      float64 `md:"decayRate"`
 }
 
 // Input is the input for the rate limiter

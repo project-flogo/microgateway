@@ -2,6 +2,8 @@ package ratelimiter
 
 import (
 	"context"
+	"math"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -27,7 +29,10 @@ func init() {
 // Context is a token context
 type Context struct {
 	sync.Mutex
+	rand              *rand.Rand
 	index, prev, size int
+	lastSpike         int64
+	filter, lastRatio float64
 	memory            [MemorySize]int64
 }
 
@@ -47,17 +52,18 @@ type Activity struct {
 	limiter *limiter.Limiter
 
 	sync.RWMutex
-	context           map[string]*Context
-	filter, threshold float64
+	context          map[string]*Context
+	threshold, decay float64
 }
 
-func (a *Activity) filterRequests(token string) (bool, float64) {
+func (a *Activity) filterRequests(token string) bool {
 	a.RLock()
 	context := a.context[token]
 	a.RUnlock()
 	if context == nil {
 		context = &Context{
 			prev: MemorySize - 1,
+			rand: rand.New(rand.NewSource(1)),
 		}
 		a.Lock()
 		a.context[token] = context
@@ -65,6 +71,7 @@ func (a *Activity) filterRequests(token string) (bool, float64) {
 	}
 
 	context.Lock()
+	defer context.Unlock()
 	time := time.Now().UnixNano()
 	previous := context.memory[context.prev]
 	context.memory[context.index] = time
@@ -75,16 +82,23 @@ func (a *Activity) filterRequests(token string) (bool, float64) {
 		context.size, valid = size, false
 	}
 	oldest := context.memory[context.index]
-	context.Unlock()
 
 	alpha := float64(time-previous) / float64(time-oldest)
 	rate := float64(size) / float64(time-oldest)
-	a.Lock()
-	a.filter = alpha*rate + (1-alpha)*a.filter
-	filtered := rate / a.filter
-	a.Unlock()
+	context.filter = alpha*rate + (1-alpha)*context.filter
+	ratio := rate / context.filter
+	if valid {
+		if ratio > a.threshold {
+			context.lastSpike, context.lastRatio = time, ratio-1
+		}
 
-	return valid, filtered
+		probability := 1 / (1 + context.lastRatio*math.Exp(a.decay*float64(context.lastSpike-time)))
+		if context.rand.Float64() > probability {
+			return true
+		}
+	}
+
+	return false
 }
 
 // New creates a new rate limiter
@@ -105,10 +119,15 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 	store := memory.NewStore()
 	limiter := limiter.New(store, rate)
 
+	if settings.DecayRate == 0 {
+		settings.DecayRate = .01
+	}
+
 	act := Activity{
 		limiter:   limiter,
 		context:   make(map[string]*Context, 256),
 		threshold: settings.SpikeThreshold,
+		decay:     settings.DecayRate,
 	}
 
 	return &act, nil
@@ -147,17 +166,14 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return true, nil
 	}
 
-	var (
-		valid    bool
-		filtered float64
-	)
+	filter := false
 	if a.threshold != 0 {
-		valid, filtered = a.filterRequests(input.Token)
+		filter = a.filterRequests(input.Token)
 	}
 
 	// check the ratelimit
 	output.LimitAvailable = limiterContext.Remaining
-	if limiterContext.Reached || (valid && filtered > a.threshold) {
+	if limiterContext.Reached || filter {
 		output.LimitReached = true
 	} else {
 		output.LimitReached = false
