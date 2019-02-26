@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/project-flogo/contrib/activity/rest"
-	_ "github.com/project-flogo/microgateway/activity/ratelimiter"
-	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
-	"github.com/project-flogo/core/engine"
-	_ "github.com/project-flogo/microgateway/activity/jwt"
 	_ "github.com/project-flogo/contrib/activity/channel"
+	_ "github.com/project-flogo/contrib/activity/rest"
+	"github.com/project-flogo/core/engine"
+	_ "github.com/project-flogo/microgateway/activity/circuitbreaker"
+	_ "github.com/project-flogo/microgateway/activity/jwt"
+	_ "github.com/project-flogo/microgateway/activity/ratelimiter"
 	"github.com/project-flogo/microgateway/api"
 	test "github.com/project-flogo/microgateway/internal/testing"
 	"github.com/stretchr/testify/assert"
@@ -257,7 +257,6 @@ func TestDefaultHttpPatternJSON(t *testing.T) {
 	assert.Nil(t, err)
 	testDefaultHTTPPattern(t, e)
 }
-
 
 func testDefaultChannelPattern(t *testing.T, e engine.Engine) {
 	defer api.ClearResources()
