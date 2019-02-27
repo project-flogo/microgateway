@@ -1,0 +1,77 @@
+{
+  "name": "MyProxy",
+  "type": "flogo:app",
+  "version": "1.0.0",
+  "description": "This is an example for async microgateway.",
+  "properties": null,
+  "channels": null,
+  "triggers": [
+    {
+      "name": "flogo-rest",
+      "id": "MyProxy",
+      "ref": "github.com/project-flogo/contrib/trigger/rest",
+      "settings": {
+        "port": "9096"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "method": "GET",
+            "path": "/endpoint"
+          },
+          "actions": [
+            {
+              "id": "microgateway:Log"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "microgateway:Log",
+      "compressed": false,
+      "data": {
+        "name": "Log",
+        "steps": [
+          {
+            "service": "LogService",
+            "input": {
+              "message": "Output: Test log message service invoked"
+            }
+          }
+        ],
+        "responses": [
+          {
+            "error": false,
+            "output": {
+              "code": 200,
+              "data": "Successful call to action"
+            }
+          }
+        ],
+        "services": [
+          {
+            "name": "LogService",
+            "description": "simple Log service",
+            "ref": "github.com/project-flogo/contrib/activity/log",
+            "settings": {
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "actions": [
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "microgateway:Log",
+        "async": true
+      },
+      "id": "microgateway:Log",
+      "metadata": null
+    }
+  ]
+}
