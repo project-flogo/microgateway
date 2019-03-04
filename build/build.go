@@ -34,13 +34,13 @@ func main() {
 		fmt.Println(" test - run full test")
 		fmt.Println(" test-short - skip integration tests")
 		fmt.Println(" generate - generates code as per directives")
-		fmt.Println( "build - to build all files")
+		fmt.Println("build - to build all files")
 	default:
 		fmt.Println("[USAGE]: go run build.go [target]")
 	}
 }
 
-func build(){
+func build() {
 	generate()
 	command("go", "build", "./...")
 }
@@ -48,32 +48,31 @@ func build(){
 func test() {
 	clean()
 	build()
-	command("go", "test","-p","1","./...")
+	command("go", "test", "-p", "1", "./...")
 }
 
 func testshort() {
 	clean()
 	build()
-	command("go", "test","-p","1","-short","./...")
+	command("go", "test", "-p", "1", "-short", "./...")
 }
 
-
-func clean(){
+func clean() {
 	command("go", "clean")
 	command("go", "clean", "-testcache")
 }
 
-
-func generate(){
+func generate() {
 	command("go", "generate", "./...")
 }
 
-func command(name  string, arg ...string) {
+func command(name string, arg ...string) {
+	fmt.Printf("%s %v\n", name, arg)
 	output, err := exec.Command(name, arg...).CombinedOutput()
 	if err != nil {
 		os.Stderr.WriteString(err.Error())
 	}
-	if output != nil {
-		fmt.Println(string(output))
+	if len(output) > 0 {
+		fmt.Printf("%s", string(output))
 	}
 }
