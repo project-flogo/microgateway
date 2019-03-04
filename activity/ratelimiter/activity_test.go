@@ -142,3 +142,54 @@ func TestRatelimiter(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, ctx.output["limitReached"].(bool), "limit should not be reached")
 }
+
+func TestSmartRatelimiter(t *testing.T) {
+	activity, err := New(newInitContext(map[string]interface{}{
+		"limit":          "1000-S",
+		"spikeThreshold": "2",
+	}))
+	assert.Nil(t, err)
+
+	for i := 0; i < 256; i++ {
+		time.Sleep(50 * time.Millisecond)
+		ctx := newActivityContext(map[string]interface{}{
+			"token": "abc123",
+		})
+		_, err = activity.Eval(ctx)
+		assert.Nil(t, err)
+		assert.False(t, ctx.output["limitReached"].(bool), "limit should not be reached")
+	}
+	blocked, notBlocked := 0, 0
+	for i := 0; i < 10; i++ {
+		time.Sleep(10 * time.Millisecond)
+		ctx := newActivityContext(map[string]interface{}{
+			"token": "abc123",
+		})
+		_, err = activity.Eval(ctx)
+		assert.Nil(t, err)
+		if ctx.output["limitReached"].(bool) {
+			blocked++
+		} else {
+			notBlocked++
+		}
+	}
+	for i := 0; i < 256; i++ {
+		time.Sleep(50 * time.Millisecond)
+		ctx := newActivityContext(map[string]interface{}{
+			"token": "abc123",
+		})
+		_, err = activity.Eval(ctx)
+		assert.Nil(t, err)
+		if ctx.output["limitReached"].(bool) {
+			blocked++
+		} else {
+			notBlocked++
+		}
+	}
+	assert.Condition(t, func() (success bool) {
+		return blocked > 0
+	}, "some requests should have been blocked")
+	assert.Condition(t, func() (success bool) {
+		return notBlocked > 0
+	}, "some requests should not have been blocked")
+}

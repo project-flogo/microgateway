@@ -4,14 +4,19 @@ import (
 	"github.com/project-flogo/core/data/coerce"
 )
 
+// Settings are the settings for the rate limiter
 type Settings struct {
-	Limit string `md:"limit,required"`
+	Limit          string  `md:"limit,required"`
+	SpikeThreshold float64 `md:"spikeThreshold"`
+	DecayRate      float64 `md:"decayRate"`
 }
 
+// Input is the input for the rate limiter
 type Input struct {
 	Token string `md:"token,required"`
 }
 
+// FromMap converts the settings from a map of settings
 func (r *Input) FromMap(values map[string]interface{}) error {
 	token, err := coerce.ToString(values["token"])
 	if err != nil {
@@ -21,12 +26,14 @@ func (r *Input) FromMap(values map[string]interface{}) error {
 	return nil
 }
 
+// ToMap converts the settings to a map from a struct
 func (r *Input) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"token": r.Token,
 	}
 }
 
+// Output is the output of the rate limiter
 type Output struct {
 	LimitReached   bool   `md:"limitReached"`
 	LimitAvailable int64  `md:"limitAvailable"`
@@ -34,6 +41,7 @@ type Output struct {
 	ErrorMessage   string `md:"errorMessage"`
 }
 
+// FromMap converts the output from a map to a struct
 func (o *Output) FromMap(values map[string]interface{}) error {
 	limitReached, err := coerce.ToBool(values["limitReached"])
 	if err != nil {
@@ -58,6 +66,7 @@ func (o *Output) FromMap(values map[string]interface{}) error {
 	return nil
 }
 
+// ToMap converts the output to a map from a struct
 func (o *Output) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"limitReached":   o.LimitReached,

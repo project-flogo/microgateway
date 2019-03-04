@@ -11,7 +11,7 @@ import (
 )
 
 // Example returns an API example
-func Example(limit string) (engine.Engine, error) {
+func Example(limit string, threshold float64) (engine.Engine, error) {
 	app := api.NewApp()
 
 	gateway := microapi.New("Pets")
@@ -19,6 +19,7 @@ func Example(limit string) (engine.Engine, error) {
 	serviceLimiter := gateway.NewService("RateLimiter", &ratelimiter.Activity{})
 	serviceLimiter.SetDescription("Rate limiter")
 	serviceLimiter.AddSetting("limit", limit)
+	serviceLimiter.AddSetting("spikeThreshold", threshold)
 
 	serviceStore := gateway.NewService("PetStorePets", &rest.Activity{})
 	serviceStore.SetDescription("Get pets by ID from the petstore")

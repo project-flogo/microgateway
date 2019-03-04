@@ -1,12 +1,14 @@
 # Rate Limiter
 
-The `ratelimiter` service type creates a rate limiter with specified `limit`. When it is used in the `step`, it applies `limit` against supplied `token`.
+The `ratelimiter` service type creates a rate limiter with specified `limit`. When it is used in the `step`, it applies `limit` against supplied `token`. If a `spikeThreshold` is specified then traffic will be blocked with a probability (that has an exponential decay) when a traffic spike occurs above the `spikeThreshold` multiple.
 
 The available service `settings` are as follows:
 
 | Name   |  Type   | Description   |
 |:-----------|:--------|:--------------|
 | limit | string | Limit can be specifed in the format of "limit-period". Valid periods are 'S', 'M' & 'H' to represent Second, Minute & Hour. Example: "10-S" represents 10 request/second |
+| spikeThreshold | decimal | Multiple above base traffic load which triggers the spike block logic. Spike blocking is disabled by default. |
+| decayRate | decimal | Exponential decay rate for the spike blocking probability. Default .01 |
 
 The available `input` for the request are as follows:
 
