@@ -1,17 +1,10 @@
-// +build ignore
-
 package main
 
 import (
 	"flag"
 	"fmt"
-	//"io/ioutil"
 	"os"
 	"os/exec"
-	//"path/filepath"
-	//"reflect"
-	//"runtime"
-	//"strings"
 )
 
 func main() {
@@ -35,10 +28,13 @@ func main() {
 	case "generate":
 		generate()
 	case "help":
+		fmt.Println("[USAGE]: go run build.go [target]")
+		fmt.Println("target-list:")
 		fmt.Println(" clean - clean up")
 		fmt.Println(" test - run full test")
 		fmt.Println(" test-short - skip integration tests")
 		fmt.Println(" generate - generates code as per directives")
+		fmt.Println( "build - to build all files")
 	default:
 		fmt.Println("[USAGE]: go run build.go [target]")
 	}
@@ -50,14 +46,14 @@ func build(){
 }
 
 func test() {
+	clean()
 	build()
-	command("go", "clean", "-testcache")
 	command("go", "test","-p","1","./...")
 }
 
 func testshort() {
+	clean()
 	build()
-	command("go", "clean", "-testcache")
 	command("go", "test","-p","1","-short","./...")
 }
 
@@ -77,5 +73,7 @@ func command(name  string, arg ...string) {
 	if err != nil {
 		os.Stderr.WriteString(err.Error())
 	}
-	fmt.Println(string(output))
+	if output != nil {
+		fmt.Println(string(output))
+	}
 }

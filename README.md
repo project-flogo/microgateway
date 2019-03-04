@@ -37,22 +37,31 @@ and then following the instructions [here](examples/api/basic-gateway) to build 
 
 ## Testing
 
+The commands supported include:
+- clean
+- build
+- generate
+- test
+- test-short
+
 To run tests issue the following command in the root of the project:
 
 ```bash
-go test -p 1 ./...
+go run build/build.go test
 ```
+It cleans the cache, and runs all the tests in your directory.
+The tests should take ~2 mintues. To re-run the tests first run the following:
 
-The `-p 1` is needed to prevent tests from being run in parallel. The tests should take ~2 mintues. To re-run the tests first run the following:
+
+To skip the integration tests use the `test-short` command:
 
 ```bash
-go clean -testcache
+go run build/build.go test-short
 ```
 
-To skip the integration tests use the `-short` flag:
-
+To know the USAGE and the list of commands supported:
 ```bash
-go test -p 1 -short ./...
+go run build/build.go help
 ```
 
 # Resource
