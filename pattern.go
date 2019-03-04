@@ -1,11 +1,10 @@
-//go:generate go-bindata -pkg pattern -o assets.go DefaultHttpPattern.json DefaultChannelPattern.json
-
-package pattern
+package microgateway
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/project-flogo/microgateway/api"
+	"github.com/project-flogo/microgateway/internal/pattern"
 )
 
 var patternMap = make(map[string][]byte)
@@ -14,7 +13,7 @@ func init() {
 	patterns := []string{"DefaultChannelPattern", "DefaultHttpPattern"}
 	for i := range patterns {
 		patternName := patterns[i] + ".json"
-		JSON, err := Asset(patternName)
+		JSON, err := pattern.Asset(patternName)
 		if err != nil {
 			fmt.Println("Error from Asset function")
 		}

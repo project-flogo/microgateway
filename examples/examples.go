@@ -10,7 +10,6 @@ import (
 	"github.com/project-flogo/core/engine/channels"
 	"github.com/project-flogo/microgateway"
 	microapi "github.com/project-flogo/microgateway/api"
-	"github.com/project-flogo/microgateway/internal/pattern"
 )
 
 // BasicGatewayExample returns a Basic Gateway API example
@@ -231,7 +230,7 @@ func DefaultChannelPattern() (engine.Engine, error) {
 
 // CustomPattern returns an engine configured for given pattern name
 func CustomPattern(patternName string, custompattern string) (engine.Engine, error) {
-	err := pattern.Register(patternName, custompattern)
+	err := microgateway.Register(patternName, custompattern)
 	if err != nil {
 		panic(err)
 	}
