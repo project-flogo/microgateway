@@ -42,7 +42,7 @@ func main() {
 
 func build(){
 	generate()
-	command("go", "build")
+	command("go", "build", "./...")
 }
 
 func test() {
