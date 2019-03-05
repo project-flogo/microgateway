@@ -346,7 +346,7 @@ func testAsyncGatewayExample(t *testing.T, e engine.Engine) {
 	}
 
 	body := request()
-	fmt.Println("body is:",body)
+	fmt.Println("body is:", body)
 	assert.NotEqual(t, 0, len(body))
 }
 

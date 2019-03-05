@@ -22,7 +22,6 @@ import (
 	"github.com/project-flogo/microgateway/api"
 	"github.com/project-flogo/microgateway/internal/core"
 	_ "github.com/project-flogo/microgateway/internal/function"
-	"github.com/project-flogo/microgateway/internal/pattern"
 	"github.com/project-flogo/microgateway/internal/schema"
 )
 
@@ -135,7 +134,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			actionData = resData.Object().(*api.Microgateway)
 		}
 	} else if p := act.settings.Pattern; p != "" {
-		definition, err := pattern.Load(p)
+		definition, err := Load(p)
 		if err != nil {
 			return nil, err
 		}
