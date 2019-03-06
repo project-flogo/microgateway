@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
-	"net/url"
-	"net/http"
-	"io/ioutil"
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/api"
