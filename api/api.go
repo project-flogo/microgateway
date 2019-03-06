@@ -7,6 +7,7 @@ import (
 	"sync"
 	"net/url"
 	"net/http"
+	"io/ioutil"
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/api"
@@ -34,18 +35,18 @@ func GetResourceFile(URL string){
 	if url.Scheme == "http"{
 		res, err := http.Get(URL)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
 		}
 		response, err := ioutil.ReadAll(res.Body)
 		response.Body.Close()
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
 		}
 		fmt.Printf("%s", response)
 
 	}
 	if url.Scheme == "file"{
-		data, err := ioutil.ReadFile(name[7:])
+		data, err := ioutil.ReadFile(URL[7:])
 		if err != nil {
 			fmt.Println("File reading error", err)
 			return
