@@ -1,0 +1,43 @@
+{
+  "name": "MyProxy",
+  "type": "flogo:app",
+  "version": "1.0.0",
+  "description": "This is a simple proxy.",
+  "properties": null,
+  "channels": null,
+  "triggers": [
+    {
+      "name": "flogo-rest",
+      "id": "MyProxy",
+      "ref": "github.com/project-flogo/contrib/trigger/rest",
+      "settings": {
+        "port": "9096"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "method": "GET",
+            "path": "/pets/:petId"
+          },
+          "actions": [
+            {
+              "id": "microgateway:Pets"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+  ],
+  "actions": [
+    {
+      "ref": "github.com/project-flogo/microgateway",
+      "settings": {
+        "uri": "file:///examples/json/resource-handler/resources/resource.json"
+      },
+      "id": "microgateway:Pets",
+      "metadata": null
+    }
+  ]
+}

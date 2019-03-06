@@ -27,34 +27,6 @@ func GetResource(name string) *Microgateway {
 
 }
 
-func GetResourceFile(URL string){
-	url, err := url.Parse(URL)
-	if err != nil {
-		panic(err)
-	}
-	if url.Scheme == "http"{
-		res, err := http.Get(URL)
-		if err != nil {
-			fmt.Println(err)
-		}
-		response, err := ioutil.ReadAll(res.Body)
-		response.Body.Close()
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Printf("%s", response)
-
-	}
-	if url.Scheme == "file"{
-		data, err := ioutil.ReadFile(URL[7:])
-		if err != nil {
-			fmt.Println("File reading error", err)
-			return
-		}
-		fmt.Println("Contents of file:", string(data))
-	}
-}
-
 // ClearResources clears the resources for testing
 func ClearResources() {
 	resources = make(map[string]*Microgateway)

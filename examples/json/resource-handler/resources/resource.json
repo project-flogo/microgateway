@@ -1,0 +1,38 @@
+{
+  "id": "microgateway:Pets",
+  "compressed": false,
+  "data": {
+    "name": "Pets",
+    "steps": [
+      {
+        "service": "PetStorePets",
+        "input": {
+          "pathParams": "=$.payload.pathParams"
+        }
+      }
+    ],
+    "responses": [
+      {
+        "error": false,
+        "output": {
+          "code": 200,
+          "data": "=$.PetStorePets.outputs.data"
+        }
+      }
+    ],
+    "services": [
+      {
+        "name": "PetStorePets",
+        "description": "Get pets by ID from the petstore",
+        "ref": "github.com/project-flogo/contrib/activity/rest",
+        "settings": {
+          "uri": "http://petstore.swagger.io/v2/pet/:petId",
+          "method": "GET",
+          "headers": {
+            "Accept": "application/json"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"net/url"
 
 	_ "github.com/project-flogo/contrib/function"
 	"github.com/project-flogo/core/action"
@@ -58,7 +59,6 @@ func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, err
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling microgateway definition resource with id '%s', %s", config.ID, err.Error())
 	}
-
 	return resource.New("microgateway", definition), nil
 }
 
@@ -123,10 +123,40 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 
 	var actionData *api.Microgateway
 	if uri := act.settings.URI; uri != "" {
+		url, err := url.Parse(uri)
+		if err != nil {
+			panic(err)
+		}
 		if resData := api.GetResource(uri); resData != nil {
 			actionData = resData
-			fmt.Println("actionData:",actionData)
-		} else {
+		}else if url.Scheme == "http://"{
+			//get resource from http
+			res, err := http.Get(url)
+			if err != nil {
+				return nil, fmt.Errorf("Error in accessing specified HTTP url")
+			}
+			resData, err := ioutil.ReadAll(res.Body)
+			res.Body.Close()
+			if err != nil {
+				return nil, fmt.Errorf("Error receving HTTP resource data")
+			}
+			err = json.Unmarshal(resData, &actionData)
+			if err != nil {
+				return nil, fmt.Errorf("error marshalling microgateway definition resource with id '%s', %s", config.ID, err.Error())
+			}
+		}else if url.Scheme == "file:///"{
+			//get resource from local file system
+			resData, err := ioutil.ReadFile(uri[7:])
+			if err != nil {
+				fmt.Println("File reading error", err)
+				return
+			}
+			fmt.Println("Contents of file:", string(resData))
+			err = json.Unmarshal(resData, &actionData)
+			if err != nil {
+				return nil, fmt.Errorf("error marshalling microgateway definition resource with id '%s', %s", config.ID, err.Error())
+			}
+		}else {
 			// Load action data from resources
 			resData := f.Manager.GetResource(uri)
 			if resData == nil {
