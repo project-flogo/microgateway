@@ -28,8 +28,6 @@
       ]
     }
   ],
-  "resources": [
-  ],
   "actions": [
     {
       "ref": "github.com/project-flogo/microgateway",
