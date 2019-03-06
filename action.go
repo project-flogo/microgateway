@@ -125,6 +125,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 	if uri := act.settings.URI; uri != "" {
 		if resData := api.GetResource(uri); resData != nil {
 			actionData = resData
+			fmt.Println("actionData:",actionData)
 		} else {
 			// Load action data from resources
 			resData := f.Manager.GetResource(uri)

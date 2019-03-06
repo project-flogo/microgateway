@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"net/url"
+	"net/http"
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/api"
@@ -21,6 +23,35 @@ func GetResource(name string) *Microgateway {
 	resourcesMutex.RLock()
 	defer resourcesMutex.RUnlock()
 	return resources[name]
+
+}
+
+func GetResourceFile(URL string){
+	url, err := url.Parse(URL)
+	if err != nil {
+		panic(err)
+	}
+	if url.Scheme == "http"{
+		res, err := http.Get(URL)
+		if err != nil {
+			log.Fatal(err)
+		}
+		response, err := ioutil.ReadAll(res.Body)
+		response.Body.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("%s", response)
+
+	}
+	if url.Scheme == "file"{
+		data, err := ioutil.ReadFile(name[7:])
+		if err != nil {
+			fmt.Println("File reading error", err)
+			return
+		}
+		fmt.Println("Contents of file:", string(data))
+	}
 }
 
 // ClearResources clears the resources for testing
