@@ -46,6 +46,7 @@ func init() {
 }
 
 var actionMetadata = action.ToMetadata(&Settings{}, &Input{}, &Output{})
+var resourceMap = make(map[string]interface{})
 
 // LoadResource loads the microgateway definition
 func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, error) {
@@ -131,7 +132,9 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		}
 		if resData := api.GetResource(uri); resData != nil {
 			actionData = resData
-		} else if url.Scheme == "http" {
+		} else if resData := resourceMap[uri]; resData != nil{
+			actionData = resData.(*api.Microgateway)
+		}else if url.Scheme == "http" {
 			//get resource from http
 			res, err := http.Get(uri)
 			if err != nil {
@@ -142,10 +145,13 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			if err != nil {
 				return nil, fmt.Errorf("Error receving HTTP resource data")
 			}
-			err = json.Unmarshal(resData, &actionData)
+			var definition *api.Microgateway
+			err = json.Unmarshal(resData, &definition)
 			if err != nil {
 				return nil, fmt.Errorf("error marshalling microgateway definition resource")
 			}
+			resourceMap[uri] = definition
+			actionData = definition
 		} else if url.Scheme == "file" {
 			//get resource from local file system
 			resData, err := ioutil.ReadFile(uri[7:])
@@ -157,10 +163,13 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			if err != nil {
 				return nil, fmt.Errorf("error validating schema: %s", err.Error())
 			}
-			err = json.Unmarshal(resData, &actionData)
+			var definition *api.Microgateway
+			err = json.Unmarshal(resData, &definition)
 			if err != nil {
 				return nil, fmt.Errorf("error marshalling microgateway definition resource")
 			}
+			resourceMap[uri] = definition
+			actionData = definition
 		} else {
 			// Load action data from resources
 			resData := f.Manager.GetResource(uri)
@@ -169,7 +178,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			}
 			actionData = resData.Object().(*api.Microgateway)
 		}
-	} else if p := act.settings.Pattern; p != "" {
+	}else if p := act.settings.Pattern; p != "" {
 		definition, err := Load(p)
 		if err != nil {
 			return nil, err

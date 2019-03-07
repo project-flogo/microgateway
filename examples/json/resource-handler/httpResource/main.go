@@ -58,7 +58,19 @@ func main() {
 				panic(err)
 			}
 		})
-
+		http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Printf("url: %q\n", html.EscapeString(r.URL.Path))
+			defer r.Body.Close()
+			_, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				panic(err)
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_, err = w.Write([]byte(resource))
+			if err != nil {
+				panic(err)
+			}
+		})
 		err := http.ListenAndServe(":1234", nil)
 		if err != nil {
 			panic(err)
