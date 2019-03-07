@@ -142,19 +142,18 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			if err != nil {
 				return nil, fmt.Errorf("Error receving HTTP resource data")
 			}
-			var definition *api.Microgateway
-			err = json.Unmarshal(resData, &definition)
+			//var definition *api.Microgateway
+			err = json.Unmarshal(resData, &actionData)
 			if err != nil {
 				return nil, fmt.Errorf("error marshalling microgateway definition resource")
 			}
-			actionData = definition
+			//actionData = definition
 		}else if url.Scheme == "file"{
 			//get resource from local file system
 			resData, err := ioutil.ReadFile("/Users/agadikar/microgateway/examples/json/resource-handler/resources/resource.json")
 			if err != nil {
 				return nil, fmt.Errorf("File reading error")
 			}
-			//fmt.Println("Contents of file:", string(resData))
 
 			err = schema.Validate(resData)
 			if err != nil {
@@ -166,7 +165,6 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 				return nil, fmt.Errorf("error marshalling microgateway definition resource")
 			}
 			actionData = definition
-			fmt.Println("%v\n", actionData)
 		}else {
 			// Load action data from resources
 			resData := f.Manager.GetResource(uri)
