@@ -1,4 +1,4 @@
-package custom_pattern
+package main
 
 import (
 	"flag"
