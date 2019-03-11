@@ -3,40 +3,33 @@ This recipe is a gateway using the HTTP resource. The resource is downloaded fro
 
 ## Installation
 * Install [Go](https://golang.org/)
-* Install the flogo [cli](https://github.com/project-flogo/cli)
 
 ## Setup
 ```bash
 git clone https://github.com/project-flogo/microgateway
-cd microgateway/examples/json/resource-handler/httpResource
+cd microgateway/examples/api/resource-handler/httpResource
 ```
 
 ## Testing
-Create the gateway:
-```
-flogo create -f flogo.json
-cd MyProxy
-flogo install github.com/project-flogo/contrib/activity/rest
-flogo build
-```
 
-In another terminal start the server first:
+In terminal start the server first:
 ```bash
 go run main.go -server
 ```
 
 Start the gateway:
-```
-bin/MyProxy
+```bash
+go run main.go
 ```
 and test below scenario.
 
 ### Request is successful
+Run the following command:
 ```bash
-curl http://localhost:9096/pets/1
+curl --request GET http://localhost:9096/endpoint
 ```
 
-You should then see something like:
+You should see:
 ```json
 {"category":{"id":0,"name":"string"},"id":4,"name":"hc0x3yiw302","photoUrls":["string"],"status":"available","tags":[{"id":0,"name":"string"}]}
 ```

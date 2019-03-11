@@ -6,6 +6,9 @@ import (
 	"html"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/project-flogo/core/engine"
+	"github.com/project-flogo/microgateway/examples"
 )
 
 var (
@@ -42,6 +45,7 @@ const resource = `{
 }`
 
 func main() {
+
 	flag.Parse()
 
 	if *server {
@@ -59,6 +63,7 @@ func main() {
 				panic(err)
 			}
 		})
+
 		err := http.ListenAndServe(":1234", nil)
 		if err != nil {
 			panic(err)
@@ -66,4 +71,10 @@ func main() {
 
 		return
 	}
+
+	e, err := examples.HTTPResourceHandlerExample()
+	if err != nil {
+		panic(err)
+	}
+	engine.RunEngine(e)
 }

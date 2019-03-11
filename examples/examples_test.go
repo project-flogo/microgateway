@@ -2,8 +2,8 @@ package examples
 
 import (
 	"context"
-	//"encoding/json"
-	//"fmt"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
@@ -30,7 +30,7 @@ type handler struct {
 	Slow bool
 }
 
-type resourceHandler struct{
+type resourceHandler struct {
 	Slow bool
 }
 
@@ -111,7 +111,6 @@ const resource = `{
   }]
 }`
 
-/*
 func testBasicGatewayApplication(t *testing.T, e engine.Engine) {
 	defer api.ClearResources()
 	test.Drain("9096")
@@ -458,17 +457,16 @@ func testResourceHandlerExampleFile(t *testing.T, e engine.Engine) {
 	assert.NotEqual(t, 0, len(body))
 }
 
-/*
 func TestResourceHandlerExampleAPI_File(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping Basic Gateway API integration test in short mode")
 	}
 
-	e, err := AsyncGatewayExample()
+	e, err := FileResourceHandlerExample()
 	assert.Nil(t, err)
-	testAsyncGatewayExample(t, e)
-}*/
-/*
+	testResourceHandlerExampleFile(t, e)
+}
+
 func TestResourceHandlerExampleJSON_File(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping Basic Gateway JSON integration test in short mode")
@@ -481,28 +479,9 @@ func TestResourceHandlerExampleJSON_File(t *testing.T) {
 	assert.Nil(t, err)
 	testResourceHandlerExampleFile(t, e)
 }
-*/
-
 
 func testResourceHandlerExampleHTTP(t *testing.T, e engine.Engine) {
 	defer api.ClearResources()
-
-	test.Drain("1234")
-	testHandler := resourceHandler{}
-	s := &http.Server{
-		Addr:           ":1234",
-		Handler:        &testHandler,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
-	go func() {
-		s.ListenAndServe()
-	}()
-	test.Pour("1234")
-	defer s.Shutdown(context.Background())
-
-
 	test.Drain("9096")
 	err := e.Start()
 	assert.Nil(t, err)
@@ -533,16 +512,29 @@ func testResourceHandlerExampleHTTP(t *testing.T, e engine.Engine) {
 	body := request()
 	assert.NotEqual(t, 0, len(body))
 }
-/*
-func TestResourceHandlerExampleAPI_File(t *testing.T) {
+
+func TestResourceHandlerExampleAPI_HTTP(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping Basic Gateway API integration test in short mode")
 	}
-
-	e, err := AsyncGatewayExample()
+	test.Drain("1234")
+	testHandler := resourceHandler{}
+	s := &http.Server{
+		Addr:           ":1234",
+		Handler:        &testHandler,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	go func() {
+		s.ListenAndServe()
+	}()
+	test.Pour("1234")
+	defer s.Shutdown(context.Background())
+	e, err := HTTPResourceHandlerExample()
 	assert.Nil(t, err)
-	testAsyncGatewayExample(t, e)
-}*/
+	testResourceHandlerExampleHTTP(t, e)
+}
 
 func TestResourceHandlerExampleJSON_HTTP(t *testing.T) {
 	if testing.Short() {
@@ -552,6 +544,21 @@ func TestResourceHandlerExampleJSON_HTTP(t *testing.T) {
 	assert.Nil(t, err)
 	cfg, err := engine.LoadAppConfig(string(data), false)
 	assert.Nil(t, err)
+	test.Drain("1234")
+	testHandler := resourceHandler{}
+	s := &http.Server{
+		Addr:           ":1234",
+		Handler:        &testHandler,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	go func() {
+		s.ListenAndServe()
+	}()
+	test.Pour("1234")
+	defer s.Shutdown(context.Background())
+
 	e, err := engine.New(cfg)
 	assert.Nil(t, err)
 	testResourceHandlerExampleHTTP(t, e)

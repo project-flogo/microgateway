@@ -132,9 +132,9 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 		}
 		if resData := api.GetResource(uri); resData != nil {
 			actionData = resData
-		} else if resData := resourceMap[uri]; resData != nil{
+		} else if resData := resourceMap[uri]; resData != nil {
 			actionData = resData.(*api.Microgateway)
-		}else if url.Scheme == "http" {
+		} else if url.Scheme == "http" {
 			//get resource from http
 			res, err := http.Get(uri)
 			if err != nil {
@@ -178,7 +178,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			}
 			actionData = resData.Object().(*api.Microgateway)
 		}
-	}else if p := act.settings.Pattern; p != "" {
+	} else if p := act.settings.Pattern; p != "" {
 		definition, err := Load(p)
 		if err != nil {
 			return nil, err
