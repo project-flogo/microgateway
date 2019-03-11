@@ -1,6 +1,7 @@
 package custom_pattern
 
 import (
+	"io/ioutil"
 	"github.com/project-flogo/microgateway"
 )
 
