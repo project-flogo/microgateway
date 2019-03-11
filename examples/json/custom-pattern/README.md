@@ -20,13 +20,26 @@ cd microgateway/examples/json/custom-pattern
 ```
 
 ## Testing
-Start the gateway:
-```bash
-go run main.go
+Create the gateway:
 ```
+flogo create -f flogo.json
+cd MyProxy
+flogo install github.com/project-flogo/microgateway/examples/json/custom-pattern
+flogo install github.com/project-flogo/contrib/activity/counter
+flogo install github.com/project-flogo/contrib/activity/rest
+flogo build
+```
+
+Start the gateway:
+```
+bin/MyProxy
+```
+and test below scenario.
+
 In another terminal start the server:
 ```bash
 go run main.go -server
+```
 
 ### Request is successful
 Run the following command:

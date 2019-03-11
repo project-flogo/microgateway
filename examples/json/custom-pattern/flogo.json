@@ -23,9 +23,7 @@
             {
               "ref": "github.com/project-flogo/microgateway",
               "settings": {
-                "pattern": "CustomPattern",
-            		"uri": "http://localhost:1234/pets",
-                    "method": "GET"
+                "pattern": "CustomPattern"
               }
             }
           ]
