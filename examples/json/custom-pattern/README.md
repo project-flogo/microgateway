@@ -38,7 +38,7 @@ and test below scenario.
 
 In another terminal start the server:
 ```bash
-go run main.go -server
+go run server/main.go -server
 ```
 
 ### Request is successful
