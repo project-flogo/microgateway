@@ -46,8 +46,8 @@
       "description": "Make an http call to your backend",
       "ref": "github.com/project-flogo/contrib/activity/rest",
       "settings": {
-        "method": "=$.conf.method",
-        "uri": "=$.conf.uri"
+        "method": "GET",
+        "uri": "http://localhost:1234/pets"
       }
     },
     {

@@ -7,7 +7,7 @@ import(
 )
 
 func init(){
-	data, err := ioutil.ReadFile(filepath.FromSlash("./json/custom-pattern/CustomPattern.json"))
+	data, err := ioutil.ReadFile("/Users/agadikar/microgateway/examples/json/custom-pattern/CustomPattern.json")
 	if err != nil {
 		panic(err)
 	}
