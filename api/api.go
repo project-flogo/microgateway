@@ -21,6 +21,7 @@ func GetResource(name string) *Microgateway {
 	resourcesMutex.RLock()
 	defer resourcesMutex.RUnlock()
 	return resources[name]
+
 }
 
 // ClearResources clears the resources for testing

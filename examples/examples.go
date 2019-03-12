@@ -287,3 +287,75 @@ func AsyncGatewayExample() (engine.Engine, error) {
 
 	return api.NewEngine(app)
 }
+
+// ResourceHandlerGateway :- read resource from file system
+func FileResourceHandlerExample(uri string) (engine.Engine, error) {
+	app := api.NewApp()
+
+	gateway := microapi.New("Pets")
+	service := gateway.NewService("PetStorePets", &rest.Activity{})
+	service.SetDescription("Get pets by ID from the petstore")
+	service.AddSetting("uri", "http://petstore.swagger.io/v2/pet/:petId")
+	service.AddSetting("method", "GET")
+	service.AddSetting("headers", map[string]string{
+		"Accept": "application/json",
+	})
+	step := gateway.NewStep(service)
+	step.AddInput("pathParams", "=$.payload.pathParams")
+	response := gateway.NewResponse(false)
+	response.SetCode(200)
+	response.SetData("=$.PetStorePets.outputs.data")
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{Port: 9096})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{
+		Method: "GET",
+		Path:   "/pets/:petId",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
+		"uri": uri})
+	if err != nil {
+		return nil, err
+	}
+
+	return api.NewEngine(app)
+}
+
+// ResourceHandlerGateway :- getting Http resource
+func HTTPResourceHandlerExample() (engine.Engine, error) {
+	app := api.NewApp()
+
+	gateway := microapi.New("Pets")
+	service := gateway.NewService("PetStorePets", &rest.Activity{})
+	service.SetDescription("Get pets by ID from the petstore")
+	service.AddSetting("uri", "http://petstore.swagger.io/v2/pet/:petId")
+	service.AddSetting("method", "GET")
+	service.AddSetting("headers", map[string]string{
+		"Accept": "application/json",
+	})
+	step := gateway.NewStep(service)
+	step.AddInput("pathParams", "=$.payload.pathParams")
+	response := gateway.NewResponse(false)
+	response.SetCode(200)
+	response.SetData("=$.PetStorePets.outputs.data")
+
+	trg := app.NewTrigger(&trigger.Trigger{}, &trigger.Settings{Port: 9096})
+	handler, err := trg.NewHandler(&trigger.HandlerSettings{
+		Method: "GET",
+		Path:   "/pets/:petId",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
+		"uri": "http://localhost:1234/pets"})
+	if err != nil {
+		return nil, err
+	}
+
+	return api.NewEngine(app)
+}
