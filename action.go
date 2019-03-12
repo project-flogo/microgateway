@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	_ "github.com/project-flogo/contrib/function"
@@ -46,7 +47,7 @@ func init() {
 }
 
 var actionMetadata = action.ToMetadata(&Settings{}, &Input{}, &Output{})
-var resourceMap = make(map[string]interface{})
+var resourceMap = make(map[string]*api.Microgateway)
 
 // LoadResource loads the microgateway definition
 func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, error) {
@@ -128,12 +129,12 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 	if uri := act.settings.URI; uri != "" {
 		url, err := url.Parse(uri)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		if resData := api.GetResource(uri); resData != nil {
 			actionData = resData
 		} else if resData := resourceMap[uri]; resData != nil {
-			actionData = resData.(*api.Microgateway)
+			actionData = resData
 		} else if url.Scheme == "http" {
 			//get resource from http
 			res, err := http.Get(uri)
@@ -154,7 +155,7 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			actionData = definition
 		} else if url.Scheme == "file" {
 			//get resource from local file system
-			resData, err := ioutil.ReadFile(uri[7:])
+			resData, err := ioutil.ReadFile(filepath.FromSlash(uri[7:]))
 			if err != nil {
 				return nil, fmt.Errorf("File reading error")
 			}

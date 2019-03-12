@@ -462,7 +462,7 @@ func TestResourceHandlerExampleAPI_File(t *testing.T) {
 		t.Skip("skipping Basic Gateway API integration test in short mode")
 	}
 
-	e, err := FileResourceHandlerExample()
+	e, err := FileResourceHandlerExample("file://./json/resource-handler/fileResource/resource.json")
 	assert.Nil(t, err)
 	testResourceHandlerExampleFile(t, e)
 }
@@ -472,6 +472,12 @@ func TestResourceHandlerExampleJSON_File(t *testing.T) {
 		t.Skip("skipping Basic Gateway JSON integration test in short mode")
 	}
 	data, err := ioutil.ReadFile(filepath.FromSlash("./json/resource-handler/fileResource/flogo.json"))
+	assert.Nil(t, err)
+	flogoApp := FlogoJSON{}
+	err = json.Unmarshal(data, &flogoApp)
+	assert.Nil(t, err)
+	flogoApp.Actions[0].Settings["uri"] = "file://./json/resource-handler/fileResource/resource.json"
+	data, err = json.Marshal(&flogoApp)
 	assert.Nil(t, err)
 	cfg, err := engine.LoadAppConfig(string(data), false)
 	assert.Nil(t, err)
@@ -562,4 +568,30 @@ func TestResourceHandlerExampleJSON_HTTP(t *testing.T) {
 	e, err := engine.New(cfg)
 	assert.Nil(t, err)
 	testResourceHandlerExampleHTTP(t, e)
+}
+
+// FlogoJSON is the flogo JSON
+type FlogoJSON struct {
+	Name      string      `json:"name"`
+	Type      string      `json:"type"`
+	Version   string      `json:"version"`
+	Desc      string      `json:"description"`
+	Prop      interface{} `json:"properties"`
+	Channels  interface{} `json:"channels"`
+	Trig      interface{} `json:"triggers"`
+	Resources []struct {
+		ID       string `json:"id"`
+		Compress bool   `json:"compressed"`
+		Data     struct {
+			Name      string                   `json:"name"`
+			Steps     []interface{}            `json:"steps"`
+			Responses []interface{}            `json:"responses"`
+			Services  []map[string]interface{} `json:"services"`
+		} `json:"data"`
+	} `json:"resources"`
+	Actions []struct {
+		Ref      string                 `json:"ref"`
+		Settings map[string]interface{} `json:"settings"`
+		ID       string                 `json:"id"`
+	} `json:"actions"`
 }

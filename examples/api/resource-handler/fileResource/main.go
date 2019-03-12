@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	e, err := examples.FileResourceHandlerExample()
+	e, err := examples.FileResourceHandlerExample("file://../../../json/resource-handler/fileResource/resource.json")
 	if err != nil {
 		panic(err)
 	}

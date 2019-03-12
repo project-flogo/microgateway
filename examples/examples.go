@@ -289,7 +289,7 @@ func AsyncGatewayExample() (engine.Engine, error) {
 }
 
 // ResourceHandlerGateway :- read resource from file system
-func FileResourceHandlerExample() (engine.Engine, error) {
+func FileResourceHandlerExample(uri string) (engine.Engine, error) {
 	app := api.NewApp()
 
 	gateway := microapi.New("Pets")
@@ -316,7 +316,7 @@ func FileResourceHandlerExample() (engine.Engine, error) {
 	}
 
 	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
-		"uri": "file:///Users/agadikar/microgateway/examples/json/resource-handler/fileResource/resource.json"})
+		"uri": uri})
 	if err != nil {
 		return nil, err
 	}

@@ -32,7 +32,7 @@
     {
       "ref": "github.com/project-flogo/microgateway",
       "settings": {
-        "uri": "file:///Users/agadikar/microgateway/examples/json/resource-handler/fileResource/resource.json"
+        "uri": "file://../resource.json"
       },
       "id": "microgateway:Pets",
       "metadata": null
