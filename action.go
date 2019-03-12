@@ -5,7 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	_ "github.com/project-flogo/contrib/function"
@@ -43,6 +47,7 @@ func init() {
 }
 
 var actionMetadata = action.ToMetadata(&Settings{}, &Input{}, &Output{})
+var resourceMap = make(map[string]*api.Microgateway)
 
 // LoadResource loads the microgateway definition
 func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, error) {
@@ -58,7 +63,6 @@ func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, err
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling microgateway definition resource with id '%s', %s", config.ID, err.Error())
 	}
-
 	return resource.New("microgateway", definition), nil
 }
 
@@ -123,8 +127,50 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 
 	var actionData *api.Microgateway
 	if uri := act.settings.URI; uri != "" {
+		url, err := url.Parse(uri)
+		if err != nil {
+			return nil, err
+		}
 		if resData := api.GetResource(uri); resData != nil {
 			actionData = resData
+		} else if resData := resourceMap[uri]; resData != nil {
+			actionData = resData
+		} else if url.Scheme == "http" {
+			//get resource from http
+			res, err := http.Get(uri)
+			if err != nil {
+				return nil, fmt.Errorf("Error in accessing specified HTTP url")
+			}
+			resData, err := ioutil.ReadAll(res.Body)
+			res.Body.Close()
+			if err != nil {
+				return nil, fmt.Errorf("Error receving HTTP resource data")
+			}
+			var definition *api.Microgateway
+			err = json.Unmarshal(resData, &definition)
+			if err != nil {
+				return nil, fmt.Errorf("error marshalling microgateway definition resource")
+			}
+			resourceMap[uri] = definition
+			actionData = definition
+		} else if url.Scheme == "file" {
+			//get resource from local file system
+			resData, err := ioutil.ReadFile(filepath.FromSlash(uri[7:]))
+			if err != nil {
+				return nil, fmt.Errorf("File reading error")
+			}
+
+			err = schema.Validate(resData)
+			if err != nil {
+				return nil, fmt.Errorf("error validating schema: %s", err.Error())
+			}
+			var definition *api.Microgateway
+			err = json.Unmarshal(resData, &definition)
+			if err != nil {
+				return nil, fmt.Errorf("error marshalling microgateway definition resource")
+			}
+			resourceMap[uri] = definition
+			actionData = definition
 		} else {
 			// Load action data from resources
 			resData := f.Manager.GetResource(uri)
