@@ -23,7 +23,7 @@
             {
               "ref": "github.com/project-flogo/microgateway",
               "settings": {
-                "pattern": "CustomPattern"
+                "uri": "pattern://CustomPattern"
               }
             }
           ]

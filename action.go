@@ -171,6 +171,12 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			}
 			resourceMap[uri] = definition
 			actionData = definition
+		} else if url.Scheme == "pattern" {
+			definition, err := Load(uri[10:])
+			if err != nil {
+				return nil, err
+			}
+			actionData = definition
 		} else {
 			// Load action data from resources
 			resData := f.Manager.GetResource(uri)
@@ -179,12 +185,6 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			}
 			actionData = resData.Object().(*api.Microgateway)
 		}
-	} else if p := act.settings.Pattern; p != "" {
-		definition, err := Load(p)
-		if err != nil {
-			return nil, err
-		}
-		actionData = definition
 	} else {
 		return nil, errors.New("no definition found for microgateway")
 	}
