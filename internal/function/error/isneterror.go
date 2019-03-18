@@ -16,7 +16,7 @@ type fnIsNetError struct {
 
 // Name returns the name of the function
 func (fnIsNetError) Name() string {
-	return "error.isneterror"
+	return "isneterror"
 }
 
 // Sig returns the function signature
