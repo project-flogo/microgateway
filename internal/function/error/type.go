@@ -16,7 +16,7 @@ type fnType struct {
 
 // Name returns the name of the function
 func (fnType) Name() string {
-	return "error.type"
+	return "type"
 }
 
 // Sig returns the function signature
