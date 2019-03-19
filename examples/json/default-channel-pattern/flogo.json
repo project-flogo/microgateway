@@ -25,7 +25,7 @@
             {
               "ref": "github.com/project-flogo/microgateway",
               "settings": {
-                "pattern": "DefaultChannelPattern",
+                "uri": "pattern://DefaultChannelPattern",
                 "useJWT": true,
                 "jwtSigningMethod": "HMAC",
                 "jwtKey": "qwertyuiopasdfghjklzxcvbnm789101",

@@ -23,7 +23,7 @@
             {
               "ref": "github.com/project-flogo/microgateway",
               "settings": {
-                "pattern": "DefaultHttpPattern",
+                "uri": "pattern://DefaultHttpPattern",
             		"useRateLimiter": true,
             		"rateLimit": "1-S",
             		"useJWT": true,

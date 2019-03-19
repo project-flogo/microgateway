@@ -141,7 +141,7 @@ func DefaultHTTPPattern() (engine.Engine, error) {
 	}
 
 	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
-		"pattern":           "DefaultHttpPattern",
+		"uri":               "pattern://DefaultHttpPattern",
 		"useRateLimiter":    true,
 		"rateLimit":         "1-S",
 		"useJWT":            true,
@@ -179,7 +179,7 @@ func DefaultChannelPattern() (engine.Engine, error) {
 	}
 
 	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
-		"pattern":          "DefaultChannelPattern",
+		"uri":              "pattern://DefaultChannelPattern",
 		"useJWT":           true,
 		"jwtSigningMethod": "HMAC",
 		"jwtKey":           "qwertyuiopasdfghjklzxcvbnm789101",
@@ -246,7 +246,7 @@ func CustomPattern(patternName string, custompattern string) (engine.Engine, err
 	}
 
 	_, err = handler.NewAction(&microgateway.Action{}, map[string]interface{}{
-		"pattern": patternName,
+		"uri": "pattern://" + patternName,
 	})
 	if err != nil {
 		panic(err)

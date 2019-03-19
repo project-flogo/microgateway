@@ -2,9 +2,8 @@ package microgateway
 
 // Settings are the settings for the microgateway
 type Settings struct {
-	URI     string `md:"uri"`
-	Pattern string `md:"pattern"`
-	Async   bool   `md:"async"`
+	URI   string `md:"uri,required"`
+	Async bool   `md:"async"`
 }
 
 // Input represents the inputs into the microgateway

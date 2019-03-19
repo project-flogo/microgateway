@@ -254,7 +254,7 @@ func TestMicrogatewayHttpPattern(t *testing.T) {
 	assert.Nil(t, err)
 
 	action, err := handler.NewAction(&Action{}, map[string]interface{}{
-		"pattern":           "DefaultHttpPattern",
+		"uri":               "pattern://DefaultHttpPattern",
 		"useRateLimiter":    false,
 		"useJWT":            false,
 		"useCircuitBreaker": false,
@@ -295,7 +295,7 @@ func TestMicrogatewayChannelPattern(t *testing.T) {
 	assert.Nil(t, err)
 
 	action, err := handler.NewAction(&Action{}, map[string]interface{}{
-		"pattern": "DefaultChannelPattern",
+		"uri":     "pattern://DefaultChannelPattern",
 		"useJWT":  false,
 		"channel": "test",
 		"value":   "test",
