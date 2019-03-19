@@ -26,7 +26,7 @@ and test below scenario.
 ### Request is successful
 Run the following command:
 ```bash
-curl --request GET http://localhost:9096/endpoint
+curl http://localhost:9096/pets/1
 ```
 
 You should see:

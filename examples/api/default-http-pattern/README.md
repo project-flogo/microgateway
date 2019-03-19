@@ -1,7 +1,7 @@
 # Gateway using Default Http Pattern
 This recipe is a gateway using the defult http pattern which uses JWT, Rate Limiter, and Circuit Breaker.
 
-#Circuit Breaker Service:
+# Circuit Breaker Service:
 | Name   |  Type   | Description   |
 |:-----------|:--------|:--------------|
 | mode | string | The tripping mode: 'a' for contiguous errors, 'b' for errors within a time period, 'c' for contiguous errors within a time period, and 'd' for a probabilistic smart circuit breaker mode. Defaults to mode 'a' |
@@ -9,14 +9,12 @@ This recipe is a gateway using the defult http pattern which uses JWT, Rate Limi
 | period | number | Number of seconds in which errors have to occur for the circuit breaker to trip. Applies to modes 'b' and 'c'|
 | timeout | number | Number of seconds that the circuit breaker will remain tripped. Applies to modes 'a', 'b', 'c'|
 
-
-#Rate Limiter
+# Rate Limiter
 | Name   |  Type   | Description   |
 |:-----------|:--------|:--------------|
 | limit | string | Limit can be specifed in the format of "limit-period". Valid periods are 'S', 'M' & 'H' to represent Second, Minute & Hour. Example: "10-S" represents 10 request/second |
 
-
-#JWT
+# JWT
 | Name   |  Type   | Description   |
 |:-----------|:--------|:--------------|
 | token | string | The raw token |
@@ -25,7 +23,6 @@ This recipe is a gateway using the defult http pattern which uses JWT, Rate Limi
 | issuer | string | The 'iss' standard claim to match against |
 | subject | string | The 'sub' standard claim to match against |
 | audience | string | The 'aud' standard claim to match against |
-
 
 ## Installation
 * Install [Go](https://golang.org/)

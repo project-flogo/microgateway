@@ -2,7 +2,7 @@
 This is an example of Async gateway. This receipe executes simple log action asynchronously
 
 
-#Log Activity
+# Log Activity
 | Name   |  Type   | Description   |
 |:-----------|:--------|:--------------|
 | message | string | The message to log |
@@ -21,7 +21,7 @@ cd microgateway/examples/api/default-http-pattern
 
 ## Testing
 Create the gateway:
-```
+```bash
 flogo create -f flogo.json
 cd MyProxy
 flogo install github.com/project-flogo/contrib/activity/log
@@ -29,8 +29,9 @@ flogo build
 ```
 
 Start the gateway:
-```
+```bash
 bin/MyProxy
+```
 
 and test below scenario.
 

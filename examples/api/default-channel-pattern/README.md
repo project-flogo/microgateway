@@ -1,22 +1,21 @@
 # Gateway using Default Channel Pattern
-This recipe is a gateway using the defult channel pattern which uses JWT.
+This recipe is a gateway using the default channel pattern which uses JWT.
 
-#Channel Activity
-| Name   |  Type   | Description   |
-|:-----------|:--------|:--------------|
+# Channel Activity
+| Name    |  Type  | Description                     |
+|:--------|:-------|:--------------------------------|
 | channel | string | The channel to put the value on |
-| value | string | The value to put on channel |
+| value   | string | The value to put on channel     |
 
-
-#JWT
-| Name   |  Type   | Description   |
-|:-----------|:--------|:--------------|
-| token | string | The raw token |
-| key | string | The key used to sign the token |
+# JWT
+| Name          |  Type  | Description                                        |
+|:--------------|:-------|:---------------------------------------------------|
+| token         | string | The raw token                                      |
+| key           | string | The key used to sign the token                     |
 | signingMethod | string | The signing method used (HMAC, ECDSA, RSA, RSAPSS) |
-| issuer | string | The 'iss' standard claim to match against |
-| subject | string | The 'sub' standard claim to match against |
-| audience | string | The 'aud' standard claim to match against |
+| issuer        | string | The 'iss' standard claim to match against          |
+| subject       | string | The 'sub' standard claim to match against          |
+| audience      | string | The 'aud' standard claim to match against          |
 
 
 ## Installation

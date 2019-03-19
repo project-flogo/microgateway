@@ -26,7 +26,8 @@
       "output": {
         "code": 401,
         "data": {
-          "error": "=$.JWTValidator.outputs.errorMessage"
+          "errorMessage": "=$.JWTValidator.outputs.errorMessage",
+          "validationMessage": "=$.JWTValidator.outputs.validationMessage"
         }
       }
     },

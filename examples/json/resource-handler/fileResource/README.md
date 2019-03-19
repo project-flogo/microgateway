@@ -13,7 +13,7 @@ cd microgateway/examples/json/resource-handler/fileResource
 
 ## Testing
 Create the gateway:
-```
+```bash
 flogo create -f flogo.json
 cd MyProxy
 flogo install github.com/project-flogo/contrib/activity/rest
@@ -21,7 +21,7 @@ flogo build
 ```
 
 Start the gateway:
-```
+```bash
 bin/MyProxy
 ```
 and test below scenario.
@@ -35,3 +35,4 @@ curl http://localhost:9096/pets/1
 You should then see something like:
 ```json
 {"category":{"id":0,"name":"string"},"id":1,"name":"aspen","photoUrls":["string"],"status":"done","tags":[{"id":0,"name":"string"}]}
+```

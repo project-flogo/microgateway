@@ -1,21 +1,21 @@
 # Gateway using Default Channel Pattern
-This recipe is a gateway using the defult channel pattern which uses JWT.
+This recipe is a gateway using the default channel pattern which uses JWT.
 
-#JWT
-| Name   |  Type   | Description   |
-|:-----------|:--------|:--------------|
-| token | string | The raw token |
-| key | string | The key used to sign the token |
-| signingMethod | string | The signing method used (HMAC, ECDSA, RSA, RSAPSS) |
-| issuer | string | The 'iss' standard claim to match against |
-| subject | string | The 'sub' standard claim to match against |
-| audience | string | The 'aud' standard claim to match against |
-
-#Channel Activity
-| Name   |  Type   | Description   |
-|:-----------|:--------|:--------------|
+# Channel Activity
+| Name    |  Type  | Description                     |
+|:--------|:-------|:--------------------------------|
 | channel | string | The channel to put the value on |
-| value | string | The value to put on channel |
+| value   | string | The value to put on channel     |
+
+# JWT
+| Name          |  Type  | Description                                        |
+|:--------------|:-------|:---------------------------------------------------|
+| token         | string | The raw token                                      |
+| key           | string | The key used to sign the token                     |
+| signingMethod | string | The signing method used (HMAC, ECDSA, RSA, RSAPSS) |
+| issuer        | string | The 'iss' standard claim to match against          |
+| subject       | string | The 'sub' standard claim to match against          |
+| audience      | string | The 'aud' standard claim to match against          |
 
 
 ## Installation
@@ -30,7 +30,7 @@ cd microgateway/examples/api/default-http-pattern
 
 ## Testing
 Create the gateway:
-```
+```bash
 flogo create -f flogo.json
 cd MyProxy
 flogo install github.com/project-flogo/contrib/activity/rest
@@ -40,8 +40,9 @@ flogo build
 ```
 
 Start the gateway:
-```
+```bash
 bin/MyProxy
+```
 
 and test below scenario.
 

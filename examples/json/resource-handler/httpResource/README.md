@@ -13,7 +13,7 @@ cd microgateway/examples/json/resource-handler/httpResource
 
 ## Testing
 Create the gateway:
-```
+```bash
 flogo create -f flogo.json
 cd MyProxy
 flogo install github.com/project-flogo/contrib/activity/rest
@@ -26,7 +26,7 @@ go run main.go -server
 ```
 
 Start the gateway:
-```
+```bash
 bin/MyProxy
 ```
 and test below scenario.
