@@ -3,11 +3,11 @@ This recipe is a gateway using the custom pattern. It uses counter activity to k
 and failed HTTP calls.
 
 Example:
-#Counter Activity
-| Name   |  Type   | Description   |
-|:-----------|:--------|:--------------|
-| counterName | string, required:true | The name of the counter |
-| op | string | Counter operation, 'get' is the default operation |
+# Counter Activity
+| Name        |  Type                 | Description                                       |
+|:------------|:----------------------|:--------------------------------------------------|
+| counterName | string, required:true | The name of the counter                           |
+| op          | string                | Counter operation, 'get' is the default operation |
 
 
 ## Installation
@@ -24,9 +24,11 @@ Start the gateway:
 ```bash
 go run main.go
 ```
+
 In another terminal start the server:
 ```bash
 go run main.go -server
+```
 
 ### Request is successful
 Run the following command:
