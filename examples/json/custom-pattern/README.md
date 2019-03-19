@@ -3,12 +3,11 @@ This recipe is a gateway using the custom pattern. It uses counter activity to k
 and failed HTTP calls.
 
 Example:
-#Counter Activity
-| Name   |  Type   | Description   |
-|:-----------|:--------|:--------------|
-| counterName | string, required:true | The name of the counter |
-| op | string | Counter operation, 'get' is the default operation |
-
+# Counter Activity
+| Name        |  Type                 | Description                                       |
+|:------------|:----------------------|:--------------------------------------------------|
+| counterName | string, required:true | The name of the counter                           |
+| op          | string                | Counter operation, 'get' is the default operation |
 
 ## Installation
 * Install [Go](https://golang.org/)
@@ -21,7 +20,7 @@ cd microgateway/examples/json/custom-pattern
 
 ## Testing
 Create the gateway:
-```
+```bash
 flogo create -f flogo.json
 cd MyProxy
 flogo install github.com/project-flogo/microgateway/examples/json/custom-pattern
@@ -31,7 +30,7 @@ flogo build
 ```
 
 Start the gateway:
-```
+```bash
 bin/MyProxy
 ```
 and test below scenario.
