@@ -14,13 +14,20 @@ import (
 
 	// imports the flogo script language
 	_ "github.com/project-flogo/core/data/expression/script"
-	// imports the basic functions
-	_ "github.com/project-flogo/contrib/function"
+	// imports the coerce functions
+	_ "github.com/project-flogo/contrib/function/coerce"
+	// imports the json functions
+	_ "github.com/project-flogo/contrib/function/json"
+	// imports the number functions
+	_ "github.com/project-flogo/contrib/function/number"
+	// imports the string functions
+	_ "github.com/project-flogo/contrib/function/string"
 	// imports the microgateway specific functions
 	_ "github.com/project-flogo/microgateway/internal/function"
 
 	"github.com/project-flogo/core/action"
 	"github.com/project-flogo/core/activity"
+	coreapi "github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/app/resource"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/expression"
@@ -175,23 +182,8 @@ func (f *Factory) getActionData(act Action) (*api.Microgateway, error) {
 	return nil, errors.New("no definition found for microgateway")
 }
 
-// GoCode is the microgateway go code representation
-type GoCode struct {
-	Imports []string
-	Action  string
-}
-
-// AddImport adds an import to the GoCode
-func (g *GoCode) AddImport(ref string) {
-	for _, imp := range g.Imports {
-		if imp == ref {
-			return
-		}
-	}
-}
-
-// GenerateGoCode generates go code from an action
-func (f *Factory) GenerateGoCode(settingsName string, config *action.Config) (code GoCode, err error) {
+// Generate generates go code from an action
+func (f *Factory) Generate(settingsName string, imports *coreapi.Imports, config *action.Config) (code string, err error) {
 	act := Action{
 		id: config.Id,
 	}
@@ -209,55 +201,55 @@ func (f *Factory) GenerateGoCode(settingsName string, config *action.Config) (co
 		return code, err
 	}
 
-	code.AddImport(`microapi "github.com/project-flogo/microgateway/api"`)
-	code.Action += fmt.Sprintf("var %s map[string]interface{}\n", settingsName)
-	code.Action += "{\n"
-	code.Action += fmt.Sprintf("gateway := microapi.New(\"%s\")\n", actionData.Name)
+	port := imports.AddWithAlias("microapi", "github.com/project-flogo/microgateway/api")
+	code += fmt.Sprintf("var %s map[string]interface{}\n", settingsName)
+	code += "{\n"
+	code += fmt.Sprintf("gateway := %s.New(\"%s\")\n", port.Alias, actionData.Name)
 	services := make(map[string]string)
 	for i, service := range actionData.Services {
-		code.Action += fmt.Sprintf("service%d := gateway.NewService(\"%s\", &rest.Activity{})\n", i, service.Name)
-		services[service.Name] = fmt.Sprintf("services%d", i)
-		code.AddImport(service.Ref)
+		port := imports.AddWithAlias("", service.Ref)
+		code += fmt.Sprintf("service%d := gateway.NewService(\"%s\", &%s.Activity{})\n", i, service.Name, port.Alias)
+		services[service.Name] = fmt.Sprintf("service%d", i)
 		if service.Description != "" {
-			code.Action += fmt.Sprintf("service%d.SetDescription(\"%s\")\n", i, service.Description)
+			code += fmt.Sprintf("service%d.SetDescription(\"%s\")\n", i, service.Description)
 		}
 		for key, value := range service.Settings {
-			code.Action += fmt.Sprintf("service%d.AddSetting(\"%s\", %#v)\n", i, key, value)
+			code += fmt.Sprintf("service%d.AddSetting(\"%s\", %#v)\n", i, key, value)
 		}
-		code.Action += fmt.Sprintf("_ = service%d\n", i)
+		code += fmt.Sprintf("_ = service%d\n", i)
 	}
 	for i, step := range actionData.Steps {
-		code.Action += fmt.Sprintf("step%d := gateway.NewStep(%s)\n", i, services[step.Service])
+		code += fmt.Sprintf("step%d := gateway.NewStep(%s)\n", i, services[step.Service])
 		if step.Condition != "" {
-			code.Action += fmt.Sprintf("step%d.SetIf(\"%s\")\n", i, step.Condition)
+			code += fmt.Sprintf("step%d.SetIf(\"%s\")\n", i, step.Condition)
 		}
 		for key, value := range step.Input {
-			code.Action += fmt.Sprintf("step%d.AddInput(\"%s\", %#v)\n", i, key, value)
+			code += fmt.Sprintf("step%d.AddInput(\"%s\", %#v)\n", i, key, value)
 		}
 		if step.HaltCondition != "" {
-			code.Action += fmt.Sprintf("step%d.SetHalt(\"%s\")\n", i, step.HaltCondition)
+			code += fmt.Sprintf("step%d.SetHalt(\"%s\")\n", i, step.HaltCondition)
 		}
-		code.Action += fmt.Sprintf("_ = step%d\n", i)
+		code += fmt.Sprintf("_ = step%d\n", i)
 	}
 	for i, response := range actionData.Responses {
-		code.Action += fmt.Sprintf("response%d := gateway.NewResponse(%t)\n", i, response.Error)
+		code += fmt.Sprintf("response%d := gateway.NewResponse(%t)\n", i, response.Error)
 		if response.Condition != "" {
-			code.Action += fmt.Sprintf("response%d.SetIf(\"%s\")\n", i, response.Condition)
+			code += fmt.Sprintf("response%d.SetIf(\"%s\")\n", i, response.Condition)
 		}
 		if response.Output.Code != nil {
-			code.Action += fmt.Sprintf("response%d.SetCode(%d)\n", i, response.Output.Code)
+			code += fmt.Sprintf("response%d.SetCode(%f)\n", i, response.Output.Code)
 		}
 		if response.Output.Data != nil {
-			code.Action += fmt.Sprintf("response%d.SetData(%#v)\n", i, response.Output.Data)
+			code += fmt.Sprintf("response%d.SetData(%#v)\n", i, response.Output.Data)
 		}
-		code.Action += fmt.Sprintf("_ = response%d\n", i)
+		code += fmt.Sprintf("_ = response%d\n", i)
 	}
-	code.Action += fmt.Sprintf("var err error\n")
-	code.Action += fmt.Sprintf("%s, err = gateway.AddResource(app)\n", settingsName)
-	code.Action += fmt.Sprintf("if err != nil {\n")
-	code.Action += fmt.Sprintf("panic(err)\n")
-	code.Action += fmt.Sprintf("}\n")
-	code.Action += "}\n"
+	code += fmt.Sprintf("var err error\n")
+	code += fmt.Sprintf("%s, err = gateway.AddResource(app)\n", settingsName)
+	code += fmt.Sprintf("if err != nil {\n")
+	code += fmt.Sprintf("panic(err)\n")
+	code += fmt.Sprintf("}\n")
+	code += "}\n"
 
 	return code, nil
 }
