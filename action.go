@@ -12,20 +12,24 @@ import (
 	"path/filepath"
 	"strings"
 
+	// imports the flogo script language
+	_ "github.com/project-flogo/core/data/expression/script"
+	// imports the basic functions
 	_ "github.com/project-flogo/contrib/function"
+	// imports the microgateway specific functions
+	_ "github.com/project-flogo/microgateway/internal/function"
+
 	"github.com/project-flogo/core/action"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/app/resource"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/expression"
-	_ "github.com/project-flogo/core/data/expression/script"
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/data/resolve"
 	logger "github.com/project-flogo/core/support/log"
 	"github.com/project-flogo/microgateway/api"
 	"github.com/project-flogo/microgateway/internal/core"
-	_ "github.com/project-flogo/microgateway/internal/function"
 	"github.com/project-flogo/microgateway/internal/schema"
 )
 
@@ -97,27 +101,13 @@ func (i *initContext) Logger() logger.Logger {
 	return i.logger
 }
 
+// Initialize initializes the factory
 func (f *Factory) Initialize(ctx action.InitContext) error {
 	f.Manager = ctx.ResourceManager()
 	return nil
 }
 
-// New creates a new microgateway
-func (f *Factory) New(config *action.Config) (action.Action, error) {
-	log := logger.ChildLogger(logger.RootLogger(), "microgateway")
-	act := Action{
-		id:     config.Id,
-		logger: log,
-	}
-	if act.id == "" {
-		act.id = config.Ref
-	}
-
-	err := metadata.MapToStruct(config.Settings, &act.settings, true)
-	if err != nil {
-		return nil, err
-	}
-
+func (f *Factory) getActionData(act Action) (*api.Microgateway, error) {
 	var actionData *api.Microgateway
 	if uri := act.settings.URI; uri != "" {
 		url, err := url.Parse(uri)
@@ -174,12 +164,123 @@ func (f *Factory) New(config *action.Config) (action.Action, error) {
 			// Load action data from resources
 			resData := f.Manager.GetResource(uri)
 			if resData == nil {
-				return nil, fmt.Errorf("failed to load microgateway URI data: '%s'", config.Id)
+				return nil, fmt.Errorf("failed to load microgateway URI data: '%s'", act.id)
 			}
 			actionData = resData.Object().(*api.Microgateway)
 		}
-	} else {
-		return nil, errors.New("no definition found for microgateway")
+
+		return actionData, nil
+	}
+
+	return nil, errors.New("no definition found for microgateway")
+}
+
+// GoCode is the microgateway go code representation
+type GoCode struct {
+	Imports []string
+	Action  string
+}
+
+// AddImport adds an import to the GoCode
+func (g *GoCode) AddImport(ref string) {
+	for _, imp := range g.Imports {
+		if imp == ref {
+			return
+		}
+	}
+}
+
+// GenerateGoCode generates go code from an action
+func (f *Factory) GenerateGoCode(settingsName string, config *action.Config) (code GoCode, err error) {
+	act := Action{
+		id: config.Id,
+	}
+	if act.id == "" {
+		act.id = config.Ref
+	}
+
+	err = metadata.MapToStruct(config.Settings, &act.settings, true)
+	if err != nil {
+		return code, err
+	}
+
+	actionData, err := f.getActionData(act)
+	if err != nil {
+		return code, err
+	}
+
+	code.AddImport(`microapi "github.com/project-flogo/microgateway/api"`)
+	code.Action += fmt.Sprintf("var %s map[string]interface{}\n", settingsName)
+	code.Action += "{\n"
+	code.Action += fmt.Sprintf("gateway := microapi.New(\"%s\")\n", actionData.Name)
+	services := make(map[string]string)
+	for i, service := range actionData.Services {
+		code.Action += fmt.Sprintf("service%d := gateway.NewService(\"%s\", &rest.Activity{})\n", i, service.Name)
+		services[service.Name] = fmt.Sprintf("services%d", i)
+		code.AddImport(service.Ref)
+		if service.Description != "" {
+			code.Action += fmt.Sprintf("service%d.SetDescription(\"%s\")\n", i, service.Description)
+		}
+		for key, value := range service.Settings {
+			code.Action += fmt.Sprintf("service%d.AddSetting(\"%s\", %#v)\n", i, key, value)
+		}
+		code.Action += fmt.Sprintf("_ = service%d\n", i)
+	}
+	for i, step := range actionData.Steps {
+		code.Action += fmt.Sprintf("step%d := gateway.NewStep(%s)\n", i, services[step.Service])
+		if step.Condition != "" {
+			code.Action += fmt.Sprintf("step%d.SetIf(\"%s\")\n", i, step.Condition)
+		}
+		for key, value := range step.Input {
+			code.Action += fmt.Sprintf("step%d.AddInput(\"%s\", %#v)\n", i, key, value)
+		}
+		if step.HaltCondition != "" {
+			code.Action += fmt.Sprintf("step%d.SetHalt(\"%s\")\n", i, step.HaltCondition)
+		}
+		code.Action += fmt.Sprintf("_ = step%d\n", i)
+	}
+	for i, response := range actionData.Responses {
+		code.Action += fmt.Sprintf("response%d := gateway.NewResponse(%t)\n", i, response.Error)
+		if response.Condition != "" {
+			code.Action += fmt.Sprintf("response%d.SetIf(\"%s\")\n", i, response.Condition)
+		}
+		if response.Output.Code != nil {
+			code.Action += fmt.Sprintf("response%d.SetCode(%d)\n", i, response.Output.Code)
+		}
+		if response.Output.Data != nil {
+			code.Action += fmt.Sprintf("response%d.SetData(%#v)\n", i, response.Output.Data)
+		}
+		code.Action += fmt.Sprintf("_ = response%d\n", i)
+	}
+	code.Action += fmt.Sprintf("var err error\n")
+	code.Action += fmt.Sprintf("%s, err = gateway.AddResource(app)\n", settingsName)
+	code.Action += fmt.Sprintf("if err != nil {\n")
+	code.Action += fmt.Sprintf("panic(err)\n")
+	code.Action += fmt.Sprintf("}\n")
+	code.Action += "}\n"
+
+	return code, nil
+}
+
+// New creates a new microgateway
+func (f *Factory) New(config *action.Config) (action.Action, error) {
+	log := logger.ChildLogger(logger.RootLogger(), "microgateway")
+	act := Action{
+		id:     config.Id,
+		logger: log,
+	}
+	if act.id == "" {
+		act.id = config.Ref
+	}
+
+	err := metadata.MapToStruct(config.Settings, &act.settings, true)
+	if err != nil {
+		return nil, err
+	}
+
+	actionData, err := f.getActionData(act)
+	if err != nil {
+		return nil, err
 	}
 
 	envFlags := make(map[string]string)
