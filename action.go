@@ -80,6 +80,7 @@ func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, err
 // Factory is a microgateway factory
 type Factory struct {
 	*resource.Manager
+	cache map[string]bool
 }
 
 type initContext struct {
@@ -111,6 +112,7 @@ func (i *initContext) Logger() logger.Logger {
 // Initialize initializes the factory
 func (f *Factory) Initialize(ctx action.InitContext) error {
 	f.Manager = ctx.ResourceManager()
+	f.cache = make(map[string]bool, 8)
 	return nil
 }
 
@@ -196,18 +198,24 @@ func (f *Factory) Generate(settingsName string, imports *coreapi.Imports, config
 		return code, err
 	}
 
+	if f.cache[act.settings.URI] {
+		code += fmt.Sprintf("%s := %#v\n", settingsName, config.Settings)
+		return code, err
+	}
+	f.cache[act.settings.URI] = true
+
 	actionData, err := f.getActionData(act)
 	if err != nil {
 		return code, err
 	}
 
-	port := imports.AddWithAlias("microapi", "github.com/project-flogo/microgateway/api")
+	port := imports.Ensure("github.com/project-flogo/microgateway/api")
 	code += fmt.Sprintf("var %s map[string]interface{}\n", settingsName)
 	code += "{\n"
 	code += fmt.Sprintf("gateway := %s.New(\"%s\")\n", port.Alias, actionData.Name)
 	services := make(map[string]string)
 	for i, service := range actionData.Services {
-		port := imports.AddWithAlias("", service.Ref)
+		port := imports.Ensure(service.Ref)
 		code += fmt.Sprintf("service%d := gateway.NewService(\"%s\", &%s.Activity{})\n", i, service.Name, port.Alias)
 		services[service.Name] = fmt.Sprintf("service%d", i)
 		if service.Description != "" {
@@ -245,7 +253,7 @@ func (f *Factory) Generate(settingsName string, imports *coreapi.Imports, config
 		code += fmt.Sprintf("_ = response%d\n", i)
 	}
 	code += fmt.Sprintf("var err error\n")
-	code += fmt.Sprintf("%s, err = gateway.AddResource(app)\n", settingsName)
+	code += fmt.Sprintf("%s, err = gateway.AddResource(app, %#v)\n", settingsName, config.Settings)
 	code += fmt.Sprintf("if err != nil {\n")
 	code += fmt.Sprintf("panic(err)\n")
 	code += fmt.Sprintf("}\n")
