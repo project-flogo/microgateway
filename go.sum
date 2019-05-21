@@ -49,6 +49,8 @@ github.com/pointlander/core v0.9.0-alpha.0.0.20190514214115-13c8bd2dfdd5 h1:sbGU
 github.com/pointlander/core v0.9.0-alpha.0.0.20190514214115-13c8bd2dfdd5/go.mod h1:QGWi7TDLlhGUaYH3n/16ImCuulbEHGADYEXyrcHhX7U=
 github.com/pointlander/core v0.9.0-alpha.0.0.20190515213745-c23a014704fa h1:DaMpfgpJv5PxpZgJm7IB6bvbO8olcRGiSzUl2Ae6Vxc=
 github.com/pointlander/core v0.9.0-alpha.0.0.20190515213745-c23a014704fa/go.mod h1:QGWi7TDLlhGUaYH3n/16ImCuulbEHGADYEXyrcHhX7U=
+github.com/pointlander/core v0.9.0-alpha.0.0.20190521204626-d0604d8121c1 h1:UBOqqJKfYu0xQdrSi42mRTdj1UjVnQhORC1YdoV9EE8=
+github.com/pointlander/core v0.9.0-alpha.0.0.20190521204626-d0604d8121c1/go.mod h1:QGWi7TDLlhGUaYH3n/16ImCuulbEHGADYEXyrcHhX7U=
 github.com/project-flogo/contrib v0.0.0-20181102044714-faa70a874eed h1:ovwna9Fk6kCsGpwXv/9lIBCozolTzHAO2oICscByD0U=
 github.com/project-flogo/contrib v0.0.0-20181102044714-faa70a874eed/go.mod h1:4kkrCbxbMG1J4cfwZohIHaTDUkgjK7ICodU2czRgIbg=
 github.com/project-flogo/contrib v0.0.0-20181103024438-71cb103ef1ab h1:SVilfDqHc/FO2tJkIg4hcVZu2qR5jzYkzbFFvO3qkio=

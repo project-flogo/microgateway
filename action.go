@@ -60,6 +60,11 @@ func init() {
 var actionMetadata = action.ToMetadata(&Settings{}, &Input{}, &Output{})
 var resourceMap = make(map[string]*api.Microgateway)
 
+// Generate disables generation of the microgateway resource type
+func (m *Manager) Generate() bool {
+	return false
+}
+
 // LoadResource loads the microgateway definition
 func (m *Manager) LoadResource(config *resource.Config) (*resource.Resource, error) {
 	data := config.Data
@@ -212,11 +217,11 @@ func (f *Factory) Generate(settingsName string, imports *coreapi.Imports, config
 	port := imports.Ensure("github.com/project-flogo/microgateway/api")
 	code += fmt.Sprintf("var %s map[string]interface{}\n", settingsName)
 	code += "{\n"
-	code += fmt.Sprintf("gateway := %s.New(\"%s\")\n", port.Alias, actionData.Name)
+	code += fmt.Sprintf("gateway := %s.New(\"%s\")\n", port.GetAlias(), actionData.Name)
 	services := make(map[string]string)
 	for i, service := range actionData.Services {
 		port := imports.Ensure(service.Ref)
-		code += fmt.Sprintf("service%d := gateway.NewService(\"%s\", &%s.Activity{})\n", i, service.Name, port.Alias)
+		code += fmt.Sprintf("service%d := gateway.NewService(\"%s\", &%s.Activity{})\n", i, service.Name, port.GetAlias())
 		services[service.Name] = fmt.Sprintf("service%d", i)
 		if service.Description != "" {
 			code += fmt.Sprintf("service%d.SetDescription(\"%s\")\n", i, service.Description)
