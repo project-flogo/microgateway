@@ -4,9 +4,8 @@ import (
 	"flag"
 	"io/ioutil"
 
-	"github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/engine"
-	_ "github.com/project-flogo/microgateway"
+	"github.com/project-flogo/microgateway"
 )
 
 var (
@@ -25,5 +24,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	api.Generate(app, *output)
+	microgateway.Generate(app, *output)
 }

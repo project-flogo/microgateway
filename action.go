@@ -27,7 +27,6 @@ import (
 
 	"github.com/project-flogo/core/action"
 	"github.com/project-flogo/core/activity"
-	coreapi "github.com/project-flogo/core/api"
 	"github.com/project-flogo/core/app/resource"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/expression"
@@ -190,7 +189,7 @@ func (f *Factory) getActionData(act Action) (*api.Microgateway, error) {
 }
 
 // Generate generates go code from an action
-func (f *Factory) Generate(settingsName string, imports *coreapi.Imports, config *action.Config) (code string, err error) {
+func (f *Factory) Generate(settingsName string, imports *Imports, config *action.Config) (code string, err error) {
 	act := Action{
 		id: config.Id,
 	}
