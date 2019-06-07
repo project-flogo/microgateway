@@ -124,8 +124,20 @@ func (r *Response) SetData(data interface{}) {
 }
 
 // AddResource adds the microgateway resource to the app and returns the action settings
-func (m *Microgateway) AddResource(app *api.App) (map[string]interface{}, error) {
-	name := "microgateway:" + m.Name
+func (m *Microgateway) AddResource(app *api.App, inputSettings ...map[string]interface{}) (map[string]interface{}, error) {
+	name, async := "microgateway:"+m.Name, false
+	if len(inputSettings) == 1 && inputSettings[0] != nil {
+		if value := inputSettings[0]["uri"]; value != nil {
+			if uri, ok := value.(string); ok && uri != "" {
+				name = uri
+			}
+		}
+		if value := inputSettings[0]["async"]; value != nil {
+			if a, ok := value.(bool); ok {
+				async = a
+			}
+		}
+	}
 	resourcesMutex.RLock()
 	_, ok := resources[name]
 	resourcesMutex.RUnlock()
@@ -142,7 +154,8 @@ func (m *Microgateway) AddResource(app *api.App) (map[string]interface{}, error)
 	}
 	app.AddResource(name, data)
 	settings := map[string]interface{}{
-		"uri": name,
+		"uri":   name,
+		"async": async,
 	}
 	return settings, nil
 }
