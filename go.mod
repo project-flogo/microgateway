@@ -1,7 +1,5 @@
 module github.com/project-flogo/microgateway
 
-replace github.com/project-flogo/core => github.com/pointlander/core v0.9.0-alpha.0.0.20190605173228-86450188d1d3
-
 require (
 	github.com/awalterschulze/gographviz v0.0.0-20170410065617-c84395e536e1 // indirect
 	github.com/chewxy/hm v1.0.0 // indirect
@@ -25,7 +23,7 @@ require (
 	github.com/project-flogo/contrib/function/string v0.9.0-rc.1.0.20190509204259-4246269fb68e
 	github.com/project-flogo/contrib/trigger/channel v0.0.0-20190509204259-4246269fb68e
 	github.com/project-flogo/contrib/trigger/rest v0.9.0-rc.1.0.20190509204259-4246269fb68e
-	github.com/project-flogo/core v0.9.0-rc.2
+	github.com/project-flogo/core v0.9.2
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/ulule/limiter v2.2.0+incompatible
