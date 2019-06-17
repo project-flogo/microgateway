@@ -19,11 +19,16 @@ import (
 	"github.com/project-flogo/core/support"
 )
 
+// VersionMaster is the master version
+const VersionMaster = "master"
+
 // Import is a package import
 type Import struct {
-	Alias  string
-	Import string
-	Used   bool
+	Alias   string
+	Import  string
+	Version string
+	Port    string
+	Used    bool
 }
 
 // GetAlias gets the import alias and marks it as used
@@ -38,7 +43,7 @@ type Imports struct {
 }
 
 // Ensure looks up an import and adds it if it is missing
-func (i *Imports) Ensure(path string, name ...string) *Import {
+func (i *Imports) Ensure(path string, options ...string) *Import {
 	if strings.HasPrefix(path, "#") {
 		alias := strings.TrimPrefix(path, "#")
 		for _, port := range i.Imports {
@@ -53,10 +58,25 @@ func (i *Imports) Ensure(path string, name ...string) *Import {
 			return port
 		}
 	}
-	parts := strings.Split(path, "/")
-	alias := parts[len(parts)-1]
-	if len(name) == 1 {
-		alias = name[0]
+	alias, version, relative := "", VersionMaster, ""
+	if len(options) > 0 {
+		if value := options[0]; value != "" {
+			alias = value
+		}
+	}
+	if len(options) > 1 {
+		if value := options[1]; value != "" {
+			version = value
+		}
+	}
+	if len(options) > 2 {
+		if value := options[2]; value != "" {
+			relative = value
+		}
+	}
+	if alias == "" {
+		parts := strings.Split(path+relative, "/")
+		alias = parts[len(parts)-1]
 	}
 	if alias != "_" {
 		for _, port := range i.Imports {
@@ -67,8 +87,10 @@ func (i *Imports) Ensure(path string, name ...string) *Import {
 		}
 	}
 	port := &Import{
-		Alias:  alias,
-		Import: path,
+		Alias:   alias,
+		Import:  path + relative,
+		Version: version,
+		Port:    path,
 	}
 	i.Imports = append(i.Imports, port)
 	return port
@@ -96,7 +118,7 @@ type GenerateResource interface {
 }
 
 // Generate generates flogo go API code
-func Generate(config *app.Config, file string) {
+func Generate(config *app.Config, file string, modFile string) {
 	if config.Type != "flogo:app" {
 		panic("invalid app type")
 	}
@@ -105,13 +127,8 @@ func Generate(config *app.Config, file string) {
 
 	for _, anImport := range config.Imports {
 		matches := flogoImportPattern.FindStringSubmatch(anImport)
-		alias, ref := matches[1], matches[3]
-		var port *Import
-		if alias == "" {
-			port = app.imports.Ensure(ref)
-		} else {
-			port = app.imports.Ensure(ref, alias)
-		}
+		alias, ref, version, relative := matches[2], matches[3], matches[4], matches[5]
+		port := app.imports.Ensure(ref, alias, version, relative)
 
 		for _, typ := range [...]string{"activity", "action", "trigger", "function", "other"} {
 			err := support.RegisterAlias(typ, port.Alias, port.Import)
@@ -321,5 +338,36 @@ func Generate(config *app.Config, file string) {
 	if err != nil {
 		buffer.WriteTo(out)
 		panic(fmt.Errorf("%v: %v", file, err))
+	}
+
+	if modFile != "" {
+		hasImports := false
+		if len(app.imports.Imports) > 0 {
+			for _, port := range app.imports.Imports {
+				if port.Version == VersionMaster {
+					continue
+				}
+				hasImports = true
+				break
+			}
+		}
+
+		mod, err := os.Create(modFile)
+		if err != nil {
+			panic(err)
+		}
+		defer mod.Close()
+		fmt.Fprintf(mod, "module main\n\n")
+		fmt.Fprintf(mod, "go 1.12\n\n")
+		if hasImports {
+			fmt.Fprintf(mod, "require (\n")
+			for _, port := range app.imports.Imports {
+				if port.Version == VersionMaster {
+					continue
+				}
+				fmt.Fprintf(mod, "\t%s %s\n", port.Port, port.Version)
+			}
+			fmt.Fprintf(mod, ")\n")
+		}
 	}
 }

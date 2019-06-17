@@ -24,5 +24,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	microgateway.Generate(app, *output)
+	microgateway.Generate(app, *output, "go.mod")
 }

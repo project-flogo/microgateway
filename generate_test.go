@@ -143,9 +143,17 @@ func TestGenerate(t *testing.T) {
 		t.Fatal(err)
 	}
 	os.Mkdir("test", 0777)
-	Generate(app, "./test/test.go")
-	cmd := exec.Command("go", "build", "-o", "./test/test", "./test/")
+	err = os.Chdir("test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	Generate(app, "./test.go", "./go.mod")
+	cmd := exec.Command("go", "build")
 	err = cmd.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = os.Chdir("..")
 	if err != nil {
 		t.Fatal(err)
 	}
