@@ -358,7 +358,6 @@ func Generate(config *app.Config, file string, modFile string) {
 		}
 		defer mod.Close()
 		fmt.Fprintf(mod, "module main\n\n")
-		fmt.Fprintf(mod, "go 1.12\n\n")
 		if hasImports {
 			fmt.Fprintf(mod, "require (\n")
 			for _, port := range app.imports.Imports {
