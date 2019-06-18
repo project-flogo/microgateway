@@ -1,6 +1,7 @@
 package microgateway
 
 import (
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
@@ -142,8 +143,22 @@ func TestGenerate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	os.Mkdir("test", 0777)
-	err = os.Chdir("test")
+	current, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		err = os.Chdir(current)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}()
+	tmp, err := ioutil.TempDir("", "generate")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(tmp)
+	err = os.Chdir(tmp)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,11 +168,7 @@ func TestGenerate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = os.Chdir("..")
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = os.RemoveAll("./test")
+	err = os.RemoveAll(tmp)
 	if err != nil {
 		t.Fatal(err)
 	}
