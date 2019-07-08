@@ -1,0 +1,68 @@
+{
+  "name": "jwt",
+  "type": "flogo:activity",
+  "version": "0.0.1",
+  "title": "JSON Web Token",
+  "description": "JSON web token authentication",
+  "homepage": "https://github.com/project-flogo/microgateway/tree/master/activity/jwt",
+  "settings": [],
+  "input": [
+    {
+      "name": "token",
+      "type": "string",
+      "description": "The raw token"
+    },
+    {
+      "name": "key",
+      "type": "string",
+      "description": "The key used to sign the token"
+    },
+    {
+      "name": "signingMethod",
+      "type": "string",
+      "description": "The signing method used (HMAC, ECDSA, RSA, RSAPSS)"
+    },
+    {
+      "name": "iss",
+      "type": "string",
+      "description": "The 'iss' standard claim to match against"
+    },
+    {
+      "name": "sub",
+      "type": "string",
+      "description": "The 'sub' standard claim to match against"
+    },
+    {
+      "name": "aud",
+      "type": "string",
+      "description": "The 'aud' standard claim to match against"
+    }
+  ],
+  "output": [
+    {
+      "name": "valid",
+      "type": "bool",
+      "description": "If the token is valid or not"
+    },
+    {
+      "name": "token",
+      "type": "any",
+      "description": "The parsed token"
+    },
+    {
+      "name": "validationMessage",
+      "type": "string",
+      "description": "The validation failure message"
+    },
+    {
+      "name": "error",
+      "type": "bool",
+      "description": "If an error occurred when parsing the token"
+    },
+    {
+      "name": "errorMessage",
+      "type": "string",
+      "description": "The error message"
+    }
+  ]
+}

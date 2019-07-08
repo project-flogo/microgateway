@@ -1,0 +1,35 @@
+{
+  "name": "sqld",
+  "type": "flogo:activity",
+  "version": "0.0.1",
+  "title": "SQL Detector",
+  "description": "Detects SQL injection attacks",
+  "homepage": "https://github.com/project-flogo/microgateway/tree/master/activity/sqld",
+  "settings": [
+    {
+      "name": "file",
+      "type": "string",
+      "description": "An optional file name for custom neural network weights"
+    }
+  ],
+  "input": [
+    {
+      "name": "payload",
+      "type": "object",
+      "required": true,
+      "description": "A payload to do SQL injection attack detection on"
+    }
+  ],
+  "output": [
+    {
+      "name": "attack",
+      "type": "float32",
+      "description": "The probability that the payload is a SQL injection attack"
+    },
+    {
+      "name": "attackValues",
+      "type": "object",
+      "description": "The SQL injection attack probability for each string in the payload"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "circuitbreaker",
+  "type": "flogo:activity",
+  "version": "0.0.1",
+  "title": "Circuit Breaker",
+  "description": "Adds protection for a service",
+  "homepage": "https://github.com/project-flogo/microgateway/tree/master/activity/circuitbreaker",
+  "settings": [
+    {
+      "name": "mode",
+      "type": "string",
+      "allowed": [ "a", "b", "c", "d"],
+      "description": "The tripping mode: 'a' for contiguous errors, 'b' for errors within a time period, 'c' for contiguous errors within a time period, and 'd' for a probabilistic smart circuit breaker mode. Defaults to mode 'a'"
+    },
+    {
+      "name": "threshold",
+      "type": "int",
+      "description": "The number of errors required for tripping. Defaults to 5 errors"
+    },
+    {
+      "name": "period",
+      "type": "int",
+      "description": "Number of seconds in which errors have to occur for the circuit breaker to trip. Applies to modes 'b' and 'c'. Defaults to 60 seconds"
+    },
+    {
+      "name": "timeout",
+      "type": "int",
+      "description": "Number of seconds that the circuit breaker will remain tripped. Applies to modes 'a', 'b', 'c'. Defaults to 60 seconds"
+    }
+  ],
+  "input": [
+    {
+      "name": "operation",
+      "type": "string",
+      "allowed": ["counter", "reset"],
+      "description": "An operation to perform: '' for protecting a service, 'counter' for processing errors, and 'reset' for processing non-errors. Defaults to ''"
+    }
+  ],
+  "output": [
+    {
+      "name": "tripped",
+      "type": "bool",
+      "description": "The state of the circuit breaker"
+    }
+  ]
+}

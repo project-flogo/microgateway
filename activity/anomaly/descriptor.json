@@ -1,0 +1,34 @@
+{
+  "name": "anomaly",
+  "type": "flogo:activity",
+  "version": "0.0.1",
+  "title": "Anomaly",
+  "description": "Anomaly detection",
+  "homepage": "https://github.com/project-flogo/microgateway/tree/master/activity/anomaly",
+  "settings": [
+    {
+      "name": "depth",
+      "type": "string",
+      "description": "The size of the statistical model. Defaults to 2"
+    }
+  ],
+  "input": [
+    {
+      "name": "payload",
+      "type": "any",
+      "description": "A payload to do anomaly detection on"
+    }
+  ],
+  "output": [
+    {
+      "name": "complexity",
+      "type": "float32",
+      "description": "How unusual the payload is in terms of standard deviations from the mean"
+    },
+    {
+      "name": "count",
+      "type": "int",
+      "description": "The number of payloads that have been processed"
+    }
+  ]
+}
