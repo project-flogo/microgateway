@@ -1,0 +1,56 @@
+{
+  "name": "ratelimiter",
+  "type": "flogo:activity",
+  "version": "0.0.1",
+  "title": "Rate Limiter",
+  "description": "Limits the rate a which a service is called",
+  "homepage": "https://github.com/project-flogo/microgateway/tree/master/activity/ratelimiter",
+  "settings": [
+    {
+      "name": "limit",
+      "type": "string",
+      "required": true,
+      "description": "Limit can be specifed in the format of \"limit-period\". Valid periods are 'S', 'M' & 'H' to represent Second, Minute & Hour. Example: \"10-S\" represents 10 request/second"
+    },
+    {
+      "name": "spikeThreshold",
+      "type": "float64",
+      "description": "Multiple above base traffic load which triggers the spike block logic. Spike blocking is disabled by default."
+    },
+    {
+      "name": "decayRate",
+      "type": "float64",
+      "description": "Exponential decay rate for the spike blocking probability. Default .01"
+    }
+  ],
+  "input": [
+    {
+      "name": "token",
+      "type": "string",
+      "required": true,
+      "description": "Token for which rate limit has to be applied"
+    }
+  ],
+  "output": [
+    {
+      "name": "limitReached",
+      "type": "bool",
+      "description": "If the limit exceeds"
+    },
+    {
+      "name": "limitAvailable",
+      "type": "int64",
+      "description": "Available limit"
+    },
+    {
+      "name": "error",
+      "type": "bool",
+      "description": "If any error occured while applying the rate limit"
+    },
+    {
+      "name": "errorMessage",
+      "type": "string",
+      "description": "The error message"
+    }
+  ]
+}

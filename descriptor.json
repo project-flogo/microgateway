@@ -1,0 +1,23 @@
+{
+  "name": "microgateway",
+  "type": "flogo:action",
+  "version": "0.0.1",
+  "title": "Microgateway Action",
+  "description": "Microgateway action for routing traffic",
+  "homepage": "https://github.com/project-flogo/microgateway",
+  "settings": [
+    {
+      "name": "uri",
+      "type": "string",
+      "required": true,
+      "description" : "The location of the microgateway resource"
+    },
+    {
+      "name": "async",
+      "type": "bool",
+      "description" : "Execute the resource in an asynchronous manner"
+    }
+  ],
+  "input": [],
+  "output": []
+}
