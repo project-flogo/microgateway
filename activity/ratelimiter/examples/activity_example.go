@@ -23,7 +23,7 @@ func Example(limit string, threshold float64) (engine.Engine, error) {
 
 	serviceStore := gateway.NewService("PetStorePets", &rest.Activity{})
 	serviceStore.SetDescription("Get pets by ID from the petstore")
-	serviceStore.AddSetting("uri", "http://petstore.swagger.io/v2/pet/:petId")
+	serviceStore.AddSetting("uri", "http://localhost:8080/v2/pet/:petId")
 	serviceStore.AddSetting("method", "GET")
 	serviceStore.AddSetting("headers", map[string]string{
 		"Accept": "application/json",

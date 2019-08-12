@@ -1,6 +1,7 @@
 package examples
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -17,6 +18,49 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// PetStore is a petstore
+type PetStore struct {
+	t *testing.T
+}
+
+const petStoreResponse = `{
+	"id": 1,
+	"category": {
+		"id": 0,
+		"name": "string"
+	},
+	"name": "sally",
+	"photoUrls": ["string"],
+	"tags": [{"id": 0,"name": "string"}],
+	"status": "available"
+}
+`
+
+// ServeHTTP handle a petstore request
+func (p *PetStore) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	_, err := w.Write([]byte(petStoreResponse))
+	if err != nil {
+		p.t.Fatal(err)
+	}
+}
+
+// StartPetStore starts the petstore
+func StartPetStore(t *testing.T) *http.Server {
+	server := http.Server{
+		Addr: ":8080",
+		Handler: &PetStore{
+			t: t,
+		},
+	}
+	go func() {
+		err := server.ListenAndServe()
+		if err != http.ErrServerClosed {
+			t.Fatal(err)
+		}
+	}()
+	return &server
+}
+
 // Response is a reply form the server
 type Response struct {
 	Status string `json:"status"`
@@ -32,6 +76,11 @@ func testApplication(t *testing.T, e engine.Engine, limit string) {
 		assert.Nil(t, err)
 	}()
 	test.Pour("9096")
+
+	test.Drain("8080")
+	store := StartPetStore(t)
+	defer store.Shutdown(context.Background())
+	test.Pour("8080")
 
 	transport := &http.Transport{
 		MaxIdleConns: 1,
@@ -117,6 +166,7 @@ func TestIntegrationJSON(t *testing.T) {
 		err = json.Unmarshal(data, &Input)
 		assert.Nil(t, err)
 		Input.Resources[0].Data.Services[0]["settings"] = map[string]interface{}{"limit": parameters[i].limit}
+		Input.Resources[0].Data.Services[1]["settings"].(map[string]interface{})["uri"] = "http://localhost:8080/v2/pet/:petId"
 		data, _ = json.Marshal(Input)
 
 		cfg, err := engine.LoadAppConfig(string(data), false)
@@ -138,6 +188,11 @@ func testSmartApplication(t *testing.T, e engine.Engine) {
 		assert.Nil(t, err)
 	}()
 	test.Pour("9096")
+
+	test.Drain("8080")
+	store := StartPetStore(t)
+	defer store.Shutdown(context.Background())
+	test.Pour("8080")
 
 	transport := &http.Transport{
 		MaxIdleConns: 1,
@@ -216,6 +271,13 @@ func TestIntegrationSmartJSON(t *testing.T) {
 	}
 	data, err := ioutil.ReadFile(filepath.FromSlash("./json/smart/flogo.json"))
 	assert.Nil(t, err)
+
+	var Input input
+	err = json.Unmarshal(data, &Input)
+	assert.Nil(t, err)
+	Input.Resources[0].Data.Services[1]["settings"].(map[string]interface{})["uri"] = "http://localhost:8080/v2/pet/:petId"
+	data, _ = json.Marshal(Input)
+
 	cfg, err := engine.LoadAppConfig(string(data), false)
 	assert.Nil(t, err)
 	e, err := engine.New(cfg)
