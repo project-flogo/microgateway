@@ -3,6 +3,7 @@ package microgateway
 import (
 	"bytes"
 	"fmt"
+	"github.com/project-flogo/core/support/service"
 	"go/parser"
 	"go/printer"
 	"go/token"
@@ -103,6 +104,14 @@ type generator struct {
 
 func (g *generator) ResourceManager() *resource.Manager {
 	return g.resManager
+}
+
+func (g *generator) ServiceManager() *service.Manager {
+	return nil
+}
+
+func (g *generator) RuntimeSettings() map[string]interface{} {
+	return nil
 }
 
 var flogoImportPattern = regexp.MustCompile(`^(([^ ]*)[ ]+)?([^@:]*)@?([^:]*)?:?(.*)?$`) // extract import path even if there is an alias and/or a version
