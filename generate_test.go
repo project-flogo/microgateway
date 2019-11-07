@@ -16,6 +16,7 @@ var testFlogoJSON = `{
   "version": "1.0.0",
   "description": "This is a test application.",
 	"imports": [
+		"nil github.com/project-flogo/core@v0.9.5-0.20191107201139-c4e948d4cc8d",
 		"github.com/project-flogo/core/examples/action",
 		"github.com/project-flogo/core/examples/trigger",
 		"_ github.com/project-flogo/core/data/expression/script"

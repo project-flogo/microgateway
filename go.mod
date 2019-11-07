@@ -23,7 +23,7 @@ require (
 	github.com/project-flogo/contrib/function/string v0.9.0-rc.1.0.20190509204259-4246269fb68e
 	github.com/project-flogo/contrib/trigger/channel v0.0.0-20190509204259-4246269fb68e
 	github.com/project-flogo/contrib/trigger/rest v0.9.0-rc.1.0.20190509204259-4246269fb68e
-	github.com/project-flogo/core v0.9.4
+	github.com/project-flogo/core v0.9.5-0.20191107201139-c4e948d4cc8d
 	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/ulule/limiter v2.2.0+incompatible

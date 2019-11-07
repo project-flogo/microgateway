@@ -318,6 +318,9 @@ func Generate(config *app.Config, file string, modFile string) {
 	header := "package main\n\n"
 	header += "import (\n"
 	for _, port := range app.imports.Imports {
+		if port.Alias == "nil" {
+			continue
+		}
 		if port.Used {
 			header += fmt.Sprintf("%s \"%s\"\n", port.Alias, port.Import)
 			continue
