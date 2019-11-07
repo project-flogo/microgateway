@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"github.com/project-flogo/core/support/trace"
 	"os"
 	"strconv"
 	"strings"
@@ -271,6 +272,10 @@ func (s *serviceContext) GetSharedTempData() map[string]interface{} {
 
 func (s *serviceContext) Logger() logger.Logger {
 	return s.logger
+}
+
+func (s *serviceContext) GetTracingContext() trace.TracingContext {
+	return nil
 }
 
 func invokeService(serviceDef *Service, haltCondition *Expr, host *microgatewayHost, ctxt *serviceContext, input []*Expr, log logger.Logger) (done bool, err error) {
