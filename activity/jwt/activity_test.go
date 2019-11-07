@@ -8,6 +8,7 @@ import (
 	"github.com/project-flogo/core/data/mapper"
 	"github.com/project-flogo/core/data/metadata"
 	logger "github.com/project-flogo/core/support/log"
+	"github.com/project-flogo/core/support/trace"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -103,6 +104,10 @@ func (a *activityContext) Scope() data.Scope {
 
 func (a *activityContext) Logger() logger.Logger {
 	return logger.RootLogger()
+}
+
+func (a *activityContext) GetTracingContext() trace.TracingContext {
+	return nil
 }
 
 func TestJWT(t *testing.T) {
