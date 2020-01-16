@@ -1,0 +1,23 @@
+{
+    "name": "flogo-gql",
+    "type": "flogo:activity",
+    "version": "0.1.0",
+    "title": "GraphQL",
+    "description": "Executes GraphQL query",
+    "homepage": "https://github.com/project-flogo/microgateway/tree/master/activity/gql",
+    "input":[
+      {
+        "name": "request",
+        "type": "string",
+        "value": "",
+        "description": "GraphQL request"
+      }
+    ],
+    "output": [
+      {
+        "name": "queryDepth",
+        "type": "int",
+        "description": "GraphQL query depth"
+      }
+    ]
+  }
