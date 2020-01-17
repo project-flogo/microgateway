@@ -59,7 +59,7 @@ func testApplication(t *testing.T, e engine.Engine) {
 		return rsp
 	}
 
-	response := request("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJNYXNobGluZyIsImlhdCI6MTU0NDA1MTUyMCwiZXhwIjoxNTc1NTg3NTIxLCJhdWQiOiJ3d3cubWFzaGxpbmcuaW8iLCJzdWIiOiJ0ZW1wdXNlckBtYWlsLmNvbSIsImlkIjoiNCIsInNpZ25pbmdNZXRob2QiOiJITUFDIn0.e4d8QkOxQi4SQhBJLSoq5twYgpZjVnAnVr64fQKiYMk")
+	response := request("Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJNYXNobGluZyIsImlhdCI6MTU3OTI1MDE2NiwiZXhwIjoxNjEwNzg2MTY2LCJhdWQiOiJ3d3cubWFzaGxpbmcuaW8iLCJzdWIiOiJ0ZW1wdXNlckBtYWlsLmNvbSIsIkdpdmVuTmFtZSI6IkpvaG5ueSIsIlN1cm5hbWUiOiJSb2NrZXQiLCJFbWFpbCI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJSb2xlIjpbIk1hbmFnZXIiLCJQcm9qZWN0IEFkbWluaXN0cmF0b3IiXX0.IUlvLDRYPifc3lR2X331NQUxiZaEldtr5DUzLI7Zsj4")
 	assert.Equal(t, "\"JWT token is valid\"", string(response.Error))
 	assert.Condition(t, func() bool {
 		return len(response.Pet) > 0
