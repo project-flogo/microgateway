@@ -6,7 +6,10 @@
   <b>Microgateway Action for common microgateway patterns</b>
 </p>
 
-[![godoc](https://godoc.org/github.com/project-flogo/microgateway?status.svg)](https://godoc.org/github.com/project-flogo/microgateway)
+
+[![Build Status](https://travis-ci.com/project-flogo/microgateway.svg)](https://travis-ci.com/project-flogo/microgateway) [![godoc](https://godoc.org/github.com/project-flogo/microgateway?status.svg)](https://godoc.org/github.com/project-flogo/microgateway)
+
+
 
 # Microgateway Action
 
