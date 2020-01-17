@@ -1,4 +1,4 @@
-package gql
+package graphql
 
 import (
 	"encoding/json"
@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"time"
 
-	graphql "github.com/graph-gophers/graphql-go"
+	graphqlgo "github.com/graph-gophers/graphql-go"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/metadata"
-	"github.com/project-flogo/microgateway/activity/gql/ratelimiter"
+	"github.com/project-flogo/microgateway/activity/graphql/ratelimiter"
 )
 
 const (
@@ -62,7 +62,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 	return act, nil
 }
 
-// Activity is an GQLActivity
+// Activity is an GraphQLActivity
 // inputs : {message}
 // outputs: none
 type Activity struct {
@@ -71,7 +71,7 @@ type Activity struct {
 	context Context
 }
 
-// Context GQL context
+// Context graphql context
 type Context struct {
 	rateLimiters map[string]*ratelimiter.Limiter
 	t1s          map[string]time.Time
@@ -128,15 +128,15 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 
 				return true, nil
 			}
-			schema, err := graphql.ParseSchema(string(schemaStr), nil)
+			schema, err := graphqlgo.ParseSchema(string(schemaStr), nil)
 			if err != nil {
-				fmt.Println("Error while parsing GQL schema: ", err)
+				fmt.Println("Error while parsing graphql schema: ", err)
 				// set error flag & error message in the output
 				err = ctx.SetOutput("error", true)
 				if err != nil {
 					return false, err
 				}
-				errMsg := fmt.Sprintf("Error while parsing GQL schema: %s", err)
+				errMsg := fmt.Sprintf("Error while parsing graphql schema: %s", err)
 				err = ctx.SetOutput("errorMessage", errMsg)
 				if err != nil {
 					return false, err
@@ -153,7 +153,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 			}
 			err = json.Unmarshal([]byte(input.Query), &gqlQuery)
 			if err != nil {
-				fmt.Println("Error while parsing GQL query: ", err)
+				fmt.Println("Error while parsing graphql query: ", err)
 				// set error flag & error message in the output
 				err = ctx.SetOutput("error", true)
 				if err != nil {
@@ -189,7 +189,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 			// validate request
 			validationErrors := schema.Validate(gqlQuery.Query)
 			if validationErrors != nil {
-				fmt.Printf("Invalid GQL request: %s \n", validationErrors)
+				fmt.Printf("Invalid graphql request: %s \n", validationErrors)
 
 				// set error flag & error message in the output
 				err = ctx.SetOutput("error", true)
@@ -276,7 +276,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 					return false, nil
 				}
 				availableLimit, err := limiter.Consume(elapsedInMsRound)
-				fmt.Printf("availanle limit = %v \n", availableLimit)
+				fmt.Printf("available limit = %v \n", availableLimit)
 				if err != nil {
 					err = ctx.SetOutput("error", true)
 					if err != nil {

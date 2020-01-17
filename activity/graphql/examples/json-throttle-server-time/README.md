@@ -10,7 +10,7 @@ This is a gateway application demonstrates how following polices can be applied 
 ## Setup
 ```
 git clone https://github.com/project-flogo/microgateway
-cd activity/gql/examples/json-throttle-server-time
+cd activity/graphql/examples/json-throttle-server-time
 ```
 
 ## Testing
@@ -29,7 +29,7 @@ and test below scenarios:
 
 ### Validated graphql requests against defined quota
 
-GQL service is configured with the below limit:
+graphql service is configured with the below limit:
 ```sh
 "settings": {
     "mode": "b",
