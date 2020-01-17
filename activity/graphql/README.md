@@ -1,6 +1,6 @@
-# GQL
+# GraphQL
 
-The `gql` service type accepts GraphQL request and applies policies and validates against the schema.
+The `graphql` service type accepts GraphQL request and applies policies and validates against the schema.
 
 The service `settings` and available `input` for the request are as follows:
 
@@ -35,9 +35,9 @@ A sample `service` definition is:
 
 ```json
 {
-    "name": "GQL",
+    "name": "GraphQL",
     "description": "GraphQL policies service",
-    "ref": "github.com/project-flogo/microgateway/activity/gql"
+    "ref": "github.com/project-flogo/microgateway/activity/graphql"
 }
 ```
 
@@ -45,7 +45,7 @@ An example `step` that invokes `JQL` service using a `GraphQL request` from a HT
 
 ```json
 {
-    "service": "GQL",
+    "service": "GraphQL",
     "input": {
         "query": "=$.payload.content",
         "schemaFile": "schema.graphql",
@@ -58,12 +58,12 @@ Utilizing and extracting the response values can be seen in a conditional evalua
 
 ```json
 {
-    "if": "$.GQL.outputs.error == true",
+    "if": "$.GraphQL.outputs.error == true",
     "error": true,
     "output": {
         "code": 200,
         "data": {
-            "error": "=$.GQL.outputs.errorMessage"
+            "error": "=$.GraphQL.outputs.errorMessage"
         }
     }
 }
@@ -94,16 +94,16 @@ Example:
 
 ```json
 {
-  "name": "GQL",
+  "name": "GraphQL",
   "description": "GraphQL policies service",
-  "ref": "github.com/project-flogo/microgateway/activity/gql",
+  "ref": "github.com/project-flogo/microgateway/activity/graphql",
   "settings": {
     "mode": "b",
     "limit": "1000-200-2000"
     }
 }
 ```
-In the above GQL service maximum server time is set to 1000ms and client gains 200ms of server time per 2000ms
+In the above graphql service maximum server time is set to 1000ms and client gains 200ms of server time per 2000ms
 
 
 ## TODO

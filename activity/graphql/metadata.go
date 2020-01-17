@@ -1,4 +1,4 @@
-package gql
+package graphql
 
 import "github.com/project-flogo/core/data/coerce"
 

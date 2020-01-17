@@ -11,7 +11,7 @@ This is a gateway application demonstrates how following polices can be applied 
 ## Setup
 ```
 git clone https://github.com/project-flogo/microgateway
-cd activity/gql/examples/json
+cd activity/graphql/examples/json
 ```
 
 ## Testing

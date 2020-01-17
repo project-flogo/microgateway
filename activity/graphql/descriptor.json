@@ -4,7 +4,7 @@
     "version": "0.1.0",
     "title": "GraphQL",
     "description": "Executes GraphQL query",
-    "homepage": "https://github.com/project-flogo/microgateway/tree/master/activity/gql",
+    "homepage": "https://github.com/project-flogo/microgateway/tree/master/activity/graphql",
     "input":[
       {
         "name": "request",

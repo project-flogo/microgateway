@@ -36,36 +36,29 @@
           "name": "Pets",
           "steps": [
             {
-              "service": "GQL",
+              "service": "GraphQL",
               "input": {
-                "token": "=$.payload.headers.Token",
-                "operation": "startconsume"
+                "query": "=$.payload.content",
+                "schemaFile": "schema.graphql",
+                "maxQueryDepth": 2
               }
             },
             {
-              "if": "$.GQL.outputs.error == false", 
+              "if": "$.GraphQL.outputs.valid == true", 
               "service": "GraphQLQuery",
               "input": {
                 "content": "=$.payload.content"
-              }
-            },
-            {
-              "if": "$.GQL.outputs.error == false", 
-              "service": "GQL",
-              "input": {
-                "token": "=$.payload.headers.Token",
-                "operation": "stopconsume"
               }
             }
           ],
           "responses": [
             {
-              "if": "$.GQL.outputs.error == true",
+              "if": "$.GraphQL.outputs.error == true",
               "error": true,
               "output": {
                 "code": 200,
                 "data": {
-                  "error": "=$.GQL.outputs.errorMessage"
+                  "error": "=$.GraphQL.outputs.errorMessage"
                 }
               }
             },
@@ -85,7 +78,7 @@
                 "code": 200,
                 "data": {
                   "response": "=$.GraphQLQuery.outputs.data",
-                  "validationMessage": "=$.GQL.outputs.validationMessage"
+                  "validationMessage": "=$.GraphQL.outputs.validationMessage"
                 }
               }
             }
@@ -104,12 +97,11 @@
               }
             },
             {
-              "name": "GQL",
+              "name": "GraphQL",
               "description": "GraphQL policies service",
-              "ref": "github.com/project-flogo/microgateway/activity/gql",
+              "ref": "github.com/project-flogo/microgateway/activity/graphql",
               "settings": {
-                "mode": "b",
-                "limit": "1000-200-2000"
+                "mode": "a"
               }
             }
           ]
