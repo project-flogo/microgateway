@@ -1,7 +1,6 @@
 package graphql
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -188,7 +187,6 @@ func TestGraphQLModeB(t *testing.T) {
 	})
 	status, err := activity.Eval(ctx)
 
-	fmt.Println(ctx.output)
 	assert.True(t, status)
 	status, err = activity.Eval(ctx)
 
@@ -206,7 +204,6 @@ func TestGraphQLModeB(t *testing.T) {
 		"operation": "stopconsume",
 	})
 	status, err = activity.Eval(ctx)
-	fmt.Println(ctx.output)
 	assert.True(t, status)
 
 	ctx = newActivityContext(map[string]interface{}{
@@ -222,7 +219,6 @@ func TestGraphQLModeB(t *testing.T) {
 		"operation": "stopconsume",
 	})
 	_, err = activity.Eval(ctx)
-	fmt.Println(ctx.output)
 	assert.True(t, ctx.output["error"].(bool))
 
 	ctx = newActivityContext(map[string]interface{}{
@@ -239,7 +235,6 @@ func TestGraphQLModeB(t *testing.T) {
 	})
 	status2, err := activity.Eval(ctx)
 	// status, err = activity.Eval(ctx)
-	fmt.Println(ctx.output)
 	assert.True(t, status2)
 
 	ctx = newActivityContext(map[string]interface{}{
@@ -255,7 +250,5 @@ func TestGraphQLModeB(t *testing.T) {
 		"operation": "stopconsume",
 	})
 	_, err = activity.Eval(ctx)
-	// status, err = activity.Eval(ctx)
-	fmt.Println(ctx.output)
 	assert.True(t, ctx.output["error"].(bool))
 }
