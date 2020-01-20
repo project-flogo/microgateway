@@ -1,7 +1,9 @@
 package graphql
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data"
@@ -139,9 +141,121 @@ func TestGraphQLModeA(t *testing.T) {
 	// valid query
 	ctx = newActivityContext(map[string]interface{}{
 		"query":         query,
-		"schemaFile":    "examples/json/schema.graphql",
+		"schemaFile":    "examples/schema.graphql",
 		"maxQueryDepth": 2,
 	})
 	_, err = activity.Eval(ctx)
 	assert.True(t, ctx.output["valid"].(bool))
+
+	invalidquery := `{"query":"query {stationWithEvaId(evaId: 8000105) { cityname } }"}`
+	ctx = newActivityContext(map[string]interface{}{
+		"query":         invalidquery,
+		"schemaFile":    "examples/schema.graphql",
+		"maxQueryDepth": 2,
+	})
+	_, err = activity.Eval(ctx)
+	assert.True(t, ctx.output["error"].(bool))
+
+	querydepth := `{"query":"{stationWithEvaId(evaId: 8000105) {name location { latitude longitude } picture { url } } }"}`
+	ctx = newActivityContext(map[string]interface{}{
+		"query":         querydepth,
+		"schemaFile":    "examples/schema.graphql",
+		"maxQueryDepth": 2,
+	})
+	_, err = activity.Eval(ctx)
+	assert.True(t, ctx.output["error"].(bool))
+}
+
+func TestGraphQLModeB(t *testing.T) {
+	activity, err := New(newInitContext(map[string]interface{}{
+		"mode":  "b",
+		"limit": "500-100-1000",
+	}))
+	assert.Nil(t, err)
+
+	query := `{"query":"query {stationWithEvaId(evaId: 8000105) { name } }"}`
+	ctx := newActivityContext(map[string]interface{}{
+		"token":     "token123",
+		"operation": "startconsume",
+		"query":     query,
+	})
+	_, err = activity.Eval(ctx)
+	assert.False(t, ctx.output["error"].(bool))
+
+	ctx = newActivityContext(map[string]interface{}{
+		"token":     "token123",
+		"operation": "stopconsume",
+	})
+	status, err := activity.Eval(ctx)
+
+	fmt.Println(ctx.output)
+	assert.True(t, status)
+	status, err = activity.Eval(ctx)
+
+	// time.Sleep(900 * time.Millisecond)
+	ctx = newActivityContext(map[string]interface{}{
+		"token":     "token123",
+		"operation": "startconsume",
+		"query":     query,
+	})
+	_, err = activity.Eval(ctx)
+	assert.False(t, ctx.output["error"].(bool))
+	time.Sleep(400 * time.Millisecond)
+	ctx = newActivityContext(map[string]interface{}{
+		"token":     "token123",
+		"operation": "stopconsume",
+	})
+	status, err = activity.Eval(ctx)
+	fmt.Println(ctx.output)
+	assert.True(t, status)
+
+	ctx = newActivityContext(map[string]interface{}{
+		"token":     "token123",
+		"operation": "startconsume",
+		"query":     query,
+	})
+	_, err = activity.Eval(ctx)
+	assert.False(t, ctx.output["error"].(bool))
+	time.Sleep(200 * time.Millisecond)
+	ctx = newActivityContext(map[string]interface{}{
+		"token":     "token123",
+		"operation": "stopconsume",
+	})
+	_, err = activity.Eval(ctx)
+	fmt.Println(ctx.output)
+	assert.True(t, ctx.output["error"].(bool))
+
+	ctx = newActivityContext(map[string]interface{}{
+		"token":     "token1234",
+		"operation": "startconsume",
+		"query":     query,
+	})
+	_, err = activity.Eval(ctx)
+	assert.False(t, ctx.output["error"].(bool))
+	time.Sleep(100 * time.Millisecond)
+	ctx = newActivityContext(map[string]interface{}{
+		"token":     "token1234",
+		"operation": "stopconsume",
+	})
+	status2, err := activity.Eval(ctx)
+	// status, err = activity.Eval(ctx)
+	fmt.Println(ctx.output)
+	assert.True(t, status2)
+
+	ctx = newActivityContext(map[string]interface{}{
+		"token":     "token1234",
+		"operation": "startconsume",
+		"query":     query,
+	})
+	_, err = activity.Eval(ctx)
+	assert.False(t, ctx.output["error"].(bool))
+	time.Sleep(401 * time.Millisecond)
+	ctx = newActivityContext(map[string]interface{}{
+		"token":     "token1234",
+		"operation": "stopconsume",
+	})
+	_, err = activity.Eval(ctx)
+	// status, err = activity.Eval(ctx)
+	fmt.Println(ctx.output)
+	assert.True(t, ctx.output["error"].(bool))
 }

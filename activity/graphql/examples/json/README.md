@@ -20,11 +20,13 @@ Create the gateway:
 flogo create -f flogo.json
 cd MyProxy
 flogo build
+cd bin
+cp ../../../schema.graphql .
 ```
 
 Start the gateway:
 ```
-bin/MyProxy
+./MyProxy
 ```
 and test below scenarios:
 
