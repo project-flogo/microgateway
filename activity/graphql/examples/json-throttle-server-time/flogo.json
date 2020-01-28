@@ -113,7 +113,7 @@
               "ref": "github.com/project-flogo/microgateway/activity/graphql",
               "settings": {
                 "mode": "b",
-                "limit": "1000-200-2000"
+                "limit": "2000-200-2000"
               }
             }
           ]
