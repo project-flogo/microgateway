@@ -1,0 +1,125 @@
+{
+    "name": "MyProxy",
+    "type": "flogo:app",
+    "version": "1.0.0",
+    "description": "This is a simple proxy.",
+    "properties": null,
+    "channels": null,
+    "imports":[
+      "resta github.com/project-flogo/contrib/trigger/rest",
+	    "graphqla github.com/project-flogo/microgateway/activity/graphql"
+    ],
+    "triggers": [
+      {
+        "name": "flogo-rest",
+        "id": "MyProxy",
+        "ref": "github.com/project-flogo/contrib/trigger/rest",
+        "settings": {
+          "port": "9096"
+        },
+        "handlers": [
+          {
+            "settings": {
+              "method": "POST",
+              "path": "/graphql"
+            },
+            "actions": [
+              {
+                "id": "microgateway:Gqlaction"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "id": "microgateway:Gqlaction",
+        "compressed": false,
+        "data": {
+          "name": "Pets",
+          "steps": [
+            {
+              "service": "GraphQL",
+              "input": {
+                "query": "=$.payload.content",
+                "schemaFile": "schema.graphql",
+                "maxQueryDepth": 2
+              }
+            },
+            {
+              "if": "$.GraphQL.outputs.valid == true",
+              "service": "GraphQLQuery",
+              "input": {
+                "content": "=$.payload.content"
+              }
+            }
+          ],
+          "responses": [
+            {
+              "if": "$.GraphQL.outputs.error == true",
+              "error": true,
+              "output": {
+                "code": 200,
+                "data": {
+                  "error": "=$.GraphQL.outputs.errorMessage"
+                }
+              }
+            },
+            {
+              "if": "$.GraphQLQuery.outputs.status != 200",
+              "error": true,
+              "output": {
+                "code": 403,
+                "data": {
+                  "error": "Request failed."
+                }
+              }
+            },
+            {
+              "error": false,
+              "output": {
+                "code": 200,
+                "data": {
+                  "response": "=$.GraphQLQuery.outputs.data",
+                  "validationMessage": "=$.GraphQL.outputs.validationMessage"
+                }
+              }
+            }
+          ],
+          "services": [
+            {
+              "name": "GraphQLQuery",
+              "description": "query graphql endpoint",
+              "ref": "github.com/project-flogo/contrib/activity/rest",
+              "settings": {
+                "uri": "https://bahnql.herokuapp.com/graphql",
+                "method": "POST",
+                "headers": {
+                  "Accept": "application/json"
+                }
+              }
+            },
+            {
+              "name": "GraphQL",
+              "description": "GraphQL policies service",
+              "ref": "github.com/project-flogo/microgateway/activity/graphql",
+              "settings": {
+                "mode": "a"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "actions": [
+      {
+        "ref": "github.com/project-flogo/microgateway",
+        "settings": {
+          "uri": "microgateway:Gqlaction"
+        },
+        "id": "microgateway:Gqlaction",
+        "metadata": null
+      }
+    ]
+  }
