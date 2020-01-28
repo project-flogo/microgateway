@@ -6,8 +6,8 @@
     "properties": null,
     "channels": null,
     "imports":[
-      "github.com/project-flogo/contrib/trigger/rest",
-	    "github.com/project-flogo/microgateway/activity/graphql"
+      "resta github.com/project-flogo/contrib/trigger/rest",
+	    "graphqla github.com/project-flogo/microgateway/activity/graphql"
     ],
     "triggers": [
       {
@@ -48,7 +48,7 @@
               }
             },
             {
-              "if": "$.GraphQL.outputs.valid == true", 
+              "if": "$.GraphQL.outputs.valid == true",
               "service": "GraphQLQuery",
               "input": {
                 "content": "=$.payload.content"
@@ -123,4 +123,3 @@
       }
     ]
   }
-  

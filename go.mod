@@ -10,6 +10,8 @@ require (
 	github.com/golang/protobuf v1.2.0 // indirect
 	github.com/gonum/blas v0.0.0-20180125090452-e7c5890b24cf // indirect
 	github.com/google/flatbuffers v1.10.0 // indirect
+	github.com/graph-gophers/graphql-go v0.0.0-20191115155744-f33e81362277
+	github.com/graphql-go/graphql v0.7.8
 	github.com/leesper/go_rng v0.0.0-20171009123644-5344a9259b21 // indirect
 	github.com/pkg/errors v0.8.0 // indirect
 	github.com/project-flogo/contrib v0.9.0-alpha.4.0.20190509204259-4246269fb68e
@@ -42,3 +44,5 @@ require (
 	gorgonia.org/vecf32 v0.0.0-20180224100446-da24147133d9 // indirect
 	gorgonia.org/vecf64 v0.0.0-20180224100512-6314d1b6cefc // indirect
 )
+
+go 1.13
