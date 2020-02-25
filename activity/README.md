@@ -5,3 +5,4 @@ Activities that are very specific to the operation of the Microgateway.
 * [jwt](jwt) allows for JSON web token based authentication
 * [ratelimiter](ratelimiter) is a rate limiter implementation
 * [sqld](sqld) is a SQL injection attack detector
+* [obfuscate](obfuscate) is an activity that allows you to obfuscate the required value in the JSON using defined function

@@ -1,0 +1,34 @@
+{
+    "name": "sample-activity",
+    "type": "flogo:activity",
+    "version": "0.0.1",
+    "title": "Obfuscate Activity",
+    "description": "Obfuscate Activity obfuscates the required value in the JSON using defined function.",
+    "homepage": "https://github.com/project-flogo/tree/master/examples/activity",
+    "settings": [
+      {
+        "name": "operation",
+        "type": "string",
+        "required": true,
+        "allowed": ["setLastFour"]
+      }, 
+      {
+        "name": "fields",
+        "type": "array",
+        "required": true
+      }
+    ],
+    "input": [
+      {
+        "name": "payload",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "output": [
+      {
+        "name": "result",
+        "type": "any"
+      }
+    ]
+  }
