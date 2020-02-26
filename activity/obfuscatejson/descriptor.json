@@ -1,0 +1,33 @@
+{
+    "name": "obfuscatejson-activity",
+    "type": "flogo:activity",
+    "version": "0.0.1",
+    "title": "ObfuscateJSON Activity",
+    "description": "Obfuscate JSON Activity llows you to obfuscate the required value in the playload of type JSON using defined function.",
+    "settings": [
+      {
+        "name": "operation",
+        "type": "string",
+        "required": true,
+        "allowed": ["setLastFour"]
+      }, 
+      {
+        "name": "fields",
+        "type": "array",
+        "required": true
+      }
+    ],
+    "input": [
+      {
+        "name": "payload",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "output": [
+      {
+        "name": "result",
+        "type": "any"
+      }
+    ]
+  }
