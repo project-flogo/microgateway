@@ -1,4 +1,4 @@
-package obfusacte
+package obfusactejson
 
 import (
 	"testing"
@@ -36,4 +36,8 @@ func TestEval(t *testing.T) {
 	assert.True(t, done)
 	assert.Nil(t, err)
 
+	val := tc.GetOutput("result")
+	assert.NotNil(t, val)
+
+	assert.Contains(t, val.(string), "*************7261", "It obfuscated the digits of BookingCreditCard")
 }

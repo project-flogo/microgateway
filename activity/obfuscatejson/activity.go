@@ -1,4 +1,4 @@
-package obfusacte
+package obfusactejson
 
 import (
 	"bytes"

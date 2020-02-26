@@ -1,10 +1,9 @@
 {
-    "name": "sample-activity",
+    "name": "obfuscatejson-activity",
     "type": "flogo:activity",
     "version": "0.0.1",
-    "title": "Obfuscate Activity",
-    "description": "Obfuscate Activity obfuscates the required value in the JSON using defined function.",
-    "homepage": "https://github.com/project-flogo/tree/master/examples/activity",
+    "title": "ObfuscateJSON Activity",
+    "description": "Obfuscate JSON Activity llows you to obfuscate the required value in the playload of type JSON using defined function.",
     "settings": [
       {
         "name": "operation",

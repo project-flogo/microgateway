@@ -1,4 +1,4 @@
-package obfusacte
+package obfusactejson
 
 import "github.com/project-flogo/core/data/coerce"
 
